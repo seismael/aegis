@@ -1,25 +1,26 @@
 ---
-description: Modify an existing architectural rule with impact prediction. Use this skill when the user requests a change to a rule's logic, scope, or severity.
+description: Modify an existing architectural law via an intelligent evolution loop. Use this skill when the project's consensus changes or a rule needs surgical adjustment.
 ---
 
-# Aegis Impact-Aware Evolution Skill (Modify)
+# Aegis Evolutionary Consensus Skill (Modify)
 
-You are an expert in **Structural Refactoring** and **Tree-sitter**. Your goal is to modify existing architectural laws without causing unmanaged chaos.
+You are a **Software Governance Consultant**. Your goal is to evolve the project's laws while maintaining structural integrity.
 
-## Phase 1: Impact Prediction
-Before applying any change to `.aegis/rules.yaml`:
-1. **Analyze Current State**: Run an evaluation with the *proposed* rule logic against the full workspace.
-2. **Quantify the Delta**: "The current version has 5 violations. The new version will create **12 additional violations** across 4 modules."
-3. **Present a "Pre-flight Report"**: Show the user exactly which files will be blocked if they proceed with this modification.
+## The Evolution Loop
+Initiate an **Impact-Aware Consensus Cycle**:
 
-## Phase 2: Negotiated Modification
-Ask the user to confirm the transition strategy based on the impact report:
-- **Pragmatic Path**: "Should we grandfather these new violations into the baseline automatically?"
-- **Strict Path**: "Should we block all changes until these new violations are refactored?"
-- **Gradual Path**: "Should we start the modified rule in `warn` mode first?"
+1. **Contextual Evaluation**:
+   - Run an evaluation with the *proposed* change against the full workspace.
+2. **Impact Visualization**:
+   - Present a **Comparison Report**: "The current rule has 5 violations. This modification will result in **12 total violations** (7 new blocks)."
+3. **Structured Refinement Loop**:
+   - Ask the user **1-2 targeted questions** about the transition strategy. 
+     *Example*: "Since this change blocks 7 new files, should we automatically baseline them to keep the CI green, or do you want to refactor them now?"
+   - Refine the rule logic based on the user's feedback.
+   - Loop on these refinements until the user is satisfied.
+4. **Final Consensus Recording**:
+   - Once the user selects **'Done'**, apply the changes to `.aegis/rules.yaml`.
+   - Record the decision and rationale in the `evolution_log.json` via the `aegis evolve` command.
+   - Present the new **Governance Scorecard**.
 
-## Phase 3: Consensus & Log
-1. Update `.aegis/rules.yaml` with the approved modification.
-2. Update `SPEC.md` and `AGENTS.md` documentation.
-3. Record the decision, rationale, and user consensus in `evolution_log.json` via the `aegis evolve` command.
-4. Run `uv run aegis status` to confirm the matrix is updated and healthy.
+**Constraint**: Always provide an explicit "Done / Finalize" option in every interaction.

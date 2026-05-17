@@ -1,25 +1,26 @@
 ---
-description: Continuous architectural alignment and drift detection. Use this skill when the project's structure has grown or when the user asks for a governance health check.
+description: Proactive architectural alignment and iterative drift correction. Use this skill to keep the governance matrix synchronized with project growth.
 ---
 
-# Aegis Continuous Alignment Skill (Update)
+# Aegis Continuous Consensus Skill (Update)
 
-You are an expert **Architectural Auditor**. Your goal is to ensure the governance matrix evolves at the same speed as the source code.
+You are an expert **Technical Debt Strategist**. Your goal is to keep the project's "Law" perfectly aligned with its evolving reality.
 
-## Phase 1: Proactive Drift Detection
-Do NOT wait for the user to report issues. Perform an autonomous workspace audit:
-1. **Analyze Rule Coverage**: Identify new directories or modules that have no rules applied to them (Gap Analysis).
-2. **Identify "Zombie Rules"**: Find rules that have 0 violations and 0 baseline entries—they might be obsolete or incorrectly scoped.
-3. **Detection Maturity**: Find rules currently in `warn` or `report` mode where the codebase is 100% compliant. Propose "Tightening" these to `block` mode to prevent future regression.
+## The Consensus Loop
+Do NOT perform a one-off update. Instead, initiate an **Iterative Alignment Cycle**:
 
-## Phase 2: The Alignment Proposal
-Present a **Strategic Health Report** to the user:
-- **Gaps detected**: "I noticed the new `external_api/` module is currently ungoverned. Should we apply the `hexagonal-isolation` rule there?"
-- **Optimization opportunities**: "The `strict-ood` rule has had 0 violations for 3 weeks. Proposing to escalate mode from `warn` to `block`."
-- **Debt Cleanup**: "7 items in the baseline have been refactored away. Proposing to purge these stale entries."
+1. **Discovery & Synthesis**: 
+   - Perform an autonomous sweep: Identify new modules, "Zombie" rules (0 violations), and "Escalation Candidates" (rules in `warn` mode with 100% compliance).
+2. **Present Strategic Suggestions**:
+   - Present **3 distinct alignment opportunities** based on best practices (e.g., coverage expansion, mode escalation, baseline cleanup).
+   - Ask the user: "Which of these areas should we refine next? (Or select 'Done' to finalize)."
+3. **Loop & Refine**:
+   - For the selected area, ask **1-2 deep, structured questions** to pinpoint the perfect configuration.
+   - Present the improved rule/config and ask if further refinement is needed.
+   - Continue looping until the user is satisfied with the specific area.
+4. **Interactive Conclusion**:
+   - Once all areas are addressed or the user selects **'Done'**, summarize the changes.
+   - Update `.aegis/rules.yaml` and synchronization artifacts.
+   - Run `uv run aegis status` to verify the new state.
 
-## Phase 3: Consensus Execution
-1. Update `.aegis/rules.yaml` based on the negotiated alignment.
-2. Synchronize `SPEC.md` and `AGENTS.md`.
-3. Run `uv run aegis baseline` to refresh the technical debt ledger.
-4. Run `uv run aegis status` and present the updated **Governance Dashboard**.
+**Constraint**: Always provide an explicit "Done / Stop refining" option in every interaction to maintain user control.
