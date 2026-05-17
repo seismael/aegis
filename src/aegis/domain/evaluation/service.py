@@ -55,6 +55,10 @@ class EvaluationService:
             try:
                 full_path = os.path.join(self.diff_provider.repo.working_dir, file_path) if hasattr(self.diff_provider, 'repo') and self.diff_provider.repo else file_path
                 
+                # Skip files that no longer exist (deleted in the change set)
+                if not os.path.exists(full_path):
+                    continue
+
                 with open(full_path, "r", encoding="utf-8") as f:
                     content = f.read()
                 

@@ -1,5 +1,6 @@
 import os
 import typer
+import json
 from typing import Optional, List
 from rich.console import Console
 from rich.prompt import Prompt, Confirm
@@ -9,167 +10,165 @@ from aegis.core.models.evolution import EvolutionDecision
 
 class AegisCLI:
     """
-    Encapsulates the CLI logic within a class to comply with Strict OOD.
+    Headless CLI for Aegis.
+    Focused on CI/CD pipelines, environment bootstrapping, and diagnostic auditing.
     """
     def __init__(self):
         self.container = Container()
         self.console = Console()
-        self.app = typer.Typer(help="Aegis: Agentic Architectural Governance Engine")
+        self.app = typer.Typer(help="Aegis: Headless Architectural Governance Engine")
         self._register_commands()
 
     def _register_commands(self):
-        self.app.command()(self.status)
         self.app.command()(self.init)
         self.app.command()(self.check)
         self.app.command()(self.baseline)
+        self.app.command()(self.status)
         self.app.command()(self.apply)
         self.app.command()(self.evolve)
         self.app.command()(self.setup_hooks)
         self.app.command()(self.self_check)
 
-    def status(self):
-        """Displays the current architectural governance status."""
-        self.console.print("[bold blue]Aegis Governance Dashboard[/bold blue]")
-        rules_path = os.path.join(self.container.workspace_root, ".aegis", "rules.yaml")
-        if not os.path.exists(rules_path):
-            self.console.print("[yellow]Project not yet initialized or rules.yaml missing.[/yellow]")
-            return
-        rules = self.container.policy_parser.parse_rules(rules_path)
-        self.console.print(f"\n[bold]Active Rules ({len(rules)}):[/bold]")
-        for r in rules:
-            mode_style = "red" if r.mode == EnforcementMode.BLOCK else "yellow"
-            self.console.print(f"- [cyan]{r.id}[/cyan]: {r.description} ([dim]{r.language}[/dim]) [{mode_style}]{r.mode.value}[/{mode_style}]")
-        baseline = self.container.baseline_manager.load_baseline_raw()
-        self.console.print(f"\n[bold]Technical Debt Baseline:[/bold]")
-        self.console.print(f"- Total violations: {len(baseline)}")
-        log = self.container.evolution_service.load_log()
-        self.console.print(f"\n[bold]Recent Evolution Decisions ({len(log.decisions)}):[/bold]")
-        for d in log.decisions[-3:]:
-            self.console.print(f"- [dim]{d.timestamp.strftime('%Y-%m-%d')}[/dim] [bold]{d.rule_id}[/bold]: {d.action} ({d.rationale})")
-
     def init(self):
-        """Initialize Aegis governance directory structure."""
+        """Initializes the .aegis governance environment."""
         aegis_dir = os.path.join(self.container.workspace_root, ".aegis")
-        if os.path.exists(aegis_dir):
-            self.console.print("[green].aegis/ already exists. Run `/aegis-update` in Claude Code to review governance.[/green]")
-            return
-        os.makedirs(aegis_dir)
+        if not os.path.exists(aegis_dir):
+            os.makedirs(aegis_dir)
+        
+        # Create minimal config if missing
         config_path = os.path.join(aegis_dir, "config.yaml")
-        with open(config_path, "w", encoding="utf-8") as f:
-            f.write("enforcement: warn\n")
-        self.console.print("[green].aegis/ created. Run `/aegis-init` in Claude Code to set up governance rules.[/green]")
+        if not os.path.exists(config_path):
+            with open(config_path, "w", encoding="utf-8") as f:
+                f.write("enforcement: warn\n")
+        
+        self.console.print(f"[green]Aegis environment initialized at {aegis_dir}[/green]")
 
     def check(
         self,
-        staged: bool = typer.Option(False, "--staged", help="Check only staged changes (pre-commit mode)"),
-        rule: Optional[str] = typer.Option(None, "--rule", help="Filter check by specific rule ID")
+        staged: bool = typer.Option(False, "--staged", help="Check only staged changes"),
+        rule: Optional[str] = typer.Option(None, "--rule", help="Filter by specific rule ID")
     ):
-        """Performs a gated compliance check. Exits with code 1 if NEW architectural violations are detected."""
-        self.console.print("[bold blue]Aegis Enforcement Gate[/bold blue]")
+        """Performs a gated compliance check. Non-zero exit on blocking violations."""
         rules_path = os.path.join(self.container.workspace_root, ".aegis", "rules.yaml")
         if not os.path.exists(rules_path):
-            self.console.print("[red]Error: rules.yaml missing.[/red]")
+            self.console.print("[red]Error: .aegis/rules.yaml not found.[/red]")
             raise typer.Exit(code=1)
+
         all_rules = self.container.policy_parser.parse_rules(rules_path)
         rules = [r for r in all_rules if r.id == rule] if rule else all_rules
+        
         if staged:
-            self.console.print("Evaluating staged changes...")
             violations = self.container.evaluation_service.evaluate_changes(rules)
         else:
-            self.console.print("Performing full workspace check...")
             violations = self.container.evaluation_service.evaluate_workspace(self.container.workspace_root, rules)
-        active_violations = [v for v in violations if not self.container.baseline_manager.is_exempt(v)]
-        if not active_violations:
-            self.console.print("\n[bold green]✅ Gated check passed.[/bold green]")
-            if len(violations) > 0:
-                self.console.print(f"[dim](Ignored {len(violations)} legacy violations in baseline)[/dim]")
+            
+        active = [v for v in violations if not self.container.baseline_manager.is_exempt(v)]
+        
+        if not active:
+            self.console.print("[green]✅ Architecture compliant.[/green]")
             return
-        blocking_violations = []
-        warning_violations = []
-        rule_map = {r.id: r for r in rules}
-        for v in active_violations:
-            r = rule_map.get(v.rule_id)
-            if r and r.mode == EnforcementMode.BLOCK:
-                blocking_violations.append(v)
-            else:
-                warning_violations.append(v)
-        if warning_violations:
-            self.console.print(f"\n[yellow][!] Found {len(warning_violations)} non-blocking violations:[/yellow]")
-            for v in warning_violations:
-                 self.console.print(f"- [bold]{v.severity}[/bold] {v.file}:{v.line} - {v.description} ({v.rule_id})")
-        if blocking_violations:
-            self.console.print(f"\n[bold red][!] BLOCKING: Found {len(blocking_violations)} NEW Architectural Violations:[/bold red]")
-            for v in blocking_violations:
-                self.console.print(f"- [bold]{v.severity}[/bold] {v.file}:{v.line} - {v.description} ({v.rule_id})")
-            raise typer.Exit(code=1)
-        else:
-            self.console.print("\n[bold green]✅ Gated check passed (No blocking violations).[/bold green]")
 
-    def baseline(
-        self,
-        clear: bool = typer.Option(False, "--clear", help="Clear the existing baseline"),
-        diff: bool = typer.Option(False, "--diff", help="Show violations not in current baseline")
-    ):
-        """Captures all current architectural violations and stores them in .aegis/baseline.json."""
-        self.console.print("[bold blue]Aegis Baseline Management[/bold blue]")
+        # Blocking logic
+        rule_map = {r.id: r for r in rules}
+        blocking = [v for v in active if rule_map.get(v.rule_id).mode == EnforcementMode.BLOCK]
+        
+        for v in active:
+            r_obj = rule_map.get(v.rule_id)
+            mode = r_obj.mode.value if r_obj else "unknown"
+            style = "red" if mode == "block" else "yellow"
+            self.console.print(f"- [{style}]{mode.upper()}[/{style}] {v.file}:{v.line} ({v.rule_id})")
+
+        if blocking:
+            self.console.print(f"\n[bold red]Blocked: {len(blocking)} architectural violations detected.[/bold red]")
+            raise typer.Exit(code=1)
+
+    def baseline(self, clear: bool = typer.Option(False, "--clear", help="Clear the existing baseline")):
+        """Manages the architectural technical debt ledger."""
         if clear:
             if os.path.exists(self.container.baseline_manager.path):
                 os.remove(self.container.baseline_manager.path)
-                self.console.print("[yellow]Baseline cleared.[/yellow]")
+            self.console.print("[yellow]Baseline cleared.[/yellow]")
             return
+
         rules_path = os.path.join(self.container.workspace_root, ".aegis", "rules.yaml")
+        if not os.path.exists(rules_path):
+             self.console.print("[red]Error: .aegis/rules.yaml not found.[/red]")
+             return
+
         rules = self.container.policy_parser.parse_rules(rules_path)
         violations = self.container.evaluation_service.evaluate_workspace(self.container.workspace_root, rules)
-        if diff:
-            new_violations = [v for v in violations if not self.container.baseline_manager.is_exempt(v)]
-            self.console.print(f"Found {len(new_violations)} violations not in baseline.")
-            for v in new_violations:
-                self.console.print(f"- {v.file}:{v.line} ({v.rule_id})")
-            return
         self.container.baseline_manager.save_baseline(violations)
         self.console.print(f"[green]Successfully baselined {len(violations)} violations.[/green]")
 
-    def apply(self, rule: Optional[str] = None):
-        """Applies automated remediation to resolve architectural violations."""
-        self.console.print("[bold blue]Aegis Architectural Remediation[/bold blue]")
+    def status(self, json_output: bool = typer.Option(False, "--json")):
+        """Provides a summary of the current governance state."""
+        rules_path = os.path.join(self.container.workspace_root, ".aegis", "rules.yaml")
+        rules = self.container.policy_parser.parse_rules(rules_path)
+        baseline = self.container.baseline_manager.load_baseline_raw()
+        
+        stats = {
+            "rules_count": len(rules),
+            "baseline_violations": len(baseline),
+            "project_root": self.container.workspace_root
+        }
+        
+        if json_output:
+            print(json.dumps(stats))
+        else:
+            self.console.print(f"Aegis Status: {len(rules)} rules, {len(baseline)} legacy debt items.")
+
+    def apply(self, rule: Optional[str] = typer.Option(None, "--rule", help="Specific rule to remediate")):
+        """Displays remediation prompts for active violations."""
+        self.console.print("[bold blue]Aegis Architectural Remediation Audit[/bold blue]")
+        
         rules_path = os.path.join(self.container.workspace_root, ".aegis", "rules.yaml")
         all_rules = self.container.policy_parser.parse_rules(rules_path)
         rules = [r for r in all_rules if r.id == rule] if rule else all_rules
+        
         violations = self.container.evaluation_service.evaluate_workspace(self.container.workspace_root, rules)
-        active_violations = [v for v in violations if not self.container.baseline_manager.is_exempt(v)]
-        if not active_violations:
-            self.console.print("[green]No active violations found.[/green]")
+        active = [v for v in violations if not self.container.baseline_manager.is_exempt(v)]
+        
+        if not active:
+            self.console.print("[green]No active violations found for remediation.[/green]")
             return
-        plan = self.container.remediation_service.create_plan(active_violations)
-        for action in plan.actions:
-            v = action.violation
-            self.console.print(f"- [dim]{action.strategy}[/dim] Fix {v.file}:{v.line} ({v.rule_id})")
-        if Confirm.ask("\nDo you want to apply these fixes?"):
-            success_count = self.container.remediation_service.execute_plan(plan)
-            self.console.print(f"\n[bold green]Success![/bold green] Applied {success_count} remediation actions.")
+
+        self.console.print(f"Found {len(active)} active violations.")
+        
+        for v in active:
+            self.console.print(f"\n[bold]Violation in {v.file}:{v.line} ({v.rule_id})[/bold]")
+            # Simulate the kernel's prompt generation
+            prompt = f"REFACTORING STRATEGY: {v.description}"
+            self.console.print(f"[dim]{prompt}[/dim]")
+            
+        self.console.print("\n[yellow]Note: In the Agentic paradigm, the AI agent performs the refactor.[/yellow]")
+        self.console.print("Run `/aegis-rule-add` or `/aegis-update` in your AI chat to trigger a fix.")
 
     def evolve(self, rule_id: str = typer.Argument(..., help="The ID of the rule to evolve")):
-        """Initiates a consensus loop to modify an architectural invariant."""
+        """Consensus recording flow for rule modifications."""
         self.console.print(f"[bold blue]Aegis Architectural Evolution: {rule_id}[/bold blue]")
+        
         rules_path = os.path.join(self.container.workspace_root, ".aegis", "rules.yaml")
         rules = self.container.policy_parser.parse_rules(rules_path)
         rule = next((r for r in rules if r.id == rule_id), None)
+        
         if not rule:
             self.console.print(f"[red]Error: Rule '{rule_id}' not found.[/red]")
             return
-        violations = self.container.evaluation_service.evaluate_workspace(self.container.workspace_root, [rule])
-        active = [v for v in violations if not self.container.baseline_manager.is_exempt(v)]
-        if active:
-            self.console.print(f"\n[yellow]Found {len(active)} active violations for this rule.[/yellow]")
-            if Confirm.ask("Do you want to suppress these violations (add to baseline)?"):
-                for v in active:
-                    self.container.baseline_manager.add_to_baseline(v)
-                self.console.print(f"[green]Successfully suppressed {len(active)} violations.[/green]")
-                return
-        action = Prompt.ask("Action?", choices=["relax_rule", "refactor_required"], default="refactor_required")
-        rationale = Prompt.ask("Rationale")
-        self.container.evolution_service.log_decision(EvolutionDecision(rule_id=rule_id, action=action, rationale=rationale))
-        self.console.print(f"\n✅ Decision recorded.")
+
+        action = Prompt.ask("Consensus Action?", choices=["suppress", "relax_rule", "refactor_required"], default="suppress")
+        rationale = Prompt.ask("Decision Rationale")
+        
+        decision = EvolutionDecision(rule_id=rule_id, action=action, rationale=rationale)
+        self.container.evolution_service.log_decision(decision)
+        
+        if action == "suppress":
+            self.console.print("[yellow]Capturing current violations for this rule into baseline...[/yellow]")
+            violations = self.container.evaluation_service.evaluate_workspace(self.container.workspace_root, [rule])
+            for v in violations:
+                self.container.baseline_manager.add_to_baseline(v)
+            self.console.print(f"[green]Successfully suppressed {len(violations)} violations.[/green]")
+        
+        self.console.print("\n✅ Decision recorded in evolution_log.json")
 
     def setup_hooks(self):
         """Wires Aegis into the project's Git hooks."""
@@ -197,12 +196,16 @@ class AegisCLI:
                 self.console.print("[bold red]❌ Self-governance violation detected![/bold red]")
             raise e
 
-def main():
-    cli = AegisCLI()
-    cli.app()
+    def run(self):
+        self.app()
+
+    @staticmethod
+    def entry_point():
+        cli = AegisCLI()
+        cli.run()
 
 cli = AegisCLI()
 app = cli.app
 
 if __name__ == "__main__":
-    main()
+    AegisCLI.entry_point()

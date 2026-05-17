@@ -37,7 +37,9 @@ dev = [
 ]
 
 [project.scripts]
-aegis = "aegis.cli.main:app"
+aegis = "aegis.cli.main:AegisCLI.entry_point"
+aegis-kernel = "aegis.kernel.server:AegisKernel.entry_point"
+aegis-install = "aegis.infrastructure.installer:AegisInstaller.entry_point"
 
 [build-system]
 requires = ["hatchling"]

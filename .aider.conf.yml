@@ -1,0 +1,6 @@
+mcp-servers:
+- uv run aegis-kernel
+read:
+- AGENTS.md
+- SPEC.md
+- .aegis/rules.yaml
