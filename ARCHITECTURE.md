@@ -1,19 +1,19 @@
-# Aegis Architectural Specification (v1.2)
+# Aegis Architectural Specification (v1.3)
 
 ## 1. Executive Vision
 **Aegis** is an enterprise-grade, agentic architectural governance engine. It operates as a localized **Agentic Microkernel** that facilitates the negotiation, codification, and active enforcement of architectural consensus between human engineers and AI coding agents via the **Model Context Protocol (MCP)**.
 
 ---
 
-## 2. The Agentic Governance Paradigm
-Aegis distinguishes between **Authoring** (Negotiation) and **Enforcement** (Gating).
+## 2. The Tiered Governance Paradigm
+Aegis distinguishes between **Global Capability** (The Plugin) and **Local Governance** (The Law).
 
-### 2.1 Skill-Based Authoring (External)
-Architectural laws are discovered and codified via **AI Skills** (e.g., `.claude/skills/aegis-init.md`). This allows for context-aware, natural language negotiation of invariants that rigid terminal forms cannot achieve.
-- **Output**: `.aegis/rules.yaml` (The Machine-Parseable Matrix).
+### 2.1 Global Agent Capability (The Installer)
+Aegis acts as a native extension for AI agents. The **`aegis-install`** bootstrapper registers the engine globally in the user's AI toolchains (Claude, Aider, etc.). 
+- **Impact**: AI agents carry the "Aegis Capability" into every project they enter.
 
-### 2.2 Engine-Based Enforcement (Internal)
-The Python core is a high-performance, stateless execution engine that consumes structured rules and applies them to the syntax tree of the project.
+### 2.2 Project-Level Governance (The Engine)
+Once an agent enters a repository, they activate the local protocol via **`aegis init`**. The Python core then enforces the structured laws defined in that project's `.aegis/rules.yaml`.
 
 ---
 
@@ -33,25 +33,25 @@ Aegis supports **Brownfield Convergence** via structural signature hashing. LEGA
 ## 4. System Topology (Hexagonal)
 
 ### 4.1 Domain Layer
-- **Policy Domain**: Structured YAML-to-Rule validation.
+- **Policy Domain**: Structured YAML-to-Rule validation and inheritance.
 - **Evaluation Domain**: AST analysis, Baseline matching, and Workspace orchestration.
-- **Enforcement Domain**: Remediation prompt synthesis.
+- **Enforcement Domain**: Remediation prompt synthesis (RAG-based).
 - **Evolution Domain**: Consensus logging and decision persistence.
 
-### 4.2 Infrastructure Layer
+### 4.2 Infrastructure Layer (Adapters)
+- **Agent Tool Adapters**: Native tool-specific integration logic (Claude, Aider).
 - **AST Engine**: Multi-parser Tree-sitter integration.
 - **VCS Provider**: Hunk-aware Git diffing.
-- **Persistence**: Local JSON/YAML storage.
 
 ### 4.3 Kernel Layer (Interface)
-- **CLI Router**: Headless CI/CD gatekeeper (**`AegisCLI`**).
-- **MCP Facade**: Stateless JSON-RPC server (**`AegisKernel`**).
-- **Composition Root**: Unified **`Container`** for dependency injection.
+- **CLI Router**: Headless CI/CD gatekeeper and bootstrapper (**`AegisCLI`**).
+- **MCP Facade**: Stateless JSON-RPC server with project management tools (**`AegisKernel`**).
+- **Composition Root**: Unified **`Container`** for shared dependency injection.
 
 ---
 
 ## 5. System Invariants
 
-1. **Local Isolation**: 100% local execution; no external dependencies.
-2. **Stateless Logic**: The engine is reactive to the current `.aegis/` state.
+1. **Local Isolation**: 100% local execution; no external telemetry.
+2. **Stateless Enforcement**: The engine is reactive to the current `.aegis/` state.
 3. **Self-Governance**: Aegis enforces its own OOD and isolation laws using its internal `check` engine.

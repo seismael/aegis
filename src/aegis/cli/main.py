@@ -2,6 +2,7 @@ import json
 import logging
 import os
 from collections import Counter
+from typing import Optional, List
 
 import structlog
 import typer
@@ -37,11 +38,20 @@ class AegisCLI:
         self.app.command()(self.serve)
         self.app.command()(self.self_check)
 
-    def install(self):
-        """Global installation proxy for the CLI."""
+    def install(self, tool: Optional[str] = typer.Argument(None, help="Specific tool to install into (e.g. claude, aider)")):
+        """Globally installs Aegis MCP configurations and AI Skills natively into agent tools."""
         from aegis.infrastructure.installer import AegisInstaller
 
-        AegisInstaller.entry_point()
+        self.console.print(
+            f"[bold blue]Executing Aegis Installation for {tool or 'all tools'}...[/bold blue]"
+        )
+        try:
+            installer = AegisInstaller()
+            installer.install_global_capability(target_tool=tool)
+        except Exception as e:
+            self.console.print(f"[bold red]Installation failed:[/bold red] {str(e)}")
+            raise typer.Exit(code=1)
+
 
     def init(self):
         """

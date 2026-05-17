@@ -100,6 +100,62 @@ class AegisKernel:
         self.mcp.tool()(self.get_rule_rationale)
         self.mcp.tool()(self.get_dependency_graph)
         self.mcp.tool()(self.server_status)
+        self.mcp.tool()(self.initialize_project_governance)
+        self.mcp.tool()(self.capture_architectural_baseline)
+        self.mcp.tool()(self.negotiate_architectural_evolution)
+
+    async def initialize_project_governance(self) -> str:
+        """
+        Project-Level Capability: Bootstraps Aegis governance for the current repository.
+        Creates .aegis/ directory and initial configuration.
+        """
+        if self.container is None:
+            return "ERROR: Kernel not initialized."
+            
+        root = self._workspace_root
+        aegis_dir = os.path.join(root, ".aegis")
+        if not os.path.exists(aegis_dir):
+            os.makedirs(aegis_dir)
+            
+        config_path = os.path.join(aegis_dir, "config.yaml")
+        if not os.path.exists(config_path):
+            with open(config_path, "w", encoding="utf-8") as f:
+                f.write("enforcement: warn\n")
+        
+        return f"✅ Aegis governance initialized at {aegis_dir}. You can now run `/aegis-init` to define rules."
+
+    async def capture_architectural_baseline(self) -> str:
+        """
+        Project-Level Capability: Captures current violations as technical debt.
+        Ensures a clean enforcement gate by 'grandfathering' existing drift.
+        """
+        if self.container is None:
+            return "ERROR: Kernel not initialized."
+
+        root = self._workspace_root
+        rules_path = os.path.join(root, ".aegis", "rules.yaml")
+        if not os.path.exists(rules_path):
+            return "ERROR: Project not initialized. Call `initialize_project_governance` first."
+
+        rules = self._policy_parser.parse_rules(rules_path)
+        violations = self._evaluation_service.evaluate_workspace(root, rules)
+        self._baseline_manager.save_baseline(violations)
+        
+        return f"✅ Successfully baselined {len(violations)} violations as legacy technical debt."
+
+    async def negotiate_architectural_evolution(self, rule_id: str, action: str, rationale: str) -> str:
+        """
+        Project-Level Capability: Records a consensus decision to evolve a rule.
+        Valid actions: 'suppress', 'relax_rule', 'refactor_required'.
+        """
+        if self.container is None:
+            return "ERROR: Kernel not initialized."
+
+        from aegis.core.models.evolution import EvolutionDecision
+        decision = EvolutionDecision(rule_id=rule_id, action=action, rationale=rationale)
+        self._evolution_service.log_decision(decision)
+        
+        return f"✅ Evolution decision for '{rule_id}' recorded: {action}."
 
     def _register_prompts(self):
         """Register reusable MCP prompts for agentic workflows."""
