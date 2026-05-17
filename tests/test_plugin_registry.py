@@ -1,5 +1,5 @@
 from aegis.core.plugins.registry import PluginRegistry
-from aegis.domain.evaluation.ports import ASTAnalyzerInterface
+from aegis.domain.evaluation.ports import RuleAnalyzerInterface
 
 
 class TestPluginRegistry:
@@ -38,9 +38,9 @@ class TestPluginRegistry:
         plugin_dir.mkdir(parents=True)
 
         plugin_code = """
-from aegis.domain.evaluation.ports import ASTAnalyzerInterface
+from aegis.domain.evaluation.ports import RuleAnalyzerInterface
 
-class CustomAnalyzer(ASTAnalyzerInterface):
+class CustomAnalyzer(RuleAnalyzerInterface):
     def analyze_file(self, file_path, content, rules):
         return []
 
@@ -56,7 +56,7 @@ def register_mcp_tools():
         registry.load_plugins()
 
         assert len(registry.custom_analyzers) == 1
-        assert isinstance(registry.custom_analyzers[0], ASTAnalyzerInterface)
+        assert isinstance(registry.custom_analyzers[0], RuleAnalyzerInterface)
 
     def test_loads_plugin_with_tools(self, tmp_path):
         plugin_dir = tmp_path / ".aegis" / "plugins"

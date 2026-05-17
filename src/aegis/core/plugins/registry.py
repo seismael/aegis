@@ -4,7 +4,7 @@ from collections.abc import Callable
 
 import structlog
 
-from aegis.domain.evaluation.ports import ASTAnalyzerInterface
+from aegis.domain.evaluation.ports import RuleAnalyzerInterface
 
 logger = structlog.get_logger()
 
@@ -14,7 +14,7 @@ class PluginRegistry:
 
     def __init__(self, workspace_root: str):
         self.plugin_dir = os.path.join(workspace_root, ".aegis", "plugins")
-        self.custom_analyzers: list[ASTAnalyzerInterface] = []
+        self.custom_analyzers: list[RuleAnalyzerInterface] = []
         self.custom_mcp_tools: list[Callable] = []
         self._loaded: list[str] = []
 

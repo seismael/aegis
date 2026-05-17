@@ -116,7 +116,9 @@ class TestGraphAnalyzer:
         venv = tmp_path / ".venv"
         venv.mkdir()
         (venv / "lib.py").write_text("import bad_thing\n", encoding="utf-8")
-        (tmp_path / "main.py").write_text("from utils import helper\n", encoding="utf-8")
+        (tmp_path / "main.py").write_text(
+            "from utils import helper\n", encoding="utf-8"
+        )
         (tmp_path / "utils.py").write_text("def helper(): pass\n", encoding="utf-8")
 
         analyzer = GraphAnalyzer()

@@ -53,7 +53,7 @@ class TestMCPTools:
     @pytest.mark.asyncio
     @patch("aegis.kernel.server.os.path.exists", return_value=True)
     async def test_validate_compliance_with_violations(self, mock_exists, kernel):
-        from aegis.domain.evaluation.ports import ASTViolation
+        from aegis.domain.evaluation.ports import ArchitecturalViolation
 
         kernel.container.policy_parser.parse_rules.return_value = [
             Rule(
@@ -64,7 +64,7 @@ class TestMCPTools:
             )
         ]
         kernel.container.evaluation_service.evaluate_workspace.return_value = [
-            ASTViolation(
+            ArchitecturalViolation(
                 file="src/main.py", line=5, rule_id="r1", description="violation"
             )
         ]
@@ -85,7 +85,7 @@ class TestMCPTools:
 
     @pytest.mark.asyncio
     async def test_apply_remediation_with_violations(self, kernel):
-        from aegis.domain.evaluation.ports import ASTViolation
+        from aegis.domain.evaluation.ports import ArchitecturalViolation
 
         rule = Rule(
             id="r1",
@@ -95,7 +95,7 @@ class TestMCPTools:
         )
         kernel.container.policy_parser.parse_rules.return_value = [rule]
         kernel.container.evaluation_service.evaluate_workspace.return_value = [
-            ASTViolation(
+            ArchitecturalViolation(
                 file="src/main.py", line=5, rule_id="r1", description="violation"
             )
         ]

@@ -2,10 +2,9 @@ import ast
 import os
 from collections import defaultdict
 
+from aegis.core.constants import IGNORE_DIRS
 from aegis.core.models.governance import Rule
-from aegis.domain.evaluation.ports import ASTViolation, GraphAnalyzerInterface
-
-IGNORE_DIRS = {".venv", "node_modules", ".git", ".aegis", "__pycache__"}
+from aegis.domain.evaluation.ports import ArchitecturalViolation, GraphAnalyzerInterface
 
 
 class GraphAnalyzer(GraphAnalyzerInterface):
@@ -15,8 +14,8 @@ class GraphAnalyzer(GraphAnalyzerInterface):
     and detects disallowed-import and circular-dependency violations.
     """
 
-    def analyze_graph(self, root_dir: str, rules: list[Rule]) -> list[ASTViolation]:
-        violations: list[ASTViolation] = []
+    def analyze_graph(self, root_dir: str, rules: list[Rule]) -> list[ArchitecturalViolation]:
+        violations: list[ArchitecturalViolation] = []
         adjacency, file_imports = self.build_import_graph(root_dir)
 
         for rule in rules:
@@ -98,12 +97,12 @@ class GraphAnalyzer(GraphAnalyzerInterface):
         file_imports: dict[str, list[tuple[int, str]]],
         rule: Rule,
         root_dir: str,
-    ) -> list[ASTViolation]:
+    ) -> list[ArchitecturalViolation]:
         """
         Flags imports from metadata.source namespace into metadata.target namespace.
         E.g., domain modules importing infrastructure modules.
         """
-        violations: list[ASTViolation] = []
+        violations: list[ArchitecturalViolation] = []
         source_ns = rule.metadata.get("source", "")
         target_ns = rule.metadata.get("target", "")
 
@@ -117,7 +116,7 @@ class GraphAnalyzer(GraphAnalyzerInterface):
             for line, imported in imports:
                 if imported.startswith(target_ns):
                     violations.append(
-                        ASTViolation(
+                        ArchitecturalViolation(
                             file=module.replace(".", os.sep) + ".py",
                             line=line,
                             rule_id=rule.id,
@@ -136,12 +135,12 @@ class GraphAnalyzer(GraphAnalyzerInterface):
         file_imports: dict[str, list[tuple[int, str]]],
         rule: Rule,
         root_dir: str,
-    ) -> list[ASTViolation]:
+    ) -> list[ArchitecturalViolation]:
         """
         Detects circular dependencies using DFS with a recursion stack.
         Returns violations for each edge that completes a cycle.
         """
-        violations: list[ASTViolation] = []
+        violations: list[ArchitecturalViolation] = []
         visited: set[str] = set()
         rec_stack: set[str] = set()
 
@@ -161,7 +160,7 @@ class GraphAnalyzer(GraphAnalyzerInterface):
                             for line, imported in imports:
                                 if imported == neighbor:
                                     violations.append(
-                                        ASTViolation(
+                                        ArchitecturalViolation(
                                             file=mod.replace(".", os.sep) + ".py",
                                             line=line,
                                             rule_id=rule.id,

@@ -44,7 +44,7 @@ Run with: `uv run aegis-kernel --transport sse --host 0.0.0.0 --port 8000`
 ## Plugin System
 - Drop Python modules into `.aegis/plugins/*.py` — they auto-load on next CLI command.
 - Each plugin can expose two optional hooks:
-  - `register_analyzers() -> list[ASTAnalyzerInterface]` — custom code analyzers.
+  - `register_analyzers() -> list[RuleAnalyzerInterface]` — custom code analyzers.
   - `register_mcp_tools() -> list[Callable]` — custom MCP tools for AI agents.
 - Plugin errors are logged and never crash the engine.
 - Run `uv run aegis plugins` to see what's loaded.

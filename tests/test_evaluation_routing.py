@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 from aegis.core.models.governance import EngineType, Rule, Severity
 from aegis.domain.evaluation.ports import (
-    ASTAnalyzerInterface,
+    RuleAnalyzerInterface,
     DiffProviderInterface,
     GraphAnalyzerInterface,
     RegexAnalyzerInterface,
@@ -17,7 +17,7 @@ class TestEvaluationRouting:
 
     def _make_mocks(self):
         return (
-            MagicMock(spec=ASTAnalyzerInterface),
+            MagicMock(spec=RuleAnalyzerInterface),
             MagicMock(spec=GraphAnalyzerInterface),
             MagicMock(spec=RegexAnalyzerInterface),
             MagicMock(spec=DiffProviderInterface),

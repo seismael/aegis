@@ -11,15 +11,11 @@ class PolicyParser:
     Loads and validates rules from .aegis/rules.yaml.
     """
 
-    def parse_rules(self, rules_path: str | None = None) -> list[Rule]:
+    def parse_rules(self, rules_path: str) -> list[Rule]:
         """
         Loads rules from the structured YAML definition.
         """
-        if rules_path is None:
-            # Try to find it in the current project root
-            rules_path = self._discover_rules_file()
-
-        if not rules_path or not os.path.exists(rules_path):
+        if not os.path.exists(rules_path):
             return []
 
         with open(rules_path, encoding="utf-8") as f:
@@ -41,11 +37,3 @@ class PolicyParser:
 
         return rules
 
-    def _discover_rules_file(self) -> str | None:
-        current = os.getcwd()
-        while current != os.path.dirname(current):
-            path = os.path.join(current, ".aegis", "rules.yaml")
-            if os.path.exists(path):
-                return path
-            current = os.path.dirname(current)
-        return None

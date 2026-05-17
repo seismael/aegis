@@ -1,6 +1,6 @@
 from aegis.core.models.governance import EnforcementMode, Rule, Severity
 from aegis.domain.enforcement.remediation import RemediationPromptSynthesizer
-from aegis.domain.evaluation.ports import ASTViolation
+from aegis.domain.evaluation.ports import ArchitecturalViolation
 
 
 class TestRemediationPromptSynthesizer:
@@ -11,7 +11,7 @@ class TestRemediationPromptSynthesizer:
     def _make_violation(
         self, file, line, rule_id, desc, severity="HIGH", signature=None
     ):
-        return ASTViolation(
+        return ArchitecturalViolation(
             file=file,
             line=line,
             rule_id=rule_id,

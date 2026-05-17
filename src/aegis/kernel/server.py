@@ -1,4 +1,3 @@
-import logging
 import os
 import re
 
@@ -160,23 +159,25 @@ class AegisKernel:
                 with open(path, encoding="utf-8") as f:
                     return f.read()
             except OSError as e:
-                self.logger.error("Failed to read rules resource", path=path, error=str(e))
+                self.logger.error(
+                    "Failed to read rules resource", path=path, error=str(e)
+                )
                 return f"ERROR: reading rules.yaml — {e}"
 
         @self.mcp.resource(
             "aegis://baseline", description="Architectural debt ledger (baseline.json)"
         )
         async def get_baseline_resource() -> str:
-            path = os.path.join(
-                self._workspace_root, ".aegis", "baseline.json"
-            )
+            path = os.path.join(self._workspace_root, ".aegis", "baseline.json")
             if not os.path.exists(path):
                 return "WARN: baseline.json not found — no debt ledger established."
             try:
                 with open(path, encoding="utf-8") as f:
                     return f.read()
             except OSError as e:
-                self.logger.error("Failed to read baseline resource", path=path, error=str(e))
+                self.logger.error(
+                    "Failed to read baseline resource", path=path, error=str(e)
+                )
                 return f"ERROR: reading baseline.json — {e}"
 
         @self.mcp.resource(
@@ -184,16 +185,16 @@ class AegisKernel:
             description="Rule evolution history (evolution_log.json)",
         )
         async def get_evolution_resource() -> str:
-            path = os.path.join(
-                self._workspace_root, ".aegis", "evolution_log.json"
-            )
+            path = os.path.join(self._workspace_root, ".aegis", "evolution_log.json")
             if not os.path.exists(path):
                 return "WARN: evolution_log.json not found — no evolution history recorded."
             try:
                 with open(path, encoding="utf-8") as f:
                     return f.read()
             except OSError as e:
-                self.logger.error("Failed to read evolution resource", path=path, error=str(e))
+                self.logger.error(
+                    "Failed to read evolution resource", path=path, error=str(e)
+                )
                 return f"ERROR: reading evolution_log.json — {e}"
 
         @self.mcp.resource(
@@ -207,12 +208,16 @@ class AegisKernel:
                 with open(path, encoding="utf-8") as f:
                     return f.read()
             except OSError as e:
-                self.logger.error("Failed to read spec resource", path=path, error=str(e))
+                self.logger.error(
+                    "Failed to read spec resource", path=path, error=str(e)
+                )
                 return f"ERROR: reading SPEC.md — {e}"
 
     def _register_plugin_tools(self):
         if self.container is None:
-            self.logger.warning("Container unavailable — skipping plugin tool registration")
+            self.logger.warning(
+                "Container unavailable — skipping plugin tool registration"
+            )
             return
         for tool_fn in self.container.custom_mcp_tools:
             name = getattr(tool_fn, "__name__", "") or ""
@@ -255,7 +260,9 @@ class AegisKernel:
                 rules = self._policy_parser.parse_rules(rules_path)
             if self._evaluation_service and self._baseline_manager:
                 violations = self._evaluation_service.evaluate_workspace(root, rules)
-                active = [v for v in violations if not self._baseline_manager.is_exempt(v)]
+                active = [
+                    v for v in violations if not self._baseline_manager.is_exempt(v)
+                ]
             if self.container is not None:
                 plugin_tools = len(self.container.custom_mcp_tools)
                 plugin_count = len(self.container.loaded_plugins)

@@ -6,12 +6,12 @@ import structlog
 from tree_sitter import Language, Parser, Query, QueryCursor
 
 from aegis.core.models.governance import Rule
-from aegis.domain.evaluation.ports import ASTAnalyzerInterface, ASTViolation
+from aegis.domain.evaluation.ports import ArchitecturalViolation, RuleAnalyzerInterface
 
 logger = structlog.get_logger()
 
 
-class TreeSitterAnalyzer(ASTAnalyzerInterface):
+class TreeSitterAnalyzer(RuleAnalyzerInterface):
     """
     Polyglot AST analyzer implementation using Tree-sitter.
     Supports dynamic language loading and structural signature hashing.
@@ -34,7 +34,7 @@ class TreeSitterAnalyzer(ASTAnalyzerInterface):
 
     def analyze_file(
         self, file_path: str, content: str, rules: list[Rule]
-    ) -> list[ASTViolation]:
+    ) -> list[ArchitecturalViolation]:
         ext = file_path.split(".")[-1].lower()
 
         # Filter rules by language
@@ -137,14 +137,14 @@ class TreeSitterAnalyzer(ASTAnalyzerInterface):
 
     def _create_violation(
         self, file_path: str, node: Any, rule: Rule, desc: str | None = None
-    ) -> ASTViolation:
+    ) -> ArchitecturalViolation:
         # Generate structural signature: hash(node_type + normalized_text)
         # We normalize text by stripping whitespace to make it drift-resistant
         text_content = node.text.decode("utf-8", errors="replace").strip()
         signature_base = f"{node.type}:{text_content}"
         signature = hashlib.md5(signature_base.encode("utf-8")).hexdigest()
 
-        return ASTViolation(
+        return ArchitecturalViolation(
             file=file_path,
             line=node.start_point[0] + 1,
             rule_id=rule.id,

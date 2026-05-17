@@ -2,7 +2,7 @@ import structlog
 
 from aegis.core.models.governance import Rule
 from aegis.domain.enforcement.ports import RemediationProviderInterface
-from aegis.domain.evaluation.ports import ASTViolation
+from aegis.domain.evaluation.ports import ArchitecturalViolation
 
 logger = structlog.get_logger()
 
@@ -15,7 +15,7 @@ class RemediationPromptSynthesizer(RemediationProviderInterface):
     """
 
     def generate_remediation(
-        self, violations: list[ASTViolation], rules_map: dict[str, Rule]
+        self, violations: list[ArchitecturalViolation], rules_map: dict[str, Rule]
     ) -> str:
         if not violations:
             return "No remediation required. Architecture is compliant."

@@ -5,9 +5,9 @@ from pydantic import BaseModel
 from aegis.core.models.governance import Rule
 
 
-class ASTViolation(BaseModel):
+class ArchitecturalViolation(BaseModel):
     """
-    Represents a single architectural violation found in the AST.
+    Represents a single architectural violation found in the codebase.
     """
 
     file: str
@@ -18,15 +18,15 @@ class ASTViolation(BaseModel):
     signature: str | None = None  # Hashed structural representation
 
 
-class ASTAnalyzerInterface(ABC):
+class RuleAnalyzerInterface(ABC):
     """
-    Interface for the polyglot AST analysis engine.
+    Interface for the polyglot code analysis engine.
     """
 
     @abstractmethod
     def analyze_file(
         self, file_path: str, content: str, rules: list[Rule]
-    ) -> list[ASTViolation]:
+    ) -> list[ArchitecturalViolation]:
         """Analyzes a single file against a set of structural rules."""
         pass
 
@@ -37,7 +37,7 @@ class GraphAnalyzerInterface(ABC):
     """
 
     @abstractmethod
-    def analyze_graph(self, root_dir: str, rules: list[Rule]) -> list[ASTViolation]:
+    def analyze_graph(self, root_dir: str, rules: list[Rule]) -> list[ArchitecturalViolation]:
         """Analyzes cross-file dependency relationships across the workspace."""
         pass
 
@@ -50,7 +50,7 @@ class RegexAnalyzerInterface(ABC):
     @abstractmethod
     def analyze_file(
         self, file_path: str, content: str, rules: list[Rule]
-    ) -> list[ASTViolation]:
+    ) -> list[ArchitecturalViolation]:
         """Analyzes file content using regex patterns defined in rules."""
         pass
 

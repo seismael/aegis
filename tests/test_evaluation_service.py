@@ -2,12 +2,12 @@ from unittest.mock import MagicMock
 
 from aegis.core.models.governance import Rule, Severity
 from aegis.domain.evaluation.ports import (
-    ASTAnalyzerInterface,
-    ASTViolation,
+    ArchitecturalViolation,
     DiffProviderInterface,
     DiffResult,
     GraphAnalyzerInterface,
     RegexAnalyzerInterface,
+    RuleAnalyzerInterface,
 )
 from aegis.domain.evaluation.service import EvaluationService
 
@@ -25,7 +25,7 @@ class TestEvaluationService:
         diff_provider=None,
     ):
         return EvaluationService(
-            tree_sitter_analyzer=ts_analyzer or MagicMock(spec=ASTAnalyzerInterface),
+            tree_sitter_analyzer=ts_analyzer or MagicMock(spec=RuleAnalyzerInterface),
             graph_analyzer=graph_analyzer or MagicMock(spec=GraphAnalyzerInterface),
             regex_analyzer=regex_analyzer or MagicMock(spec=RegexAnalyzerInterface),
             diff_provider=diff_provider or MagicMock(spec=DiffProviderInterface),
@@ -37,9 +37,9 @@ class TestEvaluationService:
         f1 = p / "main.py"
         f1.write_text("def f(): pass", encoding="utf-8")
 
-        analyzer = MagicMock(spec=ASTAnalyzerInterface)
+        analyzer = MagicMock(spec=RuleAnalyzerInterface)
         analyzer.analyze_file.return_value = [
-            ASTViolation(file=str(f1), line=1, rule_id="test-rule", description="error")
+            ArchitecturalViolation(file=str(f1), line=1, rule_id="test-rule", description="error")
         ]
 
         diff_provider = MagicMock(spec=DiffProviderInterface)
@@ -61,7 +61,7 @@ class TestEvaluationService:
         assert violations[0].rule_id == "test-rule"
 
     def test_evaluate_changes(self):
-        analyzer = MagicMock(spec=ASTAnalyzerInterface)
+        analyzer = MagicMock(spec=RuleAnalyzerInterface)
         analyzer.analyze_file.return_value = []
 
         diff_result = MagicMock(spec=DiffResult)

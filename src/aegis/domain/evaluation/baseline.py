@@ -3,7 +3,7 @@ import os
 
 from pydantic import BaseModel
 
-from aegis.domain.evaluation.ports import ASTViolation
+from aegis.domain.evaluation.ports import ArchitecturalViolation
 
 
 class BaselineViolation(BaseModel):
@@ -25,7 +25,7 @@ class BaselineManager:
         self.path = os.path.join(directory, "baseline.json")
         os.makedirs(directory, exist_ok=True)
 
-    def save_baseline(self, violations: list[ASTViolation]) -> None:
+    def save_baseline(self, violations: list[ArchitecturalViolation]) -> None:
         baseline = [
             BaselineViolation(
                 file=v.file, line=v.line, rule_id=v.rule_id, signature=v.signature
@@ -35,7 +35,7 @@ class BaselineManager:
         with open(self.path, "w", encoding="utf-8") as f:
             json.dump(baseline, f, indent=2)
 
-    def add_to_baseline(self, violation: ASTViolation) -> None:
+    def add_to_baseline(self, violation: ArchitecturalViolation) -> None:
         baseline = self.load_baseline_raw()
         new_entry = BaselineViolation(
             file=violation.file,
@@ -50,7 +50,7 @@ class BaselineManager:
             with open(self.path, "w", encoding="utf-8") as f:
                 json.dump(baseline, f, indent=2)
 
-    def is_exempt(self, violation: ASTViolation) -> bool:
+    def is_exempt(self, violation: ArchitecturalViolation) -> bool:
         if not os.path.exists(self.path):
             return False
 
@@ -61,25 +61,25 @@ class BaselineManager:
                 return True
         return False
 
-    def _match(self, baseline_entry: dict, violation: ASTViolation) -> bool:
+    def _match(self, baseline_entry: dict, violation: ArchitecturalViolation) -> bool:
         """
         Determines if a violation matches a baseline entry.
         Prioritizes signature-based matching to resist line drift.
+        Falls back to file/line/rule matching for legacy entries.
+        Defensively handles malformed or partial entries with .get().
         """
+        rid = baseline_entry.get("rule_id")
+
         # 1. Signature match (Strongest)
-        if baseline_entry.get("signature") and violation.signature:
-            if (
-                baseline_entry["signature"] == violation.signature
-                and baseline_entry["rule_id"] == violation.rule_id
-            ):
+        sig = baseline_entry.get("signature")
+        if sig and violation.signature:
+            if sig == violation.signature and rid == violation.rule_id:
                 return True
 
         # 2. File/Line/Rule fallback (Legacy)
-        if (
-            baseline_entry["file"] == violation.file
-            and baseline_entry["rule_id"] == violation.rule_id
-            and baseline_entry["line"] == violation.line
-        ):
+        bf = baseline_entry.get("file")
+        bl = baseline_entry.get("line")
+        if bf == violation.file and rid == violation.rule_id and bl == violation.line:
             return True
 
         return False

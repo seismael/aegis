@@ -1,20 +1,19 @@
 import os
-from pathlib import PurePosixPath
 
 import structlog
 
+from aegis.core.constants import IGNORE_DIRS
 from aegis.core.models.governance import EngineType, Rule
 from aegis.domain.evaluation.ports import (
-    ASTAnalyzerInterface,
-    ASTViolation,
+    ArchitecturalViolation,
     DiffProviderInterface,
     GraphAnalyzerInterface,
     RegexAnalyzerInterface,
+    RuleAnalyzerInterface,
 )
+from aegis.domain.evaluation.scoping import ScopeFilter
 
 logger = structlog.get_logger()
-
-IGNORE_DIRS = {".venv", "node_modules", ".git", ".aegis", "__pycache__"}
 
 
 class EvaluationService:
@@ -26,11 +25,11 @@ class EvaluationService:
 
     def __init__(
         self,
-        tree_sitter_analyzer: ASTAnalyzerInterface,
+        tree_sitter_analyzer: RuleAnalyzerInterface,
         graph_analyzer: GraphAnalyzerInterface,
         regex_analyzer: RegexAnalyzerInterface,
         diff_provider: DiffProviderInterface,
-        extra_analyzers: list[ASTAnalyzerInterface] | None = None,
+        extra_analyzers: list[RuleAnalyzerInterface] | None = None,
     ):
         self.tree_sitter_analyzer = tree_sitter_analyzer
         self.graph_analyzer = graph_analyzer
@@ -40,13 +39,13 @@ class EvaluationService:
 
     def evaluate_workspace(
         self, root_dir: str, rules: list[Rule]
-    ) -> list[ASTViolation]:
+    ) -> list[ArchitecturalViolation]:
         """
         Performs a full architectural sweep of the workspace.
         Routes file-level rules (tree-sitter, regex) per-file
         and graph-level rules once across the workspace.
         """
-        all_violations: list[ASTViolation] = []
+        all_violations: list[ArchitecturalViolation] = []
 
         # Partition rules by engine type
         ts_rules = [r for r in rules if r.engine_type == EngineType.TREE_SITTER]
@@ -90,45 +89,15 @@ class EvaluationService:
                 self.graph_analyzer.analyze_graph(root_dir, graph_rules)
             )
 
-        return self._filter_excluded(all_violations, rules)
+        return ScopeFilter.filter_violations(all_violations, rules)
 
-    @staticmethod
-    def _filter_excluded(
-        violations: list[ASTViolation], rules: list[Rule]
-    ) -> list[ASTViolation]:
-        """Keep violations where file matches rule's applies_to and not in excludes."""
-        rule_map = {r.id: r for r in rules}
-        filtered: list[ASTViolation] = []
-        for v in violations:
-            rule = rule_map.get(v.rule_id)
-            if not rule:
-                filtered.append(v)
-                continue
-
-            pp = PurePosixPath(v.file.replace("\\", "/"))
-
-            # Positive filter: must match at least one applies_to pattern
-            if rule.applies_to:
-                allowed = any(pp.match(p) for p in rule.applies_to)
-                if not allowed:
-                    continue
-
-            # Negative filter: must not match any excludes pattern
-            if rule.excludes:
-                excluded = any(pp.match(p) for p in rule.excludes)
-                if excluded:
-                    continue
-
-            filtered.append(v)
-        return filtered
-
-    def evaluate_changes(self, rules: list[Rule]) -> list[ASTViolation]:
+    def evaluate_changes(self, rules: list[Rule]) -> list[ArchitecturalViolation]:
         """
         Performs a token-efficient analysis of only the changed lines in changed files.
         Graph rules are skipped (cross-file analysis requires a full workspace sweep).
         """
         diff = self.diff_provider.get_staged_changes()
-        all_violations: list[ASTViolation] = []
+        all_violations: list[ArchitecturalViolation] = []
 
         # Partition rules
         ts_rules = [r for r in rules if r.engine_type == EngineType.TREE_SITTER]
@@ -147,19 +116,13 @@ class EvaluationService:
 
         for file_path in diff.changed_files:
             try:
-                full_path = (
-                    os.path.join(self.diff_provider.repo.working_dir, file_path)
-                    if hasattr(self.diff_provider, "repo") and self.diff_provider.repo
-                    else file_path
-                )
-
-                if not os.path.exists(full_path):
+                if not os.path.exists(file_path):
                     continue
 
-                with open(full_path, encoding="utf-8") as f:
+                with open(file_path, encoding="utf-8") as f:
                     content = f.read()
 
-                file_violations: list[ASTViolation] = []
+                file_violations: list[ArchitecturalViolation] = []
                 if ts_rules:
                     file_violations.extend(
                         self.tree_sitter_analyzer.analyze_file(
@@ -191,4 +154,4 @@ class EvaluationService:
                     error=str(e),
                 )
 
-        return self._filter_excluded(all_violations, rules)
+        return ScopeFilter.filter_violations(all_violations, rules)

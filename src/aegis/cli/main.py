@@ -18,8 +18,8 @@ class AegisCLI:
     Focused on CI/CD pipelines, environment bootstrapping, and diagnostic auditing.
     """
 
-    def __init__(self):
-        self.container = Container()
+    def __init__(self, container: Container | None = None):
+        self.container = container or Container()
         self.console = Console()
         self.app = typer.Typer(help="Aegis: Headless Architectural Governance Engine")
         self._register_commands()
@@ -38,14 +38,20 @@ class AegisCLI:
 
     def install(self):
         """Globally installs Aegis MCP configurations and AI Skills."""
-        from aegis.infrastructure.installer import UniversalInstaller
+        from aegis.infrastructure.installer import AegisInstaller
 
-        self.console.print("[bold blue]Executing Aegis Universal Installation...[/bold blue]")
+        self.console.print(
+            "[bold blue]Executing Aegis Universal Installation...[/bold blue]"
+        )
         try:
-            installer = UniversalInstaller()
+            installer = AegisInstaller()
             installer.execute_global_install()
-            self.console.print("[bold green]Installation complete. Aegis is now available natively in your AI tools.[/bold green]")
-            self.console.print("Run `uv run aegis init` to initialize a project or `/aegis-init` in Claude Code.")
+            self.console.print(
+                "[bold green]Installation complete. Aegis is now available natively in your AI tools.[/bold green]"
+            )
+            self.console.print(
+                "Run `uv run aegis init` to initialize a project or `/aegis-init` in Claude Code."
+            )
         except Exception as e:
             self.console.print(f"[bold red]Installation failed:[/bold red] {str(e)}")
             raise typer.Exit(code=1)
@@ -108,7 +114,11 @@ class AegisCLI:
         if strict:
             blocking_modes.add(EnforcementMode.WARN)
             blocking_modes.add(EnforcementMode.REPORT)
-        blocking = [v for v in active if rule_map.get(v.rule_id).mode in blocking_modes]
+        blocking = [
+            v
+            for v in active
+            if (r := rule_map.get(v.rule_id)) and r.mode in blocking_modes
+        ]
 
         for v in active:
             r_obj = rule_map.get(v.rule_id)
@@ -167,7 +177,7 @@ class AegisCLI:
         violations = self.container.evaluation_service.evaluate_workspace(
             self.container.workspace_root, rules
         )
-        baseline_map = {(v.file, v.line, v.rule_id) for v in baseline}
+        baseline_map = {(v["file"], v["line"], v["rule_id"]) for v in baseline}
         active_counts = {r.id: 0 for r in rules}
         for v in violations:
             if (v.file, v.line, v.rule_id) not in baseline_map:
@@ -399,8 +409,14 @@ class AegisCLI:
         cli.run()
 
 
-cli = AegisCLI()
-app = cli.app
+_cli_instance: AegisCLI | None = None
+
+
+def get_app() -> typer.Typer:
+    global _cli_instance
+    if _cli_instance is None:
+        _cli_instance = AegisCLI()
+    return _cli_instance.app
 
 if __name__ == "__main__":
     AegisCLI.entry_point()

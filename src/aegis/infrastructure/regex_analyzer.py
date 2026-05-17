@@ -2,7 +2,7 @@ import os
 import re
 
 from aegis.core.models.governance import Rule
-from aegis.domain.evaluation.ports import ASTViolation, RegexAnalyzerInterface
+from aegis.domain.evaluation.ports import ArchitecturalViolation, RegexAnalyzerInterface
 
 _LANG_EXT_MAP = {
     "py": ".py",
@@ -22,8 +22,8 @@ class RegexAnalyzer(RegexAnalyzerInterface):
 
     def analyze_file(
         self, file_path: str, content: str, rules: list[Rule]
-    ) -> list[ASTViolation]:
-        violations: list[ASTViolation] = []
+    ) -> list[ArchitecturalViolation]:
+        violations: list[ArchitecturalViolation] = []
         ext = self._resolve_ext(file_path)
 
         for rule in rules:
@@ -39,7 +39,7 @@ class RegexAnalyzer(RegexAnalyzerInterface):
             for match in pattern.finditer(content):
                 line = content[: match.start()].count("\n") + 1
                 violations.append(
-                    ASTViolation(
+                    ArchitecturalViolation(
                         file=file_path,
                         line=line,
                         rule_id=rule.id,

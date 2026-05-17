@@ -1,5 +1,6 @@
 from aegis.core.models.governance import Rule, Severity
 from aegis.infrastructure.ast_analyzer import TreeSitterAnalyzer
+from aegis.domain.evaluation.ports import ArchitecturalViolation
 
 
 class TestTreeSitterAnalyzer:
