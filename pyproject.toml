@@ -28,6 +28,9 @@ dependencies = [
     "python-dotenv>=1.0.1",
     "structlog>=24.1.0",
     "gitpython>=3.1.43",
+    "tree-sitter-typescript>=0.23.2",
+    "tree-sitter-javascript>=0.25.0",
+    "tree-sitter-rust>=0.24.2",
 ]
 
 [dependency-groups]

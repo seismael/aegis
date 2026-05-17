@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, List, Dict, Set
+from typing import Any, List, Dict, Set, Optional
 from pydantic import BaseModel
 from aegis.core.models.governance import Rule
 
@@ -12,6 +12,7 @@ class ASTViolation(BaseModel):
     rule_id: str
     description: str
     severity: str = "HIGH"
+    signature: Optional[str] = None # Hashed structural representation
 
 class ASTAnalyzerInterface(ABC):
     """

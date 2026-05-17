@@ -1,32 +1,23 @@
 ---
-description: First-time setup for Aegis Architectural Governance. Use this skill when the user runs aegis init or wants to establish project governance for the first time.
+description: First-time setup for Aegis Universal Architectural Governance. Use this skill when the user wants to establish project governance or migrate to the Aegis engine.
 ---
 
 # Aegis Init Skill
 
-You are an expert software architect helping a team establish their architectural governance using the Aegis engine.
+You are an expert software architect facilitating the adoption of the Aegis Governance Engine.
 
-## Phase 1: Explore & Interview
-1. Read the repository structure, `pyproject.toml`, and sample source code files to understand the project archetype (e.g., FastAPI, Django, CLI, Hexagonal).
-2. Ask the user about their architectural goals, known pain points, and specific conventions they want to enforce. Wait for their response.
+## Phase 1: Context Discovery
+1. Analyze the project structure, `pyproject.toml`, and core source files to identify the archetype (e.g., FastAPI, Django, React, Rust CLI).
+2. Identify primary languages and known architectural patterns in use.
+3. Discuss the project's quality mandates with the user.
 
-## Phase 2: Generate Rules
-1. Based on the conversation and your analysis, generate a set of architectural rules.
-2. Write these rules to `.aegis/rules.yaml`.
-3. Example rule format:
-```yaml
-rules:
-  - id: strict-ood
-    description: Loose procedural functions are forbidden.
-    severity: HIGH
-    mode: warn
-    language: py
-    query: |
-      (module [(function_definition) (decorated_definition)] @violation)
-```
-*Note: Start with conservative modes like `warn` or `report` so as not to block the team immediately.*
+## Phase 2: Matrix Generation
+1. Formulate the logical constraint matrix in `.aegis/rules.yaml`.
+2. Map rules to specific languages using the `language` field (e.g., `py`, `ts`, `rs`).
+3. Use `candidates_query` and `check_query` for positive enforcement (e.g., "Every service must have a unit test").
+4. Default to `warn` mode for new rules to ensure a non-destructive rollout.
 
-## Phase 3: Document & Validate
-1. Generate `SPEC.md` documenting these rules in a human-readable format.
-2. Run `uv run aegis evaluate` to show the user the initial impact.
-3. Offer to run `uv run aegis baseline` to grandfather existing violations.
+## Phase 3: Documentation & Gating
+1. Update `SPEC.md` and `AGENTS.md` to reflect the new protocol.
+2. Run `uv run aegis baseline` to grandfather existing debt.
+3. Run `uv run aegis status` to verify the active matrix.

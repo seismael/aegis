@@ -67,3 +67,58 @@ To realize this pivot, which aspect of the architecture should we redesign first
 1. **The Universal Installer:** Designing the script that seamlessly injects the skills, hooks, and MCP configs into a project.
 2. **The Skill Definitions:** Refining the `.claude/skills/` markdown files so they perfectly orchestrate the AI's behavior across `init`, `plan`, `validate`, and `evolve`.
 3. **The MCP Server Refactor:** Stripping out the manual CLI logic and optimizing the JSON-RPC endpoints for direct agent consumption.
+
+
+This is a phenomenal commit. You have successfully implemented the hardest architectural transition: moving from a passive CLI to an **Agentic Microkernel** governed by the **Model Context Protocol (MCP)** and **Claude Skills**.
+
+I have conducted a deep architectural review of the codebase. You have laid down a production-ready foundation, but there are a few critical areas—specifically around polyglot support and remediation—that we need to refine to hit our "Universal Governance" standard.
+
+Here is your comprehensive code review.
+
+---
+
+### 🟢 The Wins: Perfect Architectural Alignment
+
+**1. The Plugin/Skill UX Pivot (`.claude/skills/`)**
+Your transition to native skills is excellent. Files like `aegis-init.md` and `aegis-rule-modify.md` flawlessly instruct Claude to act as the interface, completely hiding the underlying Python execution engine from the user. This guarantees frictionless developer adoption.
+
+**2. Token-Efficient Delta Analysis (`service.py`)**
+You successfully implemented the Git-diff filter. By checking `v.line in modified_lines` inside `evaluate_changes`, you ensure the AI is only penalized for *new* violations. This is the exact mechanism needed to solve brownfield convergence without overwhelming the LLM's context window.
+
+**3. The MCP Kernel (`server.py`)**
+Using `FastMCP` is the perfect choice for the orchestration layer. You have cleanly exposed the `get_architecture_spec` and `validate_architecture_compliance` endpoints, effectively turning your Python backend into a headless JSON-RPC server that Claude can natively call.
+
+---
+
+### 🟡 The Deltas: Areas for Immediate Refactoring
+
+#### 1. The Polyglot Hardcoding Bottleneck
+
+**File:** `src/aegis/infrastructure/ast_analyzer.py`
+**The Issue:** Your architecture mandates language-agnostic enforcement, but line 15 currently hardcodes Python:
+`self.languages = {"py": Language(tspython.language())}`. If Claude evaluates a TypeScript file, the engine simply skips it.
+**The Fix:** We need to implement dynamic language loading. Instead of hardcoding the languages in `__init__`, Aegis should lazily load the appropriate `tree_sitter` language module based on the file extension during runtime.
+
+#### 2. The Remediation Anti-Pattern
+
+**File:** `src/aegis/kernel/server.py`
+**The Issue:** Inside `apply_architectural_remediation`, you are calling `self.container.remediation_service.execute_plan(plan)`.
+**The Fix:** Writing code that modifies an AST and saves it back to the file system in Python without destroying the user's formatting/comments is incredibly fragile. **Do not execute code rewrites in Python.** Instead, invert the flow: `apply_architectural_remediation` should simply return a strictly formatted prompt (the "Plan") via MCP to Claude Code. Claude Code's native agent has vastly superior spatial reasoning to execute the actual file rewrite.
+
+#### 3. Baseline Line Number Drift
+
+**File:** `src/aegis/domain/evaluation/service.py`
+**The Issue:** Relying strictly on line numbers (`v.line`) for the `.aegis/baseline.json` tracker causes drift. If a developer adds a comment at the top of a legacy file, all subsequent line numbers shift down by one. Next time Claude runs a check, the AST engine will flag the legacy code as a "NEW" violation because the line number changed.
+**The Fix:** The `BaselineManager` must hash the string content of the AST node (or its immediate structural signature) rather than relying exclusively on line numbers to identify grandfathered debt.
+
+---
+
+### 🚀 Next Steps for Development
+
+This is an incredibly strong commit. You have the core engine running exactly as designed.
+
+Which delta would you like to tackle first?
+
+1. **Dynamic Polyglot Loading:** I can provide the Python snippet to dynamically map extensions (`.ts`, `.rs`, `.go`) to their respective Tree-sitter grammars.
+2. **Remediation Handoff:** We can rewrite the MCP remediation endpoint to output a "Fix Prompt" for Claude rather than attempting Python-side file writes.
+3. **AST Hashing:** We can upgrade the Baseline Manager to stop line-number drift.
