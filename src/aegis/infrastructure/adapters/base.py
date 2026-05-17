@@ -4,12 +4,13 @@ import structlog
 
 logger = structlog.get_logger()
 
-class AgentAdapter(ABC):
+class ToolAdapter(ABC):
     """
     Abstract base for AI tool-specific integration.
     Handles native plugin registration and configuration.
     """
-    def __init__(self):
+    def __init__(self, target_dir: str):
+        self.target_dir = Path(target_dir)
         self.home = Path.home()
 
     @property
