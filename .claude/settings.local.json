@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "mcp__fetch__fetch",
+      "Bash(Get-ChildItem *)"
+    ]
+  }
+}

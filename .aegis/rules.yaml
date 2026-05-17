@@ -1,0 +1,38 @@
+rules:
+  - id: strict-ood
+    description: Loose procedural functions are forbidden.
+    severity: HIGH
+    mode: block
+    language: py
+    query: |
+      (module [(function_definition) (decorated_definition)] @violation)
+
+  - id: hexagonal-isolation
+    description: Domain logic must not depend on infrastructure.
+    severity: HIGH
+    mode: block
+    language: py
+    query: |
+      (import_from_statement 
+        module_name: (dotted_name (identifier) @mod) 
+        (#match? @mod "infrastructure")
+      ) @violation
+
+  - id: no-circular-deps
+    description: Domain modules must not have circular dependencies.
+    severity: HIGH
+    mode: block
+    language: py
+    query: |
+      (import_from_statement) @import
+
+  - id: required-docstrings
+    description: All classes must have a docstring.
+    severity: MEDIUM
+    mode: report
+    language: py
+    candidates_query: |
+      (class_definition) @class
+    check_query: |
+      (class_definition
+        body: (block (expression_statement (string)))) @class

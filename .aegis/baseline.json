@@ -1,0 +1,407 @@
+[
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\cli\\main.py",
+    "line": 200,
+    "rule_id": "strict-ood"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\cli\\main.py",
+    "line": 3,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\cli\\main.py",
+    "line": 5,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\cli\\main.py",
+    "line": 6,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\cli\\main.py",
+    "line": 7,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\cli\\main.py",
+    "line": 4,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\cli\\main.py",
+    "line": 8,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\core\\container\\app.py",
+    "line": 6,
+    "rule_id": "hexagonal-isolation"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\core\\container\\app.py",
+    "line": 9,
+    "rule_id": "hexagonal-isolation"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\core\\container\\app.py",
+    "line": 7,
+    "rule_id": "hexagonal-isolation"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\core\\container\\app.py",
+    "line": 6,
+    "rule_id": "hexagonal-isolation"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\core\\container\\app.py",
+    "line": 7,
+    "rule_id": "hexagonal-isolation"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\core\\container\\app.py",
+    "line": 9,
+    "rule_id": "hexagonal-isolation"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\core\\container\\app.py",
+    "line": 2,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\core\\container\\app.py",
+    "line": 5,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\core\\container\\app.py",
+    "line": 3,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\core\\container\\app.py",
+    "line": 6,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\core\\container\\app.py",
+    "line": 4,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\core\\container\\app.py",
+    "line": 7,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\core\\container\\app.py",
+    "line": 8,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\core\\container\\app.py",
+    "line": 9,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\core\\container\\app.py",
+    "line": 10,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\core\\models\\evolution.py",
+    "line": 1,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\core\\models\\evolution.py",
+    "line": 3,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\core\\models\\evolution.py",
+    "line": 2,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\core\\models\\governance.py",
+    "line": 1,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\core\\models\\governance.py",
+    "line": 2,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\core\\models\\governance.py",
+    "line": 3,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\core\\models\\governance.py",
+    "line": 5,
+    "rule_id": "required-docstrings"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\core\\models\\governance.py",
+    "line": 11,
+    "rule_id": "required-docstrings"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\core\\models\\remediation.py",
+    "line": 1,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\core\\models\\remediation.py",
+    "line": 3,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\core\\models\\remediation.py",
+    "line": 2,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\domain\\enforcement\\ports.py",
+    "line": 1,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\domain\\enforcement\\ports.py",
+    "line": 4,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\domain\\enforcement\\ports.py",
+    "line": 2,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\domain\\enforcement\\ports.py",
+    "line": 3,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\domain\\enforcement\\remediation.py",
+    "line": 1,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\domain\\enforcement\\remediation.py",
+    "line": 5,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\domain\\enforcement\\remediation.py",
+    "line": 2,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\domain\\enforcement\\remediation.py",
+    "line": 3,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\domain\\enforcement\\remediation.py",
+    "line": 4,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\domain\\evaluation\\baseline.py",
+    "line": 3,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\domain\\evaluation\\baseline.py",
+    "line": 4,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\domain\\evaluation\\baseline.py",
+    "line": 5,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\domain\\evaluation\\baseline.py",
+    "line": 7,
+    "rule_id": "required-docstrings"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\domain\\evaluation\\ports.py",
+    "line": 1,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\domain\\evaluation\\ports.py",
+    "line": 4,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\domain\\evaluation\\ports.py",
+    "line": 3,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\domain\\evaluation\\ports.py",
+    "line": 2,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\domain\\evaluation\\service.py",
+    "line": 2,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\domain\\evaluation\\service.py",
+    "line": 5,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\domain\\evaluation\\service.py",
+    "line": 4,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\domain\\evolution\\service.py",
+    "line": 3,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\domain\\evolution\\service.py",
+    "line": 4,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\domain\\policy\\parser.py",
+    "line": 3,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\domain\\policy\\parser.py",
+    "line": 4,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\infrastructure\\ast_analyzer.py",
+    "line": 1,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\infrastructure\\ast_analyzer.py",
+    "line": 4,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\infrastructure\\ast_analyzer.py",
+    "line": 3,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\infrastructure\\ast_analyzer.py",
+    "line": 5,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\infrastructure\\git_provider.py",
+    "line": 2,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\infrastructure\\git_provider.py",
+    "line": 3,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\infrastructure\\git_provider.py",
+    "line": 5,
+    "rule_id": "required-docstrings"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\infrastructure\\remediation_strategies.py",
+    "line": 2,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\infrastructure\\remediation_strategies.py",
+    "line": 3,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\kernel\\server.py",
+    "line": 76,
+    "rule_id": "strict-ood"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\kernel\\server.py",
+    "line": 4,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\kernel\\server.py",
+    "line": 5,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\kernel\\server.py",
+    "line": 6,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\src\\aegis\\kernel\\server.py",
+    "line": 7,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\tests\\test_ast_analyzer.py",
+    "line": 2,
+    "rule_id": "hexagonal-isolation"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\tests\\test_ast_analyzer.py",
+    "line": 2,
+    "rule_id": "hexagonal-isolation"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\tests\\test_ast_analyzer.py",
+    "line": 2,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\tests\\test_ast_analyzer.py",
+    "line": 3,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\tests\\test_evaluation_service.py",
+    "line": 2,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\tests\\test_evaluation_service.py",
+    "line": 5,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\tests\\test_evaluation_service.py",
+    "line": 4,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\tests\\test_evaluation_service.py",
+    "line": 3,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\tests\\test_policy_parser.py",
+    "line": 3,
+    "rule_id": "no-circular-deps"
+  },
+  {
+    "file": "C:\\dev\\projects\\aegis\\tests\\test_policy_parser.py",
+    "line": 4,
+    "rule_id": "no-circular-deps"
+  }
+]
