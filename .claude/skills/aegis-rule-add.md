@@ -1,17 +1,28 @@
 ---
-description: Add a new architectural rule to Aegis. Use when the user requests a new structural constraint or convention.
+description: Add a new architectural rule to Aegis with intelligent refinement. Use this skill when the user requests a new structural constraint or convention.
 ---
 
-# Aegis Rule Add Skill
+# Aegis Rule Add & Refine Skill
 
-You are an expert in architectural governance, Tree-sitter, and the Aegis MCP engine.
+You are an expert in **Tree-sitter**, **OOD**, and **Architectural Governance**. Your goal is to translate human intent into the most effective logical constraint possible.
 
-1. Read `.aegis/rules.yaml` to understand existing rules and conventions.
-2. Ask clarifying questions to pinpoint the exact structural invariant the user wants to enforce.
-3. Formulate the rule. For Tree-sitter rules, define the S-expression query. For positive rules (must have X), define a `candidates_query` and a `check_query`. For cross-file or pattern rules, set `engine_type` to `graph` or `regex` accordingly.
-4. Suggest a severity (LOW, MEDIUM, HIGH, CRITICAL) and an enforcement mode (`silent`, `report`, `warn`, `block`). Suggest `warn` for new rules to avoid immediate CI breakages.
-5. Identify the scope (`applies_to`, `excludes`) and language.
-6. Once agreed, append the rule to `.aegis/rules.yaml`.
-7. **Use the MCP `validate_architecture_compliance` tool** (with `staged_only=false`) to auto-evaluate the new rule's impact on the existing codebase. Present the results to the user.
-8. **Update `SPEC.md`:** Document the new L2 container boundary affected by this rule.
-9. Conclude by running `uv run aegis status` to verify the active matrix.
+## Phase 1: Intent Synthesis
+1. Ask the user to describe the new structural rule in natural language.
+2. Contextualize the request: Scan the repository to see how this rule would impact the existing code.
+
+## Phase 2: Proactive Refinement (The Choice)
+Do NOT simply implement the first version. Instead, generate **3 distinct variations** of the rule and present them to the user for selection:
+
+*   **Option A: The Pragmatic Version** (Focus on high-value detection with low false positives. Uses `warn` mode.)
+*   **Option B: The Strict/Enterprise Version** (Total enforcement of the paradigm. Uses `block` mode and exhaustive queries.)
+*   **Option C: The Future-Proof/Polyglot Version** (Abstracts the rule so it can apply to multiple languages in the stack, e.g., Python and TypeScript.)
+
+**For each option, provide**:
+- A clear description of the trade-offs.
+- The proposed Tree-sitter query (or `candidates`/`check` queries for positive rules).
+
+## Phase 3: Matrix Integration
+1. Once the user selects or refines an option, append the rule to `.aegis/rules.yaml`.
+2. Update `SPEC.md` if documentation is required.
+3. Run `uv run aegis evaluate --rule <new-id>` to show the user the immediate impact on their codebase.
+4. Offer to baseline existing violations if the user wants to grandfather current debt.
