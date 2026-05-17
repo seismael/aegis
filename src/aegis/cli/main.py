@@ -187,7 +187,7 @@ class AegisCLI:
             "baseline_violations": len(baseline),
             "active_violations": len(active_violations),
             "engines": dict(engine_counts),
-            "plugins": len(self.container.loaded_plugins),
+            "plugins": list(self.container.loaded_plugins),
             "project_root": self.container.workspace_root,
         }
 
@@ -216,7 +216,11 @@ class AegisCLI:
                 f"Aegis Status: {len(rules)} rules, {len(baseline)} legacy debt items."
             )
 
-    def apply(self, rule: str | None = typer.Option(None, "--rule", help="Specific rule to remediate")):
+    def apply(
+        self,
+        rule: str | None = typer.Option(None, "--rule", help="Specific rule to remediate"),
+        output: str | None = typer.Option(None, "--output", help="Write remediation prompt to file"),
+    ):
         """Displays remediation prompts for active violations."""
         self.console.print("[bold blue]Aegis Architectural Remediation Audit[/bold blue]")
 
@@ -239,18 +243,17 @@ class AegisCLI:
             self.console.print("[green]No active violations found for remediation.[/green]")
             return
 
-        self.console.print(f"Found {len(active)} active violations.")
-
-        for v in active:
-            self.console.print(
-                f"\n[bold]Violation in {v.file}:{v.line} ({v.rule_id})[/bold]"
-            )
-            prompt = f"REFACTORING STRATEGY: {v.description}"
-            self.console.print(f"[dim]{prompt}[/dim]")
-
-        self.console.print(
-            "\n[yellow]Note: In the Agentic paradigm, the AI agent performs the refactor.[/yellow]"
+        rule_map = {r.id: r for r in rules}
+        prompt = self.container.remediation_synthesizer.generate_remediation(
+            active, rule_map
         )
+
+        if output:
+            with open(output, "w", encoding="utf-8") as f:
+                f.write(prompt)
+            self.console.print(f"[green]Remediation prompt written to {output}[/green]")
+        else:
+            self.console.print(prompt)
 
     def evolve(self, rule_id: str = typer.Argument(..., help="The ID of the rule to evolve")):
         """Consensus recording flow for rule modifications."""

@@ -143,3 +143,68 @@ class TestBaselineManager:
         assert not bm.is_exempt(v)
         bm.save_baseline([v])
         assert bm.is_exempt(v)
+
+    def test_corrupt_json_returns_empty(self, tmp_path):
+        """Corrupt baseline.json returns empty list without crashing."""
+        bm = BaselineManager(str(tmp_path))
+        baseline_file = tmp_path / "baseline.json"
+        baseline_file.write_text("this is not json {{{", encoding="utf-8")
+        assert bm.load_baseline_raw() == []
+
+    def test_corrupt_json_is_exempt_no_crash(self, tmp_path):
+        """Corrupt baseline.json causes is_exempt to return False."""
+        bm = BaselineManager(str(tmp_path))
+        baseline_file = tmp_path / "baseline.json"
+        baseline_file.write_text("not json", encoding="utf-8")
+        v = self._violation("main.py", 1, "r1")
+        assert not bm.is_exempt(v)
+
+    def test_signature_match_overrides_different_line(self, tmp_path):
+        """Signature match returns exempt even when line differs (drift resistance)."""
+        bm = BaselineManager(str(tmp_path))
+        v1 = self._violation("main.py", 10, "r1", signature="sig123")
+        bm.add_to_baseline(v1)
+        v2 = self._violation("main.py", 25, "r1", signature="sig123")
+        assert bm.is_exempt(v2)
+
+    def test_same_signature_different_rule_no_match(self, tmp_path):
+        """Same signature but different rule_id does not match."""
+        bm = BaselineManager(str(tmp_path))
+        v1 = self._violation("main.py", 10, "r1", signature="sig123")
+        bm.add_to_baseline(v1)
+        v2 = self._violation("main.py", 10, "r2", signature="sig123")
+        assert not bm.is_exempt(v2)
+
+    def test_absolute_vs_relative_path_no_match(self, tmp_path):
+        """Absolute violation path does not match relative baseline entry."""
+        bm = BaselineManager(str(tmp_path))
+        v = self._violation("src/main.py", 10, "r1")
+        bm.add_to_baseline(v)
+        v_abs = self._violation("/abs/src/main.py", 10, "r1")
+        assert not bm.is_exempt(v_abs)
+
+    def test_prune_stale_corrupt_file_no_crash(self, tmp_path):
+        """prune_stale handles corrupt JSON gracefully."""
+        bm = BaselineManager(str(tmp_path))
+        baseline_file = tmp_path / "baseline.json"
+        baseline_file.write_text("{{{broken", encoding="utf-8")
+        count = bm.prune_stale({"r1"})
+        assert count == 0
+
+    def test_prune_entire_baseline(self, tmp_path):
+        """prune_stale removes all entries when no rules are active."""
+        bm = BaselineManager(str(tmp_path))
+        bm.add_to_baseline(self._violation("a.py", 1, "r1"))
+        bm.add_to_baseline(self._violation("b.py", 2, "r2"))
+        count = bm.prune_stale(set())
+        assert count == 2
+        assert bm.load_baseline_raw() == []
+
+    def test_add_to_baseline_does_not_duplicate_on_signature(self, tmp_path):
+        """Both violations with same signature stored only once."""
+        bm = BaselineManager(str(tmp_path))
+        v1 = self._violation("a.py", 1, "r1", signature="s1")
+        v2 = self._violation("a.py", 2, "r1", signature="s1")
+        bm.add_to_baseline(v1)
+        bm.add_to_baseline(v2)
+        assert len(bm.load_baseline_raw()) == 1

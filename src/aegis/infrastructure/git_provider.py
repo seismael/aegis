@@ -22,9 +22,10 @@ class GitDiffResult(DiffResult):
             self._raw_files.add(path)
 
             if diff.diff:
-                modified = self._parse_hunks(
-                    diff.diff.decode("utf-8", errors="replace")
-                )
+                raw = diff.diff
+                if isinstance(raw, bytes):
+                    raw = raw.decode("utf-8", errors="replace")
+                modified = self._parse_hunks(raw)
                 abs_path = os.path.join(self._repo_path, path)
                 self._modified_lines[abs_path] = modified
 
@@ -70,11 +71,18 @@ class GitDiffProvider(DiffProviderInterface):
     def get_staged_changes(self) -> DiffResult:
         if not self.repo:
             return GitDiffResult([], repo_path=".")
-        diff_index = self.repo.index.diff("HEAD")
+        try:
+            _ = self.repo.head.commit
+        except Exception:
+            return GitDiffResult([], repo_path=self.repo.working_dir or ".")
+        diff_index = self.repo.index.diff("HEAD", create_patch=True)
         return GitDiffResult(diff_index, repo_path=self.repo.working_dir or ".")
 
     def get_changes_since_baseline(self, baseline_ref: str) -> DiffResult:
         if not self.repo:
             return GitDiffResult([], repo_path=".")
-        diff_index = self.repo.head.commit.diff(baseline_ref)
+        try:
+            diff_index = self.repo.head.commit.diff(baseline_ref)
+        except Exception:
+            return GitDiffResult([], repo_path=self.repo.working_dir or ".")
         return GitDiffResult(diff_index, repo_path=self.repo.working_dir or ".")

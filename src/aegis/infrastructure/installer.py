@@ -58,7 +58,10 @@ class AegisInstaller:
                     config = json.load(f)
             except json.JSONDecodeError:
                 logger.warning("Claude config corrupted. Creating backup.")
-                self.claude_config.rename(self.claude_config.with_suffix(".json.bak"))
+                backup = self.claude_config.with_suffix(".json.bak")
+                if backup.exists():
+                    backup.unlink()
+                self.claude_config.rename(backup)
                 config = {"mcpServers": {}}
 
         if "mcpServers" not in config:
