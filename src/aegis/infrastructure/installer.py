@@ -27,15 +27,21 @@ class AegisInstaller:
             GenericMCPAdapter(target_dir) # Catch-all standard
         ]
 
-    def install_globally(self) -> None:
+    def install_global_capability(self, target_tool: Optional[str] = None) -> None:
         """Installs the Aegis capability natively across all detected AI tools."""
         print(f"📦 Installing Aegis Universal Agentic Capability...")
+        to_install = self.adapters
+        if target_tool:
+            to_install = [a for a in self.adapters if target_tool.lower() in a.name.lower()]
+            if not to_install:
+                print(f"❌ Error: Tool '{target_tool}' not supported or not found.")
+                return
+
         installed_count = 0
         
-        for adapter in self.adapters:
-            # We skip 'Generic' if specific tools are found, or keep it as a baseline
-            if adapter.is_available():
-                print(f"  ✓ Integrating with {adapter.__class__.__name__.replace('Adapter', '')}...")
+        for adapter in to_install:
+            if adapter.is_present() or target_tool:
+                print(f"  ✓ Integrating with {adapter.name}...")
                 if adapter.install():
                     installed_count += 1
 
