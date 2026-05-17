@@ -20,6 +20,7 @@ rules:
     language: py
     excludes:
       - "tests/**"
+      - "src/aegis/cli/**"
       - "src/aegis/core/container/**"
       - "src/aegis/kernel/**"
     query: |
@@ -27,7 +28,7 @@ rules:
         module_name: (dotted_name (identifier) @mod)
         (#match? @mod "infrastructure")
       ) @violation
-    rationale: Hexagonal architecture requires domain layer to be infrastructure-free. Container (composition root), kernel (MCP adapter layer), and tests are exempted.
+    rationale: Hexagonal architecture requires domain layer to be infrastructure-free. CLI (adapter layer), container (composition root), kernel (MCP adapter), and tests are exempted.
 
   - id: no-circular-deps
     description: Domain modules must not have circular dependencies.

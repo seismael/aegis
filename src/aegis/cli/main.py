@@ -25,6 +25,7 @@ class AegisCLI:
         self._register_commands()
 
     def _register_commands(self):
+        self.app.command()(self.install)
         self.app.command()(self.init)
         self.app.command()(self.check)
         self.app.command()(self.baseline)
@@ -34,6 +35,20 @@ class AegisCLI:
         self.app.command()(self.evolve)
         self.app.command()(self.setup_hooks)
         self.app.command()(self.self_check)
+
+    def install(self):
+        """Globally installs Aegis MCP configurations and AI Skills."""
+        from aegis.infrastructure.installer import UniversalInstaller
+
+        self.console.print("[bold blue]Executing Aegis Universal Installation...[/bold blue]")
+        try:
+            installer = UniversalInstaller()
+            installer.execute_global_install()
+            self.console.print("[bold green]Installation complete. Aegis is now available natively in your AI tools.[/bold green]")
+            self.console.print("Run `uv run aegis init` to initialize a project or `/aegis-init` in Claude Code.")
+        except Exception as e:
+            self.console.print(f"[bold red]Installation failed:[/bold red] {str(e)}")
+            raise typer.Exit(code=1)
 
     def init(self):
         """Initializes the .aegis governance environment."""
@@ -156,7 +171,7 @@ class AegisCLI:
         active_counts = {r.id: 0 for r in rules}
         for v in violations:
             if (v.file, v.line, v.rule_id) not in baseline_map:
-                active_counts[v.id] = active_counts.get(v.id, 0) + 1
+                active_counts[v.rule_id] = active_counts.get(v.rule_id, 0) + 1
 
         engine_counts: dict[str, int] = {}
         for r in rules:

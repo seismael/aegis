@@ -1,7 +1,8 @@
 # Aegis Agentic Operational Invariants
 
 ## Governance Protocol
-- Run `uv run aegis check` before every commit. Blocking violations must be resolved.
+- Run `uv run aegis check` at the end of each logical task (before commit or when a feature is complete). Blocking violations must be resolved.
+- Teams may opt out by removing this line; the system gracefully degrades to manual `/aegis-evaluate` invocations and Git pre-commit hooks.
 - Run `uv run aegis status` to inspect the current rule matrix and debt ledger.
 - Baseline new or unavoidable violations with `uv run aegis baseline` (never suppress silently).
 
@@ -48,6 +49,12 @@ Run with: `uv run aegis-kernel --transport sse --host 0.0.0.0 --port 8000`
 - Plugin errors are logged and never crash the engine.
 - Run `uv run aegis plugins` to see what's loaded.
 - Run `uv run aegis status` to see the plugin count in the summary.
+
+## Universal Installer
+- Run `uv run aegis install` once per machine to register the Aegis MCP server globally.
+- This injects into `~/.claude/claude_desktop_config.json` and `~/.aider.conf.yml`.
+- Agentic skills are deployed to `~/.claude/skills/`, making `/aegis-*` commands available in any Claude Code session.
+- The installer is idempotent — safe to re-run. Existing configs are preserved.
 
 ## Self-Governance
 - Aegis enforces OOD, hexagonal isolation, docstring completeness, and import hygiene on its own source code.

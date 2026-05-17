@@ -1,91 +1,113 @@
+"""
+Universal Installer for Aegis Architectural Governance.
+Operates globally — binds MCP servers into AI tool configs and deploys agentic skills.
+"""
+
+import json
 import os
 import shutil
-import subprocess
+from pathlib import Path
+from typing import Dict, Any
+
+import structlog
 
 
-class AegisInstaller:
+logger = structlog.get_logger()
+
+
+class UniversalInstaller:
     """
-    Universal Installer for Aegis.
-    Detects the environment and injects appropriate configs and skills.
+    Enterprise installation bootstrapper.
+    Idempotently configures local AI coding environments to recognize
+    the Aegis MCP server and registers the global agentic skills.
+
+    Operates independently of any target repository.
     """
 
-    def __init__(self, target_dir: str = "."):
-        self.target_dir = os.path.abspath(target_dir)
-        self.aegis_dir = os.path.join(self.target_dir, ".aegis")
+    def __init__(self):
+        self.home = Path.home()
+        self.claude_dir = self.home / ".claude"
+        self.claude_config = self.claude_dir / "claude_desktop_config.json"
+        self.claude_skills = self.claude_dir / "skills"
 
-    def install(self):
-        print(f"📦 Installing Aegis into {self.target_dir}...")
+        self.aider_config = self.home / ".aider.conf.yml"
 
-        # 1. Create .aegis directory
-        if not os.path.exists(self.aegis_dir):
-            os.makedirs(self.aegis_dir)
+        # Source skills directory (within the installed package)
+        pkg_root = Path(__file__).resolve().parent.parent.parent.parent
+        self.skills_src = pkg_root / ".claude" / "skills"
 
-        # 2. Setup Claude Skills
-        self._setup_claude()
+    def execute_global_install(self) -> None:
+        """Executes the full installation sequence across all detected tools."""
+        self.logger = structlog.get_logger()
+        self._ensure_directories()
+        self._inject_claude_mcp()
+        self._deploy_claude_skills()
+        self._inject_aider_mcp()
+        logger.info("Aegis Universal Installer completed successfully.")
 
-        # 3. Setup Aider Config
-        self._setup_aider()
+    def _ensure_directories(self) -> None:
+        self.claude_dir.mkdir(parents=True, exist_ok=True)
+        self.claude_skills.mkdir(parents=True, exist_ok=True)
 
-        # 4. Setup Git Hooks
-        self._setup_git_hooks()
+    def _inject_claude_mcp(self) -> None:
+        """Mutates the global Claude Desktop / CLI configuration to bind Aegis."""
+        config: Dict[str, Any] = {"mcpServers": {}}
 
-        print("\n✅ Aegis installation complete!")
-        print(
-            "Run `/aegis-init` in your AI chat window to begin architectural discovery."
-        )
+        if self.claude_config.exists():
+            try:
+                with open(self.claude_config, "r", encoding="utf-8") as f:
+                    config = json.load(f)
+            except json.JSONDecodeError:
+                logger.warning("Corrupted Claude config detected. Creating backup.")
+                backup = self.claude_config.with_suffix(".json.bak")
+                self.claude_config.rename(backup)
+                config = {"mcpServers": {}}
 
-    def _setup_claude(self):
-        # Identify skills source within the installed package
-        current_dir = os.path.dirname(__file__)
-        skills_src = os.path.abspath(
-            os.path.join(current_dir, "..", "..", "..", ".claude", "skills")
-        )
-        skills_dest = os.path.abspath(
-            os.path.join(self.target_dir, ".claude", "skills")
-        )
+        if "mcpServers" not in config:
+            config["mcpServers"] = {}
 
-        # Don't copy if src and dest are identical (avoids lock errors in dev)
-        if skills_src == skills_dest:
-            print("  ✓ Claude skills already present in source.")
+        # Idempotent: skip if already registered
+        if "aegis" in config["mcpServers"]:
+            logger.info("Aegis MCP server already registered in Claude config.")
             return
 
-        if os.path.exists(skills_src):
-            if not os.path.exists(skills_dest):
-                os.makedirs(skills_dest)
-            for item in os.listdir(skills_src):
-                shutil.copy2(
-                    os.path.join(skills_src, item), os.path.join(skills_dest, item)
-                )
-            print("  ✓ Claude skills injected.")
-
-    def _setup_aider(self):
-        aider_conf_path = os.path.join(self.target_dir, ".aider.conf.yml")
-        aider_config = {
-            "mcp-servers": ["uv run aegis-kernel"],
-            "read": ["AGENTS.md", "SPEC.md", ".aegis/rules.yaml"],
+        config["mcpServers"]["aegis"] = {
+            "command": "aegis",
+            "args": ["run", "--transport", "stdio"],
         }
 
-        with open(aider_conf_path, "w", encoding="utf-8") as f:
-            import yaml
+        with open(self.claude_config, "w", encoding="utf-8") as f:
+            json.dump(config, f, indent=2)
 
-            yaml.dump(aider_config, f)
+        logger.info("Claude MCP transport configuration updated.")
 
-        print("  ✓ Aider configuration (.aider.conf.yml) mapped.")
+    def _inject_aider_mcp(self) -> None:
+        """Appends the MCP server initialization to the global Aider configuration."""
+        directive = "\nmcp-server: aegis run --transport stdio\n"
 
-    def _setup_git_hooks(self):
-        # Delegate to the CLI logic
-        subprocess.run(
-            ["uv", "run", "aegis", "setup-hooks"],
-            cwd=self.target_dir,
-            capture_output=True,
-        )
-        print("  ✓ Git pre-commit hooks wired.")
+        if self.aider_config.exists():
+            with open(self.aider_config, "r", encoding="utf-8") as f:
+                content = f.read()
+            if "aegis run" in content:
+                logger.info("Aider MCP server already configured.")
+                return
 
-    @staticmethod
-    def entry_point():
-        installer = AegisInstaller()
-        installer.install()
+        with open(self.aider_config, "a", encoding="utf-8") as f:
+            f.write(directive)
 
+        logger.info("Aider MCP configuration updated.")
 
-if __name__ == "__main__":
-    AegisInstaller.entry_point()
+    def _deploy_claude_skills(self) -> None:
+        """Copies agentic skills from the package to the global skills directory."""
+        if not self.skills_src.exists() or not self.skills_src.is_dir():
+            logger.warning("Skills source directory not found.", path=str(self.skills_src))
+            return
+
+        deployed = 0
+        for item in self.skills_src.iterdir():
+            if item.suffix == ".md":
+                dest = self.claude_skills / item.name
+                shutil.copy2(str(item), str(dest))
+                deployed += 1
+
+        logger.info("Agentic skills deployed.", count=deployed, target=str(self.claude_skills))

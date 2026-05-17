@@ -1,5 +1,11 @@
 # Aegis Target Specification
 
+## L0: Universal Installer
+Aegis provides a global installation layer that binds into the developer's AI toolchain:
+- `uv run aegis install` — Registers the Aegis MCP server into `~/.claude/claude_desktop_config.json` and `~/.aider.conf.yml`, and deploys agentic skills to `~/.claude/skills/`.
+- The installer is idempotent and operates independently of any project repository.
+- After installation, `/aegis-*` commands are available natively in any Claude Code session.
+
 ## L1: The Aegis Governance Engine
 Aegis is a localized microkernel for the **Negotiation** and **Enforcement** of architectural invariants. Supports 3 evaluation engines: tree-sitter (AST), graph (cross-file dependency), and regex (pattern matching).
 
