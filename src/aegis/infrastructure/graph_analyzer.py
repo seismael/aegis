@@ -17,7 +17,7 @@ class GraphAnalyzer(GraphAnalyzerInterface):
 
     def analyze_graph(self, root_dir: str, rules: list[Rule]) -> list[ASTViolation]:
         violations: list[ASTViolation] = []
-        adjacency, file_imports = self._build_import_graph(root_dir)
+        adjacency, file_imports = self.build_import_graph(root_dir)
 
         for rule in rules:
             if not rule.query:
@@ -38,7 +38,7 @@ class GraphAnalyzer(GraphAnalyzerInterface):
 
         return violations
 
-    def _build_import_graph(
+    def build_import_graph(
         self, root_dir: str
     ) -> tuple[dict[str, set[str]], dict[str, list[tuple[int, str]]]]:
         """

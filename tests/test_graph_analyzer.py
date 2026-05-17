@@ -87,6 +87,47 @@ class TestGraphAnalyzer:
         violations = analyzer.analyze_graph(str(tmp_path), [rule])
         assert len(violations) == 0
 
+    def test_build_import_graph_returns_adjacency(self, tmp_path):
+        """Verify build_import_graph returns structured adjacency data."""
+        (tmp_path / "a.py").write_text("from b import foo\nx = 1\n", encoding="utf-8")
+        (tmp_path / "b.py").write_text("from c import bar\ny = 2\n", encoding="utf-8")
+        (tmp_path / "c.py").write_text("z = 3\n", encoding="utf-8")
+
+        analyzer = GraphAnalyzer()
+        adjacency, file_imports = analyzer.build_import_graph(str(tmp_path))
+
+        assert "a" in adjacency
+        assert "b" in adjacency
+        assert "b" in adjacency["a"]
+        assert "c" in adjacency["b"]
+        assert len(file_imports["a"]) == 1
+        assert file_imports["a"][0][1] == "b"
+
+    def test_build_import_graph_empty_dir(self, tmp_path):
+        """Verify build_import_graph handles directories with no Python files."""
+        analyzer = GraphAnalyzer()
+        adjacency, file_imports = analyzer.build_import_graph(str(tmp_path))
+
+        assert adjacency == {}
+        assert file_imports == {}
+
+    def test_build_import_graph_ignores_excluded_dirs(self, tmp_path):
+        """Verify build_import_graph skips .venv and other ignored directories."""
+        venv = tmp_path / ".venv"
+        venv.mkdir()
+        (venv / "lib.py").write_text("import bad_thing\n", encoding="utf-8")
+        (tmp_path / "main.py").write_text("from utils import helper\n", encoding="utf-8")
+        (tmp_path / "utils.py").write_text("def helper(): pass\n", encoding="utf-8")
+
+        analyzer = GraphAnalyzer()
+        adjacency, file_imports = analyzer.build_import_graph(str(tmp_path))
+
+        # .venv content should not appear
+        assert ".venv.lib" not in adjacency
+        # main.py imports should be found (ignores .venv)
+        assert "main" in adjacency
+        assert "utils" in adjacency["main"]
+
     def test_ignores_venv_and_node_modules(self, tmp_path):
         (tmp_path / ".venv").mkdir()
         (tmp_path / ".venv" / "lib.py").write_text(
