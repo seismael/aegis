@@ -4,53 +4,8 @@
       "rule_id": "strict-ood",
       "action": "suppress",
       "rationale": "",
-      "timestamp": "2026-05-17T11:54:45.290879",
+      "timestamp": "2026-05-17T21:47:11.510305",
       "metadata": {}
-    },
-    {
-      "rule_id": "strict-ood",
-      "action": "relax_rule",
-      "rationale": "Excluded tests/ and cli/ directories from strict-ood. Tests use pytest function-based convention (standalone test functions), CLI uses Typer decorators — both legitimate exceptions.",
-      "timestamp": "2026-05-17T16:36:30",
-      "metadata": {
-        "changes": ["added excludes: tests/**, src/aegis/cli/**"]
-      }
-    },
-    {
-      "rule_id": "hexagonal-isolation",
-      "action": "relax_rule",
-      "rationale": "Excluded tests/ (pytest/mock imports), container/ (composition root wires all layers), and kernel/ (MCP adapter bridges domain to FastMCP infrastructure). These are legitimate hexagonal architecture exceptions.",
-      "timestamp": "2026-05-17T16:36:35",
-      "metadata": {
-        "changes": ["added excludes: tests/**, src/aegis/core/container/**, src/aegis/kernel/**", "added rationale"]
-      }
-    },
-    {
-      "rule_id": "no-circular-deps",
-      "action": "refactor_required",
-      "rationale": "Rule was using engine_type: tree-sitter with a catch-all (import_from_statement) query that flagged ALL imports as circular violations. Now that the graph analyzer exists, changing to engine_type: graph with query: circular_dependency for real cycle detection. Eliminates 100+ false positives from the baseline.",
-      "timestamp": "2026-05-17T16:36:00",
-      "metadata": {
-        "changes": ["engine_type: tree-sitter -> graph", "query: (import_from_statement) -> circular_dependency", "added rationale"]
-      }
-    }
-    {
-      "rule_id": "no-print-statements",
-      "action": "refactor_required",
-      "rationale": "New rule: production code must use structlog, not print(). Regex engine bans the print( pattern in non-test files.",
-      "timestamp": "2026-05-17T16:38:30",
-      "metadata": {
-        "action": "add"
-      }
-    },
-    {
-      "rule_id": "no-wildcard-imports",
-      "action": "refactor_required",
-      "rationale": "New rule: wildcard imports (from module import *) pollute namespace and hide dependencies. Regex engine enforces explicit imports.",
-      "timestamp": "2026-05-17T16:38:35",
-      "metadata": {
-        "action": "add"
-      }
     }
   ]
 }

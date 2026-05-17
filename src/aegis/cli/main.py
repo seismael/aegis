@@ -13,8 +13,8 @@ class AegisCLI:
     Headless CLI for Aegis.
     Focused on CI/CD pipelines, environment bootstrapping, and diagnostic auditing.
     """
-    def __init__(self):
-        self.container = Container()
+    def __init__(self, container: Container | None = None):
+        self.container = container or Container()
         self.console = Console()
         self.app = typer.Typer(help="Aegis: Headless Architectural Governance Engine")
         self._register_commands()
@@ -60,7 +60,8 @@ class AegisCLI:
     def check(
         self,
         staged: bool = typer.Option(False, "--staged", help="Check only staged changes"),
-        rule: Optional[str] = typer.Option(None, "--rule", help="Filter by specific rule ID")
+        rule: Optional[str] = typer.Option(None, "--rule", help="Filter by specific rule ID"),
+        strict: bool = typer.Option(False, "--strict", help="Treat warnings/reports as blocking")
     ):
         """Performs a gated compliance check. Non-zero exit on blocking violations."""
         rules_path = os.path.join(self.container.workspace_root, ".aegis", "rules.yaml")
@@ -84,11 +85,20 @@ class AegisCLI:
 
         # Blocking logic
         rule_map = {r.id: r for r in rules}
-        blocking = [v for v in active if rule_map.get(v.rule_id).mode == EnforcementMode.BLOCK]
+        blocking_modes = {EnforcementMode.BLOCK}
+        if strict:
+            blocking_modes.add(EnforcementMode.WARN)
+            blocking_modes.add(EnforcementMode.REPORT)
+        
+        blocking = []
+        for v in active:
+            r_obj = rule_map.get(v.rule_id)
+            if r_obj and r_obj.mode in blocking_modes:
+                blocking.append(v)
         
         for v in active:
             r_obj = rule_map.get(v.rule_id)
-            mode = r_obj.mode.value if r_obj else "unknown"
+            mode = r_obj.mode.value if r_obj else "warn" # Default to warn for unknown rules
             style = "red" if mode == "block" else "yellow"
             self.console.print(f"- [{style}]{mode.upper()}[/{style}] {v.file}:{v.line} ({v.rule_id})")
 
