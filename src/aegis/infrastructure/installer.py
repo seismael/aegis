@@ -1,6 +1,7 @@
 """
-Universal Installer for Aegis Architectural Governance.
-Operates globally — binds MCP servers into AI tool configs and deploys agentic skills.
+Aegis Capability Installer.
+Installs Aegis as a global agent capability (Extension/Plugin).
+Binds MCP servers and deploys agentic skills to the user's AI tools.
 """
 
 import json
@@ -8,7 +9,6 @@ import shutil
 from pathlib import Path
 from typing import Any
 import importlib.resources
-
 import structlog
 
 logger = structlog.get_logger()
@@ -16,35 +16,39 @@ logger = structlog.get_logger()
 
 class AegisInstaller:
     """
-    Enterprise installation bootstrapper.
-    Idempotently configures local AI coding environments to recognize
-    the Aegis MCP server and registers the global agentic skills.
-
-    Operates independently of any target repository.
+    Global Agent Capability Installer.
+    Introduces the 'Aegis Governance' capability to Claude, Aider, and other tools.
+    This is run ONCE per machine to register the engine globally.
     """
 
     def __init__(self):
         self.home = Path.home()
+        # Claude Desktop / Code configuration
         self.claude_dir = self.home / ".claude"
         self.claude_config = self.claude_dir / "claude_desktop_config.json"
         self.claude_skills = self.claude_dir / "skills"
 
+        # Aider configuration
         self.aider_config = self.home / ".aider.conf.yml"
 
-    def execute_global_install(self) -> None:
-        """Executes the full installation sequence across all detected tools."""
+    def install_global_capability(self) -> None:
+        """
+        Executes the global installation sequence.
+        Makes the Aegis capability available to all AI agents on the system.
+        """
         self._ensure_directories()
-        self._inject_claude_mcp()
-        self._deploy_claude_skills()
-        self._inject_aider_mcp()
-        logger.info("Aegis Universal Installer completed successfully.")
+        self._inject_claude_capability()
+        self._deploy_agent_skills()
+        self._inject_aider_capability()
+        logger.info("Aegis Global Capability installed successfully.")
 
     def _ensure_directories(self) -> None:
+        """Ensures that global agent configuration directories exist."""
         self.claude_dir.mkdir(parents=True, exist_ok=True)
         self.claude_skills.mkdir(parents=True, exist_ok=True)
 
-    def _inject_claude_mcp(self) -> None:
-        """Mutates the global Claude Desktop / CLI configuration to bind Aegis."""
+    def _inject_claude_capability(self) -> None:
+        """Registers Aegis as a global MCP capability for Claude."""
         config: dict[str, Any] = {"mcpServers": {}}
 
         if self.claude_config.exists():
@@ -52,50 +56,43 @@ class AegisInstaller:
                 with open(self.claude_config, encoding="utf-8") as f:
                     config = json.load(f)
             except json.JSONDecodeError:
-                logger.warning("Corrupted Claude config detected. Creating backup.")
-                backup = self.claude_config.with_suffix(".json.bak")
-                self.claude_config.rename(backup)
+                logger.warning("Claude config corrupted. Creating backup.")
+                self.claude_config.rename(self.claude_config.with_suffix(".json.bak"))
                 config = {"mcpServers": {}}
 
         if "mcpServers" not in config:
             config["mcpServers"] = {}
 
-        # Idempotent: skip if already registered
-        if "aegis" in config["mcpServers"]:
-            logger.info("Aegis MCP server already registered in Claude config.")
-            return
-
+        # Idempotent registration
         config["mcpServers"]["aegis"] = {
-            "command": "aegis",
-            "args": ["run", "--transport", "stdio"],
+            "command": "aegis-kernel", # Use the console script
+            "args": ["--transport", "stdio"],
         }
 
         with open(self.claude_config, "w", encoding="utf-8") as f:
             json.dump(config, f, indent=2)
+        logger.info("Claude capability registered.")
 
-        logger.info("Claude MCP transport configuration updated.")
-
-    def _inject_aider_mcp(self) -> None:
-        """Appends the MCP server initialization to the global Aider configuration."""
-        directive = "\nmcp-server: aegis run --transport stdio\n"
+    def _inject_aider_capability(self) -> None:
+        """Registers Aegis as a global MCP capability for Aider."""
+        # Use .aider.conf.yml in the home directory for global availability
+        directive = "\nmcp-server: aegis-kernel --transport stdio\n"
 
         if self.aider_config.exists():
             with open(self.aider_config, encoding="utf-8") as f:
                 content = f.read()
-            if "aegis run" in content:
-                logger.info("Aider MCP server already configured.")
+            if "aegis-kernel" in content:
                 return
 
         with open(self.aider_config, "a", encoding="utf-8") as f:
             f.write(directive)
+        logger.info("Aider capability registered.")
 
-        logger.info("Aider MCP configuration updated.")
-
-    def _deploy_claude_skills(self) -> None:
-        """Copies agentic skills from the package resources to the global skills directory."""
+    def _deploy_agent_skills(self) -> None:
+        """Deploys the AI instruction skills to the global agent store."""
         deployed = 0
         try:
-            # Use importlib.resources to access the packaged skills
+            # Load skills from the package resources
             traversable = importlib.resources.files("aegis.resources.skills")
             for item in traversable.iterdir():
                 if item.name.endswith(".md"):
@@ -103,19 +100,14 @@ class AegisInstaller:
                     with importlib.resources.as_file(item) as skill_file:
                         shutil.copy2(str(skill_file), str(dest))
                     deployed += 1
+            logger.info("Agent skills deployed.", count=deployed)
         except Exception as e:
-            logger.warning("Failed to deploy skills from resources.", error=str(e))
-            return
-
-        logger.info(
-            "Agentic skills deployed.", count=deployed, target=str(self.claude_skills)
-        )
+            logger.error("Failed to deploy skills.", error=str(e))
 
     @staticmethod
     def entry_point():
         installer = AegisInstaller()
-        installer.execute_global_install()
-
-
-if __name__ == "__main__":
-    AegisInstaller.entry_point()
+        installer.install_global_capability()
+        print("\n🛡️  Aegis Global Capability Installed!")
+        print("Your AI agents (Claude, Aider, etc.) now have the 'Aegis Governance' capability.")
+        print("To apply governance to a specific project, enter the directory and run: `aegis init`.")
