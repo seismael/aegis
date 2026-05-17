@@ -6,7 +6,11 @@ class OpenDevinAdapter(ToolAdapter):
     Native integration for OpenDevin (often referred to as OpenCode).
     Registers Aegis as a trusted MCP server in the OpenDevin workspace configuration.
     """
-    def is_available(self) -> bool:
+    @property
+    def name(self) -> str:
+        return "OpenDevin"
+
+    def is_present(self) -> bool:
         # Detect OpenDevin via environment or common config locations
         return os.path.exists(".opendevin") or os.environ.get("OPENDEVIN_BASE_URL") is not None
 

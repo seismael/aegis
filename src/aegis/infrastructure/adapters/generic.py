@@ -7,6 +7,10 @@ class GenericMCPAdapter(ToolAdapter):
     Fallback adapter for any tool following the standard MCP manifest pattern.
     Ensures that Aegis is discoverable by generic agentic ecosystems (including Gemini toolchains).
     """
+    @property
+    def name(self) -> str:
+        return "Generic MCP"
+
     def is_available(self) -> bool:
         return True # Always available as a fallback
 
