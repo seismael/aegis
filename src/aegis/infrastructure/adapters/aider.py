@@ -1,7 +1,7 @@
 import os
-from aegis.infrastructure.adapters.base import AgentAdapter, logger
+from aegis.infrastructure.adapters.base import ToolAdapter, logger
 
-class AiderAdapter(AgentAdapter):
+class AiderAdapter(ToolAdapter):
     """
     Native adapter for Aider.
     Configures Aider to use Aegis as an architect-mode MCP server.

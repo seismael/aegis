@@ -4,9 +4,9 @@ import shutil
 import subprocess
 import importlib.resources
 from pathlib import Path
-from aegis.infrastructure.adapters.base import AgentAdapter, logger
+from aegis.infrastructure.adapters.base import ToolAdapter, logger
 
-class ClaudeAdapter(AgentAdapter):
+class ClaudeAdapter(ToolAdapter):
     """
     Native adapter for Anthropic Claude (Desktop and CLI).
     Prioritizes official CLI-based installation where available.
