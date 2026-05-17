@@ -5,17 +5,29 @@
 ---
 
 ## 🛠️ The Problem: Architectural Drift
-In AI-assisted engineering, agents often optimize for localized fixes while inadvertently violating global architectural laws. This lead to paradigm leaks, dependency rot, and unmanaged technical debt. Aegis solves this by introducing a stateless, high-performance feedback loop that enforces your project's "Perfection" at the moment of code creation.
+In AI-assisted engineering, agents often optimize for localized fixes while inadvertently violating global architectural laws. This leads to paradigm leaks, dependency rot, and unmanaged technical debt. Aegis solves this by introducing a stateless, high-performance feedback loop that enforces your project's "Perfection" at the moment of code creation.
 
 ---
 
 ## 🚀 Native Agentic Integration (The "Universal" Paradigm)
-Aegis is not a traditional OS-level tool; it is a **Universal Capability** that is "carried" by the agent:
+Aegis is a **Universal Capability** that you install once into your agentic ecosystems using their native commands:
 
-### 1. Global Installation (Agent Level)
-Register Aegis as a native, machine-wide capability for your AI toolchain.
+### 1. Global Installation (Native Tool Flow)
+Install Aegis directly from GitHub into your preferred agent.
+
+**Claude Code**:
+```text
+/plugin install https://github.com/seismael/aegis
+```
+
+**Aider**:
 ```bash
-# Register Aegis globally into Claude, Aider, etc.
+aider --mcp-server "uv run aegis-kernel"
+```
+
+**Universal (Manual CLI)**:
+```bash
+# Register Aegis globally into all detected tools on this machine
 uv run aegis install
 ```
 *Impact: Your AI agents now natively "know" how to discover, evaluate, and remediate architecture across any project.*

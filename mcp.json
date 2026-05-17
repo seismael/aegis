@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "aegis": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--python",
+        "3.12",
+        "aegis-kernel",
+        "--transport",
+        "stdio"
+      ],
+      "env": {
+        "AEGIS_AGENT_MODE": "true"
+      }
+    }
+  }
+}
