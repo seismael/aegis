@@ -1,12 +1,8 @@
 {
   "mcpServers": {
     "aegis": {
-      "command": "uv",
+      "command": "aegis-kernel",
       "args": [
-        "run",
-        "--python",
-        "3.12",
-        "aegis-kernel",
         "--transport",
         "stdio"
       ],
