@@ -1,1 +1,110 @@
-[]
+[
+  {
+    "file": "src\\aegis\\infrastructure\\installer.py",
+    "line": 8,
+    "rule_id": "hexagonal-isolation",
+    "signature": "89d7264f028baa11e179c62bd482f62d"
+  },
+  {
+    "file": "src\\aegis\\infrastructure\\installer.py",
+    "line": 10,
+    "rule_id": "hexagonal-isolation",
+    "signature": "087ac1d6e93903f557632292784a9661"
+  },
+  {
+    "file": "src\\aegis\\infrastructure\\installer.py",
+    "line": 12,
+    "rule_id": "hexagonal-isolation",
+    "signature": "97eb40691afd29f8fda7839eb9b24ac8"
+  },
+  {
+    "file": "src\\aegis\\infrastructure\\installer.py",
+    "line": 9,
+    "rule_id": "hexagonal-isolation",
+    "signature": "d07b9be7cdd57e653cfcb8d13666c987"
+  },
+  {
+    "file": "src\\aegis\\infrastructure\\installer.py",
+    "line": 11,
+    "rule_id": "hexagonal-isolation",
+    "signature": "3c1bb0027f539bbe4a8227438c1f90c8"
+  },
+  {
+    "file": "src\\aegis\\infrastructure\\installer.py",
+    "line": 8,
+    "rule_id": "hexagonal-isolation",
+    "signature": "fcd05532a83ed7a13e2cc9e4797de5e0"
+  },
+  {
+    "file": "src\\aegis\\infrastructure\\installer.py",
+    "line": 9,
+    "rule_id": "hexagonal-isolation",
+    "signature": "fcd05532a83ed7a13e2cc9e4797de5e0"
+  },
+  {
+    "file": "src\\aegis\\infrastructure\\installer.py",
+    "line": 11,
+    "rule_id": "hexagonal-isolation",
+    "signature": "fcd05532a83ed7a13e2cc9e4797de5e0"
+  },
+  {
+    "file": "src\\aegis\\infrastructure\\installer.py",
+    "line": 12,
+    "rule_id": "hexagonal-isolation",
+    "signature": "fcd05532a83ed7a13e2cc9e4797de5e0"
+  },
+  {
+    "file": "src\\aegis\\infrastructure\\installer.py",
+    "line": 10,
+    "rule_id": "hexagonal-isolation",
+    "signature": "fcd05532a83ed7a13e2cc9e4797de5e0"
+  },
+  {
+    "file": "src\\aegis\\infrastructure\\adapters\\aider.py",
+    "line": 2,
+    "rule_id": "hexagonal-isolation",
+    "signature": "1d0ae41e48e18a5768ae805675005069"
+  },
+  {
+    "file": "src\\aegis\\infrastructure\\adapters\\aider.py",
+    "line": 2,
+    "rule_id": "hexagonal-isolation",
+    "signature": "fcd05532a83ed7a13e2cc9e4797de5e0"
+  },
+  {
+    "file": "src\\aegis\\infrastructure\\adapters\\claude.py",
+    "line": 7,
+    "rule_id": "hexagonal-isolation",
+    "signature": "1d0ae41e48e18a5768ae805675005069"
+  },
+  {
+    "file": "src\\aegis\\infrastructure\\adapters\\claude.py",
+    "line": 7,
+    "rule_id": "hexagonal-isolation",
+    "signature": "fcd05532a83ed7a13e2cc9e4797de5e0"
+  },
+  {
+    "file": "src\\aegis\\infrastructure\\adapters\\generic.py",
+    "line": 3,
+    "rule_id": "hexagonal-isolation",
+    "signature": "1d0ae41e48e18a5768ae805675005069"
+  },
+  {
+    "file": "src\\aegis\\infrastructure\\adapters\\generic.py",
+    "line": 3,
+    "rule_id": "hexagonal-isolation",
+    "signature": "fcd05532a83ed7a13e2cc9e4797de5e0"
+  },
+  {
+    "file": "src\\aegis\\infrastructure\\adapters\\opendevin.py",
+    "line": 2,
+    "rule_id": "hexagonal-isolation",
+    "signature": "1d0ae41e48e18a5768ae805675005069"
+  },
+  {
+    "file": "src\\aegis\\infrastructure\\adapters\\opendevin.py",
+    "line": 2,
+    "rule_id": "hexagonal-isolation",
+    "signature": "fcd05532a83ed7a13e2cc9e4797de5e0"
+  }
+]
