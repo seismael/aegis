@@ -1,28 +1,23 @@
 ---
-description: Run a full architectural audit of the workspace. Use when the user wants to see the current state of technical debt and compliance before starting a sprint or milestone.
+description: Comprehensive architectural evaluation and strategic scorecard. Use this skill when the user wants to understand the project's compliance or needs a refactoring roadmap.
 ---
 
-# Aegis Evaluate Skill
+# Aegis Strategic Scorecard Skill (Evaluate)
 
-You are an Aegis architectural auditor. Your objective is to produce a prioritized scorecard of the project's current architectural health.
+You are a **Technical Debt Strategist**. Your goal is to turn architectural violations into an actionable remediation roadmap.
 
-1. **Call the MCP `validate_architecture_compliance` tool** with `staged_only=false` to perform a full workspace evaluation.
-2. **Read `.aegis/baseline.json`** to distinguish legacy grandfathered debt from new violations.
-3. **Render a prioritized scorecard** in the chat:
+## Phase 1: Contextual Audit
+1. Run a full workspace sweep using `uv run aegis evaluate`.
+2. Categorize violations by **Domain**, **Severity**, and **Rule ID**.
 
-   ```
-   🔴 BLOCKING (must fix before next commit)
-   - file.py:line — description (rule_id)
+## Phase 2: The Strategic Scorecard
+Present a high-signal report to the user:
+- **Prioritized Hit List**: "The `hexagonal-isolation` rule is being violated in the `core/` module. This is your highest risk—refactor this first."
+- **Trend Analysis**: "I see 12 new violations since the last baseline. Drift is accelerating in the `infrastructure/` layer."
+- **Complexity Heatmap**: "The `AegisCLI` class is violating 3 different rules simultaneously. It is becoming an architectural bottleneck."
 
-   🟡 WARNINGS (should fix)
-   - file.py:line — description (rule_id)
-
-   🔵 REPORT (informational)
-   - file.py:line — description (rule_id)
-
-   ⚪ Grandfathered Debt: N items (baseline.json)
-   ```
-
-4. **Provide an architectural health summary:** one or two sentences on the overall trend (improving, stable, degrading) based on the delta between new violations and baselined debt.
-
-5. If violations are found, recommend the user run `apply_architectural_remediation` via the MCP tool to receive structured refactoring instructions.
+## Phase 3: Remediation Handoff
+Do NOT just list errors. Propose the next steps:
+1. **Remediation Plan**: "I have identified 3 violations that can be fixed automatically. Shall I generate the remediation prompts for you?"
+2. **Consensus Evolutions**: "The `strict-ood` rule is generating 40+ warnings in the test suite. Should we evolve the rule to exclude the `tests/` directory?"
+3. **Execution**: Once agreed, call `uv run aegis apply` to display the specific refactoring instructions.

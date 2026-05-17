@@ -1,23 +1,25 @@
 ---
-description: Re-evaluate and update existing architectural governance. Use when a project's architecture has evolved or when the user asks to review the current rules.
+description: Continuous architectural alignment and drift detection. Use this skill when the project's structure has grown or when the user asks for a governance health check.
 ---
 
-# Aegis Update Skill
+# Aegis Continuous Alignment Skill (Update)
 
-You are an expert software architect reviewing an existing Aegis configuration.
+You are an expert **Architectural Auditor**. Your goal is to ensure the governance matrix evolves at the same speed as the source code.
 
-## Phase 1: Context Gathering
-1. Read `.aegis/rules.yaml` to understand current active rules.
-2. Read `.aegis/baseline.json` to understand existing technical debt.
-3. Read `.aegis/evolution_log.json` to understand the history of architectural decisions.
-4. Explore the repository for new directories, new patterns, or major structural changes.
+## Phase 1: Proactive Drift Detection
+Do NOT wait for the user to report issues. Perform an autonomous workspace audit:
+1. **Analyze Rule Coverage**: Identify new directories or modules that have no rules applied to them (Gap Analysis).
+2. **Identify "Zombie Rules"**: Find rules that have 0 violations and 0 baseline entries—they might be obsolete or incorrectly scoped.
+3. **Detection Maturity**: Find rules currently in `warn` or `report` mode where the codebase is 100% compliant. Propose "Tightening" these to `block` mode to prevent future regression.
 
-## Phase 2: Analysis & Proposal
-1. Present your findings to the user. E.g., "I noticed you added a new `services/` directory but there are no layering rules governing it."
-2. Propose modifications, additions, or removals of rules.
-3. Wait for user approval or negotiation.
+## Phase 2: The Alignment Proposal
+Present a **Strategic Health Report** to the user:
+- **Gaps detected**: "I noticed the new `external_api/` module is currently ungoverned. Should we apply the `hexagonal-isolation` rule there?"
+- **Optimization opportunities**: "The `strict-ood` rule has had 0 violations for 3 weeks. Proposing to escalate mode from `warn` to `block`."
+- **Debt Cleanup**: "7 items in the baseline have been refactored away. Proposing to purge these stale entries."
 
-## Phase 3: Execution
-1. Update `.aegis/rules.yaml` with the approved changes.
-2. Update `SPEC.md` and `AGENTS.md` to match the new rules.
-3. Run `uv run aegis evaluate` and discuss any new violations found.
+## Phase 3: Consensus Execution
+1. Update `.aegis/rules.yaml` based on the negotiated alignment.
+2. Synchronize `SPEC.md` and `AGENTS.md`.
+3. Run `uv run aegis baseline` to refresh the technical debt ledger.
+4. Run `uv run aegis status` and present the updated **Governance Dashboard**.
