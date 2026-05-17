@@ -1,12 +1,22 @@
 [project]
 name = "aegis"
 version = "0.1.0"
-description = "An enterprise-grade, agentic architectural governance engine."
+description = "Enterprise-grade agentic architectural governance engine. Enforces structural invariants, OOD, and Hexagonal boundaries via hunk-aware AST analysis and AI-driven feedback loops."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "GPL-3.0-only"
 authors = [{ name = "Aegis Team", email = "hello@aegis-governance.org" }]
-keywords = ["architecture", "governance", "agentic", "mcp", "tree-sitter", "refactoring", "copyleft"]
+keywords = [
+    "architecture-governance",
+    "agentic-workflows",
+    "mcp",
+    "tree-sitter",
+    "drift-prevention",
+    "clean-architecture",
+    "hexagonal-architecture",
+    "refactoring-assistant",
+    "copyleft",
+]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
