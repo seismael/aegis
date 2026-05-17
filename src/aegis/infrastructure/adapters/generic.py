@@ -11,7 +11,7 @@ class GenericMCPAdapter(ToolAdapter):
     def name(self) -> str:
         return "Generic MCP"
 
-    def is_available(self) -> bool:
+    def is_present(self) -> bool:
         return True # Always available as a fallback
 
     def install(self) -> bool:
