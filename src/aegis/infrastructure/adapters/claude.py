@@ -3,12 +3,13 @@ import json
 import shutil
 import subprocess
 import importlib.resources
+from pathlib import Path
 from aegis.infrastructure.adapters.base import AgentAdapter, logger
 
 class ClaudeAdapter(AgentAdapter):
     """
     Native adapter for Anthropic Claude (Desktop and CLI).
-    Prioritizes official /plugin installation where supported.
+    Prioritizes official CLI-based installation where available.
     """
     @property
     def name(self) -> str:
@@ -22,8 +23,9 @@ class ClaudeAdapter(AgentAdapter):
         return any(p.exists() for p in claude_paths)
 
     def install(self) -> bool:
-        # 1. Try native 'claude' CLI registration if available
+        # 1. Try native 'claude' CLI registration (The Preferred Native Method)
         if self._try_native_mcp_add():
+            self._deploy_skills()
             return True
             
         # 2. Fallback to raw config mutation (Robust Default)
@@ -32,17 +34,22 @@ class ClaudeAdapter(AgentAdapter):
         return True
 
     def _try_native_mcp_add(self) -> bool:
-        """Attempts to use the 'claude' CLI to add the MCP server."""
+        """Attempts to use the 'claude' CLI to add the MCP server natively."""
         try:
-            # Future-proofing for when 'claude mcp add' or similar exists
-            # For now, we'll check if the command exists
-            result = subprocess.run(["claude", "mcp", "add", "aegis", "--command", "aegis-kernel"], 
-                                    capture_output=True, text=True)
+            # Command: claude mcp add [name] [command] [args...]
+            # This is the 'Native Plugin' installation method for Claude Code
+            result = subprocess.run(
+                ["claude", "mcp", "add", "aegis", "aegis-kernel", "--", "--transport", "stdio"], 
+                capture_output=True, 
+                text=True,
+                check=False
+            )
             return result.returncode == 0
         except FileNotFoundError:
             return False
 
     def _manual_config_injection(self) -> None:
+        """Fallback: Directly mutate the Claude Desktop configuration JSON."""
         config_path = self.home / ".claude" / "claude_desktop_config.json"
         config_path.parent.mkdir(parents=True, exist_ok=True)
         
@@ -66,6 +73,7 @@ class ClaudeAdapter(AgentAdapter):
             json.dump(config, f, indent=2)
 
     def _deploy_skills(self) -> None:
+        """Deploys AI instruction skills to Claude's native skills directory."""
         skills_dest = self.home / ".claude" / "skills"
         skills_dest.mkdir(parents=True, exist_ok=True)
         
