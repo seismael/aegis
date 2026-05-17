@@ -1,18 +1,18 @@
 from abc import ABC, abstractmethod
-from typing import List
-from aegis.core.models.remediation import RemediationAction, RemediationPlan
+from typing import Dict, List
 from aegis.domain.evaluation.ports import ASTViolation
+from aegis.core.models.governance import Rule
 
-class RemediationStrategyInterface(ABC):
+
+class RemediationProviderInterface(ABC):
     """
-    Interface for a specific remediation technique (e.g. LLM, AST).
+    Interface for a prompt-based remediation provider.
+    Converts violations into structured prompts for AI agents.
     """
-    @property
-    @abstractmethod
-    def name(self) -> str:
-        pass
 
     @abstractmethod
-    def apply_fix(self, action: RemediationAction) -> bool:
-        """Applies the fix and returns success status."""
+    def generate_remediation(
+        self, violations: List[ASTViolation], rules_map: Dict[str, Rule]
+    ) -> str:
+        """Generates a structured remediation prompt for the given violations."""
         pass

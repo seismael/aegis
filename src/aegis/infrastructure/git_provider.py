@@ -3,6 +3,8 @@ from typing import Set
 from aegis.domain.evaluation.ports import DiffProviderInterface, DiffResult
 
 class GitDiffResult(DiffResult):
+    """Parsed result of staged git changes including modified line numbers."""
+
     def __init__(self, diff_index: git.DiffIndex):
         self._changed_files: Set[str] = set()
         self._modified_lines: dict[str, Set[int]] = {}

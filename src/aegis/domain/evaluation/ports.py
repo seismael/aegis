@@ -1,18 +1,21 @@
 from abc import ABC, abstractmethod
-from typing import Any, List, Dict, Set, Optional
+from typing import Any, Dict, List, Set, Optional
 from pydantic import BaseModel
 from aegis.core.models.governance import Rule
+
 
 class ASTViolation(BaseModel):
     """
     Represents a single architectural violation found in the AST.
     """
+
     file: str
     line: int
     rule_id: str
     description: str
     severity: str = "HIGH"
-    signature: Optional[str] = None # Hashed structural representation
+    signature: Optional[str] = None  # Hashed structural representation
+
 
 class ASTAnalyzerInterface(ABC):
     """
@@ -20,14 +23,44 @@ class ASTAnalyzerInterface(ABC):
     """
 
     @abstractmethod
-    def analyze_file(self, file_path: str, content: str, rules: List[Rule]) -> List[ASTViolation]:
+    def analyze_file(
+        self, file_path: str, content: str, rules: List[Rule]
+    ) -> List[ASTViolation]:
         """Analyzes a single file against a set of structural rules."""
         pass
+
+
+class GraphAnalyzerInterface(ABC):
+    """
+    Interface for cross-file dependency graph analysis.
+    """
+
+    @abstractmethod
+    def analyze_graph(
+        self, root_dir: str, rules: List[Rule]
+    ) -> List[ASTViolation]:
+        """Analyzes cross-file dependency relationships across the workspace."""
+        pass
+
+
+class RegexAnalyzerInterface(ABC):
+    """
+    Interface for regex-based pattern analysis within files.
+    """
+
+    @abstractmethod
+    def analyze_file(
+        self, file_path: str, content: str, rules: List[Rule]
+    ) -> List[ASTViolation]:
+        """Analyzes file content using regex patterns defined in rules."""
+        pass
+
 
 class DiffResult(ABC):
     """
     Represents the set of changes in a codebase.
     """
+
     @property
     @abstractmethod
     def changed_files(self) -> Set[str]:
@@ -37,6 +70,7 @@ class DiffResult(ABC):
     def get_modified_lines(self, file_path: str) -> Set[int]:
         """Returns the set of line numbers that were added or modified."""
         pass
+
 
 class DiffProviderInterface(ABC):
     """

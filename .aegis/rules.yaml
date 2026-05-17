@@ -3,7 +3,11 @@ rules:
     description: Loose procedural functions are forbidden.
     severity: HIGH
     mode: block
+    engine_type: tree-sitter
     language: py
+    excludes:
+      - "tests/**"
+      - "src/aegis/cli/**"
     query: |
       (module [(function_definition) (decorated_definition)] @violation)
 
@@ -11,25 +15,55 @@ rules:
     description: Domain logic must not depend on infrastructure.
     severity: HIGH
     mode: block
+    engine_type: tree-sitter
     language: py
+    excludes:
+      - "tests/**"
+      - "src/aegis/core/container/**"
+      - "src/aegis/kernel/**"
     query: |
-      (import_from_statement 
-        module_name: (dotted_name (identifier) @mod) 
+      (import_from_statement
+        module_name: (dotted_name (identifier) @mod)
         (#match? @mod "infrastructure")
       ) @violation
+    rationale: Hexagonal architecture requires domain layer to be infrastructure-free. Container (composition root), kernel (MCP adapter layer), and tests are exempted.
 
   - id: no-circular-deps
     description: Domain modules must not have circular dependencies.
     severity: HIGH
     mode: block
+    engine_type: graph
     language: py
-    query: |
-      (import_from_statement) @import
+    query: circular_dependency
+    rationale: Prevents tightly coupled domain modules that make testing and refactoring impossible.
+
+  - id: no-print-statements
+    description: Production code must not use print(), use structlog instead.
+    severity: MEDIUM
+    mode: warn
+    engine_type: regex
+    language: py
+    excludes:
+      - "tests/**"
+      - "src/aegis/cli/**"
+      - "**/installer.py"
+    query: print\(
+    rationale: structlog provides structured, level-aware logging suitable for production observability.
+
+  - id: no-wildcard-imports
+    description: Wildcard imports pollute the namespace and hide transitive dependencies.
+    severity: MEDIUM
+    mode: warn
+    engine_type: regex
+    language: py
+    query: ^\s*from\s+\S+\s+import\s+\*\s*$
+    rationale: Explicit imports make dependencies traceable and reduce merge conflicts.
 
   - id: required-docstrings
     description: All classes must have a docstring.
     severity: MEDIUM
     mode: report
+    engine_type: tree-sitter
     language: py
     candidates_query: |
       (class_definition) @class

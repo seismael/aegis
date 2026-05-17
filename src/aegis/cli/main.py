@@ -65,7 +65,7 @@ class AegisCLI:
         active = [v for v in violations if not self.container.baseline_manager.is_exempt(v)]
         
         if not active:
-            self.console.print("[green]✅ Architecture compliant.[/green]")
+            self.console.print("[green]Architecture compliant.[/green]")
             return
 
         # Blocking logic

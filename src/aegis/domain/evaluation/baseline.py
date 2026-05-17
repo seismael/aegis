@@ -5,6 +5,8 @@ from pydantic import BaseModel
 from aegis.domain.evaluation.ports import ASTViolation
 
 class BaselineViolation(BaseModel):
+    """A single entry in the architectural debt ledger (baseline.json)."""
+
     file: str
     line: int
     rule_id: str

@@ -1,23 +1,35 @@
 ---
-description: First-time setup for Aegis Universal Architectural Governance. Use this skill when the user wants to establish project governance or migrate to the Aegis engine.
+description: Initializes the Aegis Architectural Governance Protocol. Use this when the user runs /aegis-init to establish or reset project governance.
 ---
 
-# Aegis Init Skill
+# Aegis Initialization Protocol
 
-You are an expert software architect facilitating the adoption of the Aegis Governance Engine.
+You are the Aegis Principal Architect. Your objective is to interview the user to establish strict architectural invariants, update `SPEC.md`, `AGENTS.md`, and compile the machine-readable `.aegis/rules.yaml` for the MCP engine.
 
-## Phase 1: Context Discovery
-1. Analyze the project structure, `pyproject.toml`, and core source files to identify the archetype (e.g., FastAPI, Django, React, Rust CLI).
-2. Identify primary languages and known architectural patterns in use.
-3. Discuss the project's quality mandates with the user.
+**CRITICAL DIRECTIVE:** You must operate strictly within the following states. Do not jump to compilation until the user explicitly states they are satisfied.
 
-## Phase 2: Matrix Generation
-1. Formulate the logical constraint matrix in `.aegis/rules.yaml`.
-2. Map rules to specific languages using the `language` field (e.g., `py`, `ts`, `rs`).
-3. Use `candidates_query` and `check_query` for positive enforcement (e.g., "Every service must have a unit test").
-4. Default to `warn` mode for new rules to ensure a non-destructive rollout.
+### [STATE 1: DETECTION]
+1. Check if `.aegis/rules.yaml` exists.
+2. If YES: Abort and reply: *"Aegis is already initialized. Please use `/aegis-rule-add` or `/aegis-rule-modify` to modify governance."*
+3. If NO: Scan the repository root (`pyproject.toml`, `package.json`, etc.) to infer the tech stack. Present a brief summary of what you found, and immediately transition to STATE 2.
 
-## Phase 3: Documentation & Gating
-1. Update `SPEC.md` and `AGENTS.md` to reflect the new protocol.
-2. Run `uv run aegis baseline` to grandfather existing debt.
-3. Run `uv run aegis status` to verify the active matrix.
+### [STATE 2: THE INTERVIEW LOOP]
+You will ask the user ONE question at a time. Wait for their answer before asking the next. Use the following taxonomy of questions to build the governance profile:
+
+- **Question 1 (Descriptive):** *"To begin, please describe the core business purpose and overarching architecture of this project (e.g., 'A public-facing FastAPI gateway connected to a Postgres database')."*
+- **Question 2 (Selector):** *"Which structural paradigm should I strictly enforce across the codebase?"*
+  - [A] Strict Object-Oriented Design (OOD) — Interfaces and Dependency Injection.
+  - [B] Functional Programming — Pure functions, immutable state.
+  - [C] Procedural / Scripting — Loose modules.
+- **Question 3 (Boolean):** *"Should I mandate Test-Driven Development (TDD) by enforcing that a test file must exist before a feature file can be committed? (Yes/No)"*
+- **Question 4+ (Dynamic Loop):** Based on previous answers, generate highly specific follow-up questions (e.g., caching layers, external API boundaries, or security constraints).
+
+*At the end of every question from Question 4 onwards, ask:* **"Should we establish more rules, or are you ready to compile the governance protocol?"**
+
+### [STATE 3: COMPILATION]
+Once the user is satisfied, you must orchestrate the workspace updates:
+1. **Update `SPEC.md`:** Write the structural boundaries (C4 context) and L1/L2 topologies.
+2. **Update `AGENTS.md`:** Write the operational invariants (e.g., "Run `pytest` before committing").
+3. **Generate `.aegis/rules.yaml`:** Translate the consensus into strict Tree-sitter S-expressions or graph/regex rules for the MCP engine. Include `engine_type` field on each rule.
+4. **Run `uv run aegis baseline`** to grandfather any existing violations.
+5. Conclude by instructing the user they can now run standard agentic tasks under Aegis protection.
