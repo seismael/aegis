@@ -7,7 +7,11 @@ class TestBaselineManager:
 
     def _violation(self, file, line, rule_id, signature=None):
         return ArchitecturalViolation(
-            file=file, line=line, rule_id=rule_id, description="test", signature=signature
+            file=file,
+            line=line,
+            rule_id=rule_id,
+            description="test",
+            signature=signature,
         )
 
     def test_is_exempt_no_baseline_file(self, tmp_path):

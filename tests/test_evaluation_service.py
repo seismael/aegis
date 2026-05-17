@@ -39,7 +39,9 @@ class TestEvaluationService:
 
         analyzer = MagicMock(spec=RuleAnalyzerInterface)
         analyzer.analyze_file.return_value = [
-            ArchitecturalViolation(file=str(f1), line=1, rule_id="test-rule", description="error")
+            ArchitecturalViolation(
+                file=str(f1), line=1, rule_id="test-rule", description="error"
+            )
         ]
 
         diff_provider = MagicMock(spec=DiffProviderInterface)

@@ -41,6 +41,9 @@ dependencies = [
     "tree-sitter-typescript>=0.23.2",
     "tree-sitter-javascript>=0.25.0",
     "tree-sitter-rust>=0.24.2",
+    "uvicorn>=0.47.0",
+    "starlette>=1.0.0",
+    "sse-starlette>=3.4.4",
 ]
 
 [dependency-groups]

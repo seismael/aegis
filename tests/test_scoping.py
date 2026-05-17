@@ -19,7 +19,9 @@ class TestViolationScopeFiltering:
         )
 
     def _violation(self, file, rule_id):
-        return ArchitecturalViolation(file=file, line=1, rule_id=rule_id, description="test")
+        return ArchitecturalViolation(
+            file=file, line=1, rule_id=rule_id, description="test"
+        )
 
     def test_passthrough_when_no_scoping_on_rule(self):
         """Violation kept when rule has no applies_to or excludes."""

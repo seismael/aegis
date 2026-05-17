@@ -70,7 +70,7 @@ class TreeSitterAnalyzer(RuleAnalyzerInterface):
                     cursor = QueryCursor(query)
                     captures = cursor.captures(tree.root_node)
 
-                    for name, nodes in captures.items():
+                    for _name, nodes in captures.items():
                         for node in nodes:
                             violations.append(
                                 self._create_violation(file_path, node, rule)

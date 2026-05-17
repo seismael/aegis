@@ -2,10 +2,10 @@ from unittest.mock import MagicMock
 
 from aegis.core.models.governance import EngineType, Rule, Severity
 from aegis.domain.evaluation.ports import (
-    RuleAnalyzerInterface,
     DiffProviderInterface,
     GraphAnalyzerInterface,
     RegexAnalyzerInterface,
+    RuleAnalyzerInterface,
 )
 from aegis.domain.evaluation.service import EvaluationService
 

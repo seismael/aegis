@@ -1,4 +1,3 @@
-import json
 import os
 from unittest.mock import MagicMock
 
@@ -74,13 +73,22 @@ class TestAegisCLI:
         os.makedirs(rules_dir, exist_ok=True)
         rules_file = os.path.join(rules_dir, "rules.yaml")
         with open(rules_file, "w", encoding="utf-8") as f:
-            f.write("rules: [{\"id\": \"r1\", \"description\": \"test\", \"severity\": \"HIGH\", \"mode\": \"block\"}]")
+            f.write(
+                'rules: [{"id": "r1", "description": "test", "severity": "HIGH", "mode": "block"}]'
+            )
         container.workspace_root = str(tmp_path)
         container.policy_parser.parse_rules.return_value = [
-            Rule(id="r1", description="test", severity=Severity.HIGH, mode=EnforcementMode.BLOCK)
+            Rule(
+                id="r1",
+                description="test",
+                severity=Severity.HIGH,
+                mode=EnforcementMode.BLOCK,
+            )
         ]
         container.evaluation_service.evaluate_workspace.return_value = [
-            ArchitecturalViolation(file="src/main.py", line=1, rule_id="r1", description="test")
+            ArchitecturalViolation(
+                file="src/main.py", line=1, rule_id="r1", description="test"
+            )
         ]
         cli = self._cli(container)
         result = runner.invoke(cli.app, ["check"])
@@ -98,7 +106,9 @@ class TestAegisCLI:
         container.workspace_root = str(tmp_path)
         container.policy_parser.parse_rules.return_value = []
         container.evaluation_service.evaluate_workspace.return_value = [
-            ArchitecturalViolation(file="src/main.py", line=1, rule_id="nonexistent", description="test")
+            ArchitecturalViolation(
+                file="src/main.py", line=1, rule_id="nonexistent", description="test"
+            )
         ]
         cli = self._cli(container)
         result = runner.invoke(cli.app, ["check"])

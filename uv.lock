@@ -15,6 +15,8 @@ dependencies = [
     { name = "python-dotenv" },
     { name = "pyyaml" },
     { name = "rich" },
+    { name = "sse-starlette" },
+    { name = "starlette" },
     { name = "structlog" },
     { name = "tree-sitter" },
     { name = "tree-sitter-javascript" },
@@ -22,6 +24,7 @@ dependencies = [
     { name = "tree-sitter-rust" },
     { name = "tree-sitter-typescript" },
     { name = "typer" },
+    { name = "uvicorn" },
 ]
 
 [package.dev-dependencies]
@@ -41,6 +44,8 @@ requires-dist = [
     { name = "python-dotenv", specifier = ">=1.0.1" },
     { name = "pyyaml", specifier = ">=6.0.1" },
     { name = "rich", specifier = ">=13.7.0" },
+    { name = "sse-starlette", specifier = ">=3.4.4" },
+    { name = "starlette", specifier = ">=1.0.0" },
     { name = "structlog", specifier = ">=24.1.0" },
     { name = "tree-sitter", specifier = ">=0.22.0" },
     { name = "tree-sitter-javascript", specifier = ">=0.25.0" },
@@ -48,6 +53,7 @@ requires-dist = [
     { name = "tree-sitter-rust", specifier = ">=0.24.2" },
     { name = "tree-sitter-typescript", specifier = ">=0.23.2" },
     { name = "typer", specifier = ">=0.12.0" },
+    { name = "uvicorn", specifier = ">=0.47.0" },
 ]
 
 [package.metadata.requires-dev]

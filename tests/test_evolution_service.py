@@ -1,8 +1,6 @@
 import json
 import os
 
-import pytest
-
 from aegis.core.models.evolution import EvolutionDecision, EvolutionLog
 from aegis.domain.evolution.service import EvolutionService
 
@@ -11,9 +9,7 @@ class TestEvolutionService:
     """Test suite for EvolutionService — architectural consensus ledger."""
 
     def _decision(self, rule_id="r1", action="suppress", rationale="ok"):
-        return EvolutionDecision(
-            rule_id=rule_id, action=action, rationale=rationale
-        )
+        return EvolutionDecision(rule_id=rule_id, action=action, rationale=rationale)
 
     def test_load_log_no_file(self, tmp_path):
         """No evolution log file → empty log."""

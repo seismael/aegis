@@ -14,7 +14,9 @@ class GraphAnalyzer(GraphAnalyzerInterface):
     and detects disallowed-import and circular-dependency violations.
     """
 
-    def analyze_graph(self, root_dir: str, rules: list[Rule]) -> list[ArchitecturalViolation]:
+    def analyze_graph(
+        self, root_dir: str, rules: list[Rule]
+    ) -> list[ArchitecturalViolation]:
         violations: list[ArchitecturalViolation] = []
         adjacency, file_imports = self.build_import_graph(root_dir)
 
@@ -78,16 +80,16 @@ class GraphAnalyzer(GraphAnalyzerInterface):
                 for node in ast.iter_child_nodes(tree):
                     if isinstance(node, ast.Import):
                         for alias in node.names:
-                            imported = alias.name.split(".")[0]
-                            if imported != module:
-                                adjacency[module].add(imported)
-                                file_imports[module].append((node.lineno, imported))
+                            root_pkg = alias.name.split(".")[0]
+                            if root_pkg != module:
+                                adjacency[module].add(root_pkg)
+                                file_imports[module].append((node.lineno, alias.name))
                     elif isinstance(node, ast.ImportFrom):
                         if node.module:
-                            imported = node.module.split(".")[0]
-                            if imported != module:
-                                adjacency[module].add(imported)
-                                file_imports[module].append((node.lineno, imported))
+                            root_pkg = node.module.split(".")[0]
+                            if root_pkg != module:
+                                adjacency[module].add(root_pkg)
+                                file_imports[module].append((node.lineno, node.module))
 
         return adjacency, file_imports
 

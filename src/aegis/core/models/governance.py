@@ -11,6 +11,7 @@ class Severity(StrEnum):
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"
     CRITICAL = "CRITICAL"
+    WARN = "WARN"
 
 
 class EnforcementMode(StrEnum):

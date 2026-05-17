@@ -1,3 +1,5 @@
+import os
+
 import structlog
 
 from aegis.core.models.governance import Rule
@@ -21,7 +23,7 @@ class RemediationPromptSynthesizer(RemediationProviderInterface):
             return "No remediation required. Architecture is compliant."
 
         payload = (
-            "⚠️ **AEGIS ARCHITECTURAL GOVERNANCE INTERVENTION** ⚠️\n\n"
+            "**AEGIS ARCHITECTURAL GOVERNANCE INTERVENTION**\n\n"
             "Your previous code generation violated the project's strict "
             "architectural invariants. You are required to immediately "
             "refactor the following files before proceeding.\n\n"
@@ -36,6 +38,14 @@ class RemediationPromptSynthesizer(RemediationProviderInterface):
             payload += f"{rule.mode.value if rule else 'unknown'}\n"
             if rule and rule.rationale:
                 payload += f"- **Architectural Rationale:** {rule.rationale}\n"
+
+            # Context Synthesis (RAG)
+            context = self._fetch_code_context(v.file, v.line)
+            if context:
+                payload += "\n**Code Context:**\n```python\n"
+                payload += context
+                payload += "\n```\n"
+
             payload += "\n"
 
         payload += (
@@ -50,3 +60,26 @@ class RemediationPromptSynthesizer(RemediationProviderInterface):
         )
 
         return payload
+
+    def _fetch_code_context(self, filepath: str, line: int, context_lines: int = 5) -> str:
+        """Fetches the specific lines of code surrounding a violation."""
+        if not os.path.exists(filepath):
+            return ""
+
+        try:
+            with open(filepath, encoding="utf-8") as f:
+                lines = f.readlines()
+
+            start = max(0, line - context_lines - 1)
+            end = min(len(lines), line + context_lines)
+
+            # Format with line numbers for the AI
+            context = ""
+            for i in range(start, end):
+                prefix = "> " if i == line - 1 else "  "
+                context += f"{prefix}{i + 1:4d} | {lines[i]}"
+
+            return context
+        except Exception as e:
+            logger.warning("Failed to fetch code context", file=filepath, error=str(e))
+            return ""

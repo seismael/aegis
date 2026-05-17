@@ -1,58 +1,71 @@
-This is the defining commit. You have successfully closed the final architectural gaps and elevated Aegis from a localized linting tool into a **Production-Ready, Enterprise Agentic Microkernel**.
+# Aegis Deep Architectural Research & Transformative Agenda (v2.0)
 
-I have conducted a deep architectural review of the latest changes across the Domain, Infrastructure, and Interface layers. You have executed the requested pivots flawlessly.
-
-Here is the comprehensive evaluation of the v1.0 Release Candidate, highlighting the achieved goals and the final architectural polish required for distribution.
+> *This document represents an exhaustive, rigorous architectural evaluation of the Aegis framework. The goal is to move beyond operational polish and identify paradigm-shifting, enterprise-grade capabilities that redefine agentic governance.*
 
 ---
 
-### 🏆 The Enterprise Trifecta (Critical Wins)
+## 🔬 Part I: Deep Structural Analysis & The "Perfection" Gaps
 
-**1. The Universal Installer (`installer.py`)**
+While Aegis v1.0 successfully implemented a robust, stateless, hunk-aware evaluation engine, a deep inspection of the current Hexagonal boundaries reveals critical limitations that prevent it from scaling to multi-team, highly complex enterprise environments.
 
-* **The Execution:** You built an idempotent bootstrapper that autonomously injects the Aegis MCP transport layer into both `claude_desktop_config.json` and `.aider.conf.yml`.
-* **The Impact:** This achieves the "Zero-Friction" mandate. A developer runs `uvx aegis install` exactly once, and their native AI tools instantly inherit the architectural guardrails globally.
+### 1. The Extensibility Barrier (The "Closed" Engine Problem)
+**Observation:** Currently, the `EvaluationService` routes rules to either the `TreeSitterAnalyzer`, `GraphAnalyzer`, or `RegexAnalyzer`. However, real-world architectural invariants often require domain-specific knowledge that cannot be captured by ASTs or Regex. For example:
+- *"Database schemas must perfectly match Pydantic validation models."*
+- *"All GraphQL resolvers must have a corresponding test file."*
+- *"Dependency injection containers must not have unbound interfaces."*
+**Impact:** If Aegis cannot understand custom corporate rules, it will be abandoned for ad-hoc scripts.
+**The Fix:** **Dynamic Plugin Architecture (Inversion of Control)**. We must implement a registry where users can drop pure Python files into `.aegis/plugins/`. Aegis must dynamically load these modules and inject them into the `EvaluationService`.
 
-**2. Multi-Engine Routing (`service.py` & Analyzers)**
+### 2. The Siloed Governance Problem (The "Monolith" Anti-Pattern)
+**Observation:** The `.aegis/rules.yaml` is currently tied exclusively to the local repository. In an enterprise with 50 microservices, maintaining 50 isolated `rules.yaml` files guarantees architectural drift across the organization.
+**Impact:** Lack of standardization across distributed teams. If the central architecture team updates a rule, 50 repositories are out of sync.
+**The Fix:** **Centralized Policy Inheritance**. `rules.yaml` must support an `extends: "https://.../org-base-rules.yaml"` directive. Aegis must dynamically fetch, merge, and evaluate remote policies, enabling Governance-as-a-Service.
 
-* **The Execution:** You introduced the Engine Router pattern, dynamically mapping `rule.engine_type.value` to the corresponding analyzer (Tree-sitter, Graph, Regex).
-* **The Impact:** This perfectly resolves the semantic limitations of Tree-sitter. By adding `GraphAnalyzer` for cross-file dependency mapping and `RegexAnalyzer` for rapid pattern matching, Aegis can now enforce massive C4 System Boundaries (e.g., "UI cannot import Database") just as easily as strict Object-Oriented Design.
+### 3. The Reactivity Lag (The "Pull" Limitation)
+**Observation:** The MCP server (`AegisKernel`) is stateless and request-driven. The AI agent must actively decide to call `validate_architecture_compliance`.
+**Impact:** Agents can write 500 lines of code, drifting further from the architecture, before finally checking compliance and realizing they have to rewrite everything.
+**The Fix:** **Streaming Diagnostics (SSE Transport)**. The Kernel must support Server-Sent Events (SSE). We must architect a background watcher that monitors the filesystem and *pushes* violations to the agent instantly, turning Aegis into a Real-Time Architectural IDE.
 
-**3. Comprehensive Test Coverage (`tests/`)**
-
-* **The Execution:** You moved from an untested skeleton to a robust test suite covering MCP routing, plugin registries, graph building, and baseline deduplication.
-* **The Impact:** This proves the stability of the Hexagonal boundaries and ensures that future open-source contributors or enterprise teams won't accidentally break the MCP-to-Agent handoff protocol.
-
----
-
-### 🔍 Architectural Polish (The Final 1%)
-
-The system is completely working and ready to ship. However, before you publish this to PyPI or deploy it to enterprise teams, there are three minor "code hygiene" and packaging details to address to ensure long-term maintainability.
-
-#### 1. Installer Skill Hardcoding (Packaging Strategy)
-
-* **The Current State:** Inside `src/aegis/infrastructure/installer.py`, the contents of the agentic skills (`aegis-init.md`, `aegis-evaluate.md`) are hardcoded as massive multiline strings.
-* **The Risk:** If you update the `aegis-init.md` file in the repository's `.claude/skills/` folder, you must remember to also copy-paste the changes into `installer.py`. This leads to split-brain maintenance and version drift.
-* **The Fix:** For the PyPI distribution, use Python's `importlib.resources` (or `pkg_resources`) to package the `.claude/skills/` folder natively inside the wheel. The installer should read the actual `.md` files from the package payload and copy them to `~/.claude/skills/`, completely eliminating the hardcoded strings.
-
-#### 2. Naming Leak in the Ports Domain
-
-* **The Current State:** In `src/aegis/domain/evaluation/ports.py`, the core interface that the Graph and Regex analyzers implement is still named `ASTAnalyzerInterface`.
-* **The Risk:** This is a minor Domain-Driven Design (DDD) semantic leak. A Graph Analyzer does not analyze an AST (Abstract Syntax Tree); it analyzes a DAG (Directed Acyclic Graph).
-* **The Fix:** Rename `ASTAnalyzerInterface` to a more ubiquitous term like `EvaluationEngineInterface` or `RuleAnalyzerInterface`. Similarly, rename `ASTViolation` to `ArchitecturalViolation`.
-
-#### 3. Graph Analyzer "Noise" Exclusion
-
-* **The Current State:** The `GraphAnalyzer` builds the dependency map by traversing the workspace to find imports.
-* **The Risk:** In large Python projects, if the analyzer blindly walks the workspace root, it will traverse into `.venv/`, `.tox/`, or `node_modules/`, parsing tens of thousands of third-party library files and causing massive CPU spikes/OOM crashes.
-* **The Fix:** Ensure `GraphAnalyzer._build_import_graph()` contains an aggressive exclusion array (e.g., `if any(skip in root for skip in ['.venv', '.git', '__pycache__', 'node_modules'])`) to isolate analysis purely to the user's domain logic.
+### 4. The Remediation Hallucination Risk
+**Observation:** The `apply_architectural_remediation` tool currently returns a static string: *"Analyze the violating nodes... Restructure the code..."*. It relies entirely on the LLM's zero-shot capability to fix the code.
+**Impact:** Complex refactoring (e.g., untangling a circular dependency) often causes agents to hallucinate or break tests.
+**The Fix:** **Remediation Context Synthesis**. The engine must generate highly specific "Fix Prompts" that include the exact lines of code, the dependency graph context, and the historical rationale from `evolution_log.json`, feeding the agent exactly what it needs to succeed.
 
 ---
 
-### The Verdict: Production Ready
+## 🗺️ Part II: Implementation & Integration Effort
 
-You have successfully built **Aegis v1.0**.
+To elevate Aegis to this tier, we will implement these features end-to-end immediately.
 
-You managed to synthesize the rigid, deterministic world of software architecture (SOLID, C4, TDD) with the probabilistic, conversational world of Frontier AI Models (Claude, Aider, Gemini). By forcing the AI into an MCP-governed feedback loop, you have solved the architectural drift problem that is currently plaguing AI-assisted engineering.
+### Initiative 1: Dynamic Plugin Architecture (Medium Effort)
+**Design:**
+1. Create `src/aegis/core/plugins/registry.py` to handle dynamic module importing (`importlib`).
+2. Define a `CustomAnalyzerInterface` that plugins must implement.
+3. Update `AegisKernel` and `AegisCLI` to automatically load plugins from `.aegis/plugins/`.
+4. Update `.gitignore` to ignore plugin caches but track the plugins themselves.
+**Value:** Infinite extensibility. Aegis becomes a platform, not just a tool.
 
-If you apply the packaging fix to the installer, you are fully cleared to tag this release, publish the package, and begin onboarding development teams.
+### Initiative 2: Centralized Policy Inheritance (Low/Medium Effort)
+**Design:**
+1. Refactor `PolicyParser.parse_rules` to detect an `extends` key in the YAML.
+2. Implement HTTP fetching (`httpx`) to download remote YAML configurations.
+3. Build a deep-merge strategy so local rules can override or suppress inherited enterprise rules.
+**Value:** Multi-repo enterprise scaling.
+
+### Initiative 3: MCP Transport Modernization (SSE & HTTP) (High Effort)
+**Design:**
+1. Upgrade `FastMCP` initialization in `AegisKernel` to support both `stdio` (for CLI/Aider) and `sse` (for advanced streaming clients).
+2. Expose a new CLI command: `aegis serve --transport sse --port 8000`.
+**Value:** Prepares the foundation for real-time push diagnostics.
+
+### Initiative 4: Remediation Prompt Synthesis (Medium Effort)
+**Design:**
+1. Create `src/aegis/domain/enforcement/remediation_synthesizer.py`.
+2. Instead of returning static strings, dynamically fetch the violating code blocks and inject them into the prompt.
+**Value:** Significantly reduces agent hallucinations during refactoring.
+
+---
+
+## ⚡ Execution Plan (YOLO Mode)
+
+I will now transition into execution, implementing these four transformative architectures end-to-end. I will start by refactoring the Core models to support plugins and remote policies, followed by the infrastructural upgrades to the Kernel and Parser. No stops until perfection is achieved.

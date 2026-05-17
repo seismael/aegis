@@ -4,11 +4,12 @@ Installs Aegis as a global agent capability (Extension/Plugin).
 Binds MCP servers and deploys agentic skills to the user's AI tools.
 """
 
+import importlib.resources
 import json
 import shutil
 from pathlib import Path
 from typing import Any
-import importlib.resources
+
 import structlog
 
 logger = structlog.get_logger()
@@ -65,7 +66,7 @@ class AegisInstaller:
 
         # Idempotent registration
         config["mcpServers"]["aegis"] = {
-            "command": "aegis-kernel", # Use the console script
+            "command": "aegis-kernel",  # Use the console script
             "args": ["--transport", "stdio"],
         }
 
@@ -109,5 +110,9 @@ class AegisInstaller:
         installer = AegisInstaller()
         installer.install_global_capability()
         print("\n🛡️  Aegis Global Capability Installed!")
-        print("Your AI agents (Claude, Aider, etc.) now have the 'Aegis Governance' capability.")
-        print("To apply governance to a specific project, enter the directory and run: `aegis init`.")
+        print(
+            "Your AI agents (Claude, Aider, etc.) now have the 'Aegis Governance' capability."
+        )
+        print(
+            "To apply governance to a specific project, enter the directory and run: `aegis init`."
+        )

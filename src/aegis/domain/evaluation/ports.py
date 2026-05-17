@@ -37,7 +37,9 @@ class GraphAnalyzerInterface(ABC):
     """
 
     @abstractmethod
-    def analyze_graph(self, root_dir: str, rules: list[Rule]) -> list[ArchitecturalViolation]:
+    def analyze_graph(
+        self, root_dir: str, rules: list[Rule]
+    ) -> list[ArchitecturalViolation]:
         """Analyzes cross-file dependency relationships across the workspace."""
         pass
 
