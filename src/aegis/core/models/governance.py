@@ -1,10 +1,10 @@
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field
 
 
-class Severity(str, Enum):
+class Severity(StrEnum):
     """Architectural violation severity levels. Maps to rule configuration."""
 
     LOW = "LOW"
@@ -13,7 +13,7 @@ class Severity(str, Enum):
     CRITICAL = "CRITICAL"
 
 
-class EnforcementMode(str, Enum):
+class EnforcementMode(StrEnum):
     """Enforcement action when a rule is violated. Escalates from silent to block."""
 
     SILENT = "silent"
@@ -23,7 +23,7 @@ class EnforcementMode(str, Enum):
     FIX = "fix"
 
 
-class EngineType(str, Enum):
+class EngineType(StrEnum):
     """Analysis engine routing discriminant. Determines which analyzer processes the rule."""
 
     TREE_SITTER = "tree-sitter"
