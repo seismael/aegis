@@ -1,56 +1,61 @@
 import git
-from typing import Set
+
 from aegis.domain.evaluation.ports import DiffProviderInterface, DiffResult
+
 
 class GitDiffResult(DiffResult):
     """Parsed result of staged git changes including modified line numbers."""
 
     def __init__(self, diff_index: git.DiffIndex):
-        self._changed_files: Set[str] = set()
-        self._modified_lines: dict[str, Set[int]] = {}
-        
+        self._changed_files: set[str] = set()
+        self._modified_lines: dict[str, set[int]] = {}
+
         for diff in diff_index:
             path = diff.b_path or diff.a_path
             if path:
                 self._changed_files.add(path)
-                
+
             # Parse diff hunks to get exact modified lines
             if diff.diff:
-                modified = self._parse_hunks(diff.diff.decode('utf-8', errors='replace'))
+                modified = self._parse_hunks(
+                    diff.diff.decode("utf-8", errors="replace")
+                )
                 self._modified_lines[path] = modified
 
-    def _parse_hunks(self, diff_text: str) -> Set[int]:
+    def _parse_hunks(self, diff_text: str) -> set[int]:
         """
         Extracts added/modified line numbers from a unified diff text.
         """
         lines = set()
         current_line = 0
-        
+
         for line in diff_text.splitlines():
-            if line.startswith('@@'):
+            if line.startswith("@@"):
                 # Format: @@ -start,len +start,len @@
-                match = re.search(r'\+(?P<start>\d+)', line)
+                match = re.search(r"\+(?P<start>\d+)", line)
                 if match:
-                    current_line = int(match.group('start'))
-            elif line.startswith('+') and not line.startswith('+++'):
+                    current_line = int(match.group("start"))
+            elif line.startswith("+") and not line.startswith("+++"):
                 lines.add(current_line)
                 current_line += 1
-            elif line.startswith(' '):
+            elif line.startswith(" "):
                 current_line += 1
-            elif line.startswith('-') and not line.startswith('---'):
+            elif line.startswith("-") and not line.startswith("---"):
                 # Line removed, doesn't affect our 'modified' set for current file state
                 pass
-                
+
         return lines
 
     @property
-    def changed_files(self) -> Set[str]:
+    def changed_files(self) -> set[str]:
         return self._changed_files
 
-    def get_modified_lines(self, file_path: str) -> Set[int]:
+    def get_modified_lines(self, file_path: str) -> set[int]:
         return self._modified_lines.get(file_path, set())
 
+
 import re
+
 
 class GitDiffProvider(DiffProviderInterface):
     """

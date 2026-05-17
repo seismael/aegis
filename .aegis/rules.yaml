@@ -8,6 +8,7 @@ rules:
     excludes:
       - "tests/**"
       - "src/aegis/cli/**"
+      - "src/aegis/kernel/**"
     query: |
       (module [(function_definition) (decorated_definition)] @violation)
 

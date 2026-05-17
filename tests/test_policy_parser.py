@@ -1,7 +1,7 @@
-import pytest
 import yaml
-from aegis.domain.policy.parser import PolicyParser
+
 from aegis.core.models.governance import EngineType, Severity
+from aegis.domain.policy.parser import PolicyParser
 
 
 class TestPolicyParser:

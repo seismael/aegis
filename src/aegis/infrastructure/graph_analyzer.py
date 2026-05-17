@@ -1,10 +1,9 @@
 import ast
 import os
 from collections import defaultdict
-from typing import Dict, List, Set, Tuple
 
-from aegis.domain.evaluation.ports import GraphAnalyzerInterface, ASTViolation
 from aegis.core.models.governance import Rule
+from aegis.domain.evaluation.ports import ASTViolation, GraphAnalyzerInterface
 
 IGNORE_DIRS = {".venv", "node_modules", ".git", ".aegis", "__pycache__"}
 
@@ -16,10 +15,8 @@ class GraphAnalyzer(GraphAnalyzerInterface):
     and detects disallowed-import and circular-dependency violations.
     """
 
-    def analyze_graph(
-        self, root_dir: str, rules: List[Rule]
-    ) -> List[ASTViolation]:
-        violations: List[ASTViolation] = []
+    def analyze_graph(self, root_dir: str, rules: list[Rule]) -> list[ASTViolation]:
+        violations: list[ASTViolation] = []
         adjacency, file_imports = self._build_import_graph(root_dir)
 
         for rule in rules:
@@ -43,7 +40,7 @@ class GraphAnalyzer(GraphAnalyzerInterface):
 
     def _build_import_graph(
         self, root_dir: str
-    ) -> Tuple[Dict[str, Set[str]], Dict[str, List[Tuple[int, str]]]]:
+    ) -> tuple[dict[str, set[str]], dict[str, list[tuple[int, str]]]]:
         """
         Walks the workspace and builds:
         - adjacency: module_name -> set of imported module_names
@@ -51,8 +48,8 @@ class GraphAnalyzer(GraphAnalyzerInterface):
 
         Returns empty dicts if no Python files found.
         """
-        adjacency: Dict[str, Set[str]] = defaultdict(set)
-        file_imports: Dict[str, List[Tuple[int, str]]] = defaultdict(list)
+        adjacency: dict[str, set[str]] = defaultdict(set)
+        file_imports: dict[str, list[tuple[int, str]]] = defaultdict(list)
 
         for root, _, files in os.walk(root_dir):
             if any(x in root for x in IGNORE_DIRS):
@@ -69,7 +66,7 @@ class GraphAnalyzer(GraphAnalyzerInterface):
                     module = module[: -len(".__init__")]
 
                 try:
-                    with open(file_path, "r", encoding="utf-8") as f:
+                    with open(file_path, encoding="utf-8") as f:
                         content = f.read()
                 except (UnicodeDecodeError, PermissionError):
                     continue
@@ -85,32 +82,28 @@ class GraphAnalyzer(GraphAnalyzerInterface):
                             imported = alias.name.split(".")[0]
                             if imported != module:
                                 adjacency[module].add(imported)
-                                file_imports[module].append(
-                                    (node.lineno, imported)
-                                )
+                                file_imports[module].append((node.lineno, imported))
                     elif isinstance(node, ast.ImportFrom):
                         if node.module:
                             imported = node.module.split(".")[0]
                             if imported != module:
                                 adjacency[module].add(imported)
-                                file_imports[module].append(
-                                    (node.lineno, imported)
-                                )
+                                file_imports[module].append((node.lineno, imported))
 
         return adjacency, file_imports
 
     def _check_disallowed_imports(
         self,
-        adjacency: Dict[str, Set[str]],
-        file_imports: Dict[str, List[Tuple[int, str]]],
+        adjacency: dict[str, set[str]],
+        file_imports: dict[str, list[tuple[int, str]]],
         rule: Rule,
         root_dir: str,
-    ) -> List[ASTViolation]:
+    ) -> list[ASTViolation]:
         """
         Flags imports from metadata.source namespace into metadata.target namespace.
         E.g., domain modules importing infrastructure modules.
         """
-        violations: List[ASTViolation] = []
+        violations: list[ASTViolation] = []
         source_ns = rule.metadata.get("source", "")
         target_ns = rule.metadata.get("target", "")
 
@@ -139,20 +132,20 @@ class GraphAnalyzer(GraphAnalyzerInterface):
 
     def _check_circular_dependencies(
         self,
-        adjacency: Dict[str, Set[str]],
-        file_imports: Dict[str, List[Tuple[int, str]]],
+        adjacency: dict[str, set[str]],
+        file_imports: dict[str, list[tuple[int, str]]],
         rule: Rule,
         root_dir: str,
-    ) -> List[ASTViolation]:
+    ) -> list[ASTViolation]:
         """
         Detects circular dependencies using DFS with a recursion stack.
         Returns violations for each edge that completes a cycle.
         """
-        violations: List[ASTViolation] = []
-        visited: Set[str] = set()
-        rec_stack: Set[str] = set()
+        violations: list[ASTViolation] = []
+        visited: set[str] = set()
+        rec_stack: set[str] = set()
 
-        def dfs(node: str, path: List[str]) -> None:
+        def dfs(node: str, path: list[str]) -> None:
             visited.add(node)
             rec_stack.add(node)
 

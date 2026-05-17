@@ -1,13 +1,13 @@
 from unittest.mock import MagicMock
-from aegis.domain.evaluation.service import EvaluationService
+
 from aegis.core.models.governance import EngineType, Rule, Severity
 from aegis.domain.evaluation.ports import (
     ASTAnalyzerInterface,
-    ASTViolation,
     DiffProviderInterface,
     GraphAnalyzerInterface,
     RegexAnalyzerInterface,
 )
+from aegis.domain.evaluation.service import EvaluationService
 
 
 class TestEvaluationRouting:
@@ -109,9 +109,24 @@ class TestEvaluationRouting:
 
         service = self._make_service(ts_mock, graph_mock, regex_mock, diff_mock)
         rules = [
-            Rule(id="ts", description="TS", engine_type=EngineType.TREE_SITTER, severity=Severity.HIGH),
-            Rule(id="gr", description="GR", engine_type=EngineType.GRAPH, severity=Severity.HIGH),
-            Rule(id="re", description="RE", engine_type=EngineType.REGEX, severity=Severity.HIGH),
+            Rule(
+                id="ts",
+                description="TS",
+                engine_type=EngineType.TREE_SITTER,
+                severity=Severity.HIGH,
+            ),
+            Rule(
+                id="gr",
+                description="GR",
+                engine_type=EngineType.GRAPH,
+                severity=Severity.HIGH,
+            ),
+            Rule(
+                id="re",
+                description="RE",
+                engine_type=EngineType.REGEX,
+                severity=Severity.HIGH,
+            ),
         ]
         service.evaluate_workspace(str(tmp_path), rules)
         ts_mock.analyze_file.assert_called_once()
@@ -127,7 +142,12 @@ class TestEvaluationRouting:
 
         service = self._make_service(ts_mock, graph_mock, regex_mock, diff_mock)
         rules = [
-            Rule(id="gr", description="GR", engine_type=EngineType.GRAPH, severity=Severity.HIGH),
+            Rule(
+                id="gr",
+                description="GR",
+                engine_type=EngineType.GRAPH,
+                severity=Severity.HIGH,
+            ),
         ]
         result = service.evaluate_changes(rules)
         assert result == []

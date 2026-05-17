@@ -1,4 +1,4 @@
-from aegis.core.models.governance import EngineType, Rule, Severity, EnforcementMode
+from aegis.core.models.governance import EnforcementMode, EngineType, Rule, Severity
 
 
 class TestRuleModel:

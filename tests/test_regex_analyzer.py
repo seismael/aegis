@@ -1,5 +1,5 @@
+from aegis.core.models.governance import EnforcementMode, EngineType, Rule, Severity
 from aegis.infrastructure.regex_analyzer import RegexAnalyzer
-from aegis.core.models.governance import EngineType, Rule, Severity, EnforcementMode
 
 
 class TestRegexAnalyzer:
@@ -20,11 +20,7 @@ class TestRegexAnalyzer:
     def test_detects_hardcoded_password(self):
         analyzer = RegexAnalyzer()
         rule = self._make_rule("no-hardcoded-secrets", r"password\s*=")
-        content = (
-            "username = 'admin'\n"
-            "password = 'supersecret'\n"
-            "host = 'localhost'\n"
-        )
+        content = "username = 'admin'\npassword = 'supersecret'\nhost = 'localhost'\n"
         violations = analyzer.analyze_file("config.py", content, [rule])
         assert len(violations) == 1
         assert violations[0].line == 2
@@ -40,11 +36,7 @@ class TestRegexAnalyzer:
     def test_multiple_matches_across_lines(self):
         analyzer = RegexAnalyzer()
         rule = self._make_rule("no-todo", r"TODO|FIXME")
-        content = (
-            "# TODO: implement this\n"
-            "def foo(): pass\n"
-            "# FIXME: this is broken\n"
-        )
+        content = "# TODO: implement this\ndef foo(): pass\n# FIXME: this is broken\n"
         violations = analyzer.analyze_file("code.py", content, [rule])
         assert len(violations) == 2
         assert violations[0].line == 1

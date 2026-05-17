@@ -1,8 +1,10 @@
 import json
 import os
-from typing import List, Set, Optional
+
 from pydantic import BaseModel
+
 from aegis.domain.evaluation.ports import ASTViolation
+
 
 class BaselineViolation(BaseModel):
     """A single entry in the architectural debt ledger (baseline.json)."""
@@ -10,7 +12,8 @@ class BaselineViolation(BaseModel):
     file: str
     line: int
     rule_id: str
-    signature: Optional[str] = None
+    signature: str | None = None
+
 
 class BaselineManager:
     """
@@ -22,13 +25,10 @@ class BaselineManager:
         self.path = os.path.join(directory, "baseline.json")
         os.makedirs(directory, exist_ok=True)
 
-    def save_baseline(self, violations: List[ASTViolation]) -> None:
+    def save_baseline(self, violations: list[ASTViolation]) -> None:
         baseline = [
             BaselineViolation(
-                file=v.file, 
-                line=v.line, 
-                rule_id=v.rule_id,
-                signature=v.signature
+                file=v.file, line=v.line, rule_id=v.rule_id, signature=v.signature
             ).model_dump()
             for v in violations
         ]
@@ -38,12 +38,12 @@ class BaselineManager:
     def add_to_baseline(self, violation: ASTViolation) -> None:
         baseline = self.load_baseline_raw()
         new_entry = BaselineViolation(
-            file=violation.file, 
-            line=violation.line, 
+            file=violation.file,
+            line=violation.line,
             rule_id=violation.rule_id,
-            signature=violation.signature
+            signature=violation.signature,
         ).model_dump()
-        
+
         # Match by signature if available, otherwise fallback to file/line/rule
         if not any(self._match(b, violation) for b in baseline):
             baseline.append(new_entry)
@@ -53,9 +53,9 @@ class BaselineManager:
     def is_exempt(self, violation: ASTViolation) -> bool:
         if not os.path.exists(self.path):
             return False
-            
+
         baseline = self.load_baseline_raw()
-            
+
         for b in baseline:
             if self._match(b, violation):
                 return True
@@ -68,24 +68,44 @@ class BaselineManager:
         """
         # 1. Signature match (Strongest)
         if baseline_entry.get("signature") and violation.signature:
-            if baseline_entry["signature"] == violation.signature and baseline_entry["rule_id"] == violation.rule_id:
+            if (
+                baseline_entry["signature"] == violation.signature
+                and baseline_entry["rule_id"] == violation.rule_id
+            ):
                 return True
-                
+
         # 2. File/Line/Rule fallback (Legacy)
-        if baseline_entry["file"] == violation.file and \
-           baseline_entry["rule_id"] == violation.rule_id and \
-           baseline_entry["line"] == violation.line:
+        if (
+            baseline_entry["file"] == violation.file
+            and baseline_entry["rule_id"] == violation.rule_id
+            and baseline_entry["line"] == violation.line
+        ):
             return True
-            
+
         return False
 
-    def load_baseline_raw(self) -> List[dict]:
+    def load_baseline_raw(self) -> list[dict]:
         if not os.path.exists(self.path):
             return []
-        with open(self.path, "r", encoding="utf-8") as f:
+        with open(self.path, encoding="utf-8") as f:
             try:
                 return json.load(f)
             except json.JSONDecodeError:
                 return []
 
-from typing import Optional
+    def prune_stale(self, active_rule_ids: set) -> int:
+        """Remove baseline entries for rules that no longer exist. Returns count removed."""
+        if not os.path.exists(self.path):
+            return 0
+        with open(self.path, encoding="utf-8") as f:
+            try:
+                baseline = json.load(f)
+            except json.JSONDecodeError:
+                return 0
+        before = len(baseline)
+        baseline = [b for b in baseline if b.get("rule_id") in active_rule_ids]
+        after = len(baseline)
+        if before != after:
+            with open(self.path, "w", encoding="utf-8") as f:
+                json.dump(baseline, f, indent=2)
+        return before - after

@@ -1,5 +1,5 @@
+from aegis.core.models.governance import EnforcementMode, EngineType, Rule, Severity
 from aegis.infrastructure.graph_analyzer import GraphAnalyzer
-from aegis.core.models.governance import EngineType, Rule, Severity, EnforcementMode
 
 
 class TestGraphAnalyzer:
@@ -31,19 +31,21 @@ class TestGraphAnalyzer:
         infra = tmp_path / "infrastructure"
         infra.mkdir()
         (infra / "__init__.py").write_text("", encoding="utf-8")
-        (infra / "database.py").write_text(
-            "def connect(): pass\n", encoding="utf-8"
-        )
+        (infra / "database.py").write_text("def connect(): pass\n", encoding="utf-8")
 
         analyzer = GraphAnalyzer()
         rule = self._make_rule(
-            "no-infra-in-domain", "disallowed_import",
-            source="domain", target="infrastructure",
+            "no-infra-in-domain",
+            "disallowed_import",
+            source="domain",
+            target="infrastructure",
         )
         violations = analyzer.analyze_graph(str(tmp_path), [rule])
         assert len(violations) == 1
         assert violations[0].rule_id == "no-infra-in-domain"
-        assert "domain.main" in violations[0].file or "domain\\main" in violations[0].file
+        assert (
+            "domain.main" in violations[0].file or "domain\\main" in violations[0].file
+        )
 
     def test_disallowed_import_clean(self, tmp_path):
         # domain/main.py does NOT import infrastructure
@@ -57,20 +59,18 @@ class TestGraphAnalyzer:
 
         analyzer = GraphAnalyzer()
         rule = self._make_rule(
-            "no-infra-in-domain", "disallowed_import",
-            source="domain", target="infrastructure",
+            "no-infra-in-domain",
+            "disallowed_import",
+            source="domain",
+            target="infrastructure",
         )
         violations = analyzer.analyze_graph(str(tmp_path), [rule])
         assert len(violations) == 0
 
     def test_circular_dependency_detected(self, tmp_path):
         # a.py imports b, b.py imports a → cycle
-        (tmp_path / "a.py").write_text(
-            "from b import foo\nx = 1\n", encoding="utf-8"
-        )
-        (tmp_path / "b.py").write_text(
-            "from a import bar\ny = 2\n", encoding="utf-8"
-        )
+        (tmp_path / "a.py").write_text("from b import foo\nx = 1\n", encoding="utf-8")
+        (tmp_path / "b.py").write_text("from a import bar\ny = 2\n", encoding="utf-8")
 
         analyzer = GraphAnalyzer()
         rule = self._make_rule("no-circular", "circular_dependency")
@@ -79,12 +79,8 @@ class TestGraphAnalyzer:
         assert violations[0].rule_id == "no-circular"
 
     def test_no_circular_no_violations(self, tmp_path):
-        (tmp_path / "a.py").write_text(
-            "from b import foo\nx = 1\n", encoding="utf-8"
-        )
-        (tmp_path / "b.py").write_text(
-            "y = 2\n", encoding="utf-8"
-        )
+        (tmp_path / "a.py").write_text("from b import foo\nx = 1\n", encoding="utf-8")
+        (tmp_path / "b.py").write_text("y = 2\n", encoding="utf-8")
 
         analyzer = GraphAnalyzer()
         rule = self._make_rule("no-circular", "circular_dependency")
@@ -96,14 +92,14 @@ class TestGraphAnalyzer:
         (tmp_path / ".venv" / "lib.py").write_text(
             "import bad_thing\n", encoding="utf-8"
         )
-        (tmp_path / "main.py").write_text(
-            "x = 1\n", encoding="utf-8"
-        )
+        (tmp_path / "main.py").write_text("x = 1\n", encoding="utf-8")
 
         analyzer = GraphAnalyzer()
         rule = self._make_rule(
-            "no-infra", "disallowed_import",
-            source="domain", target="infrastructure",
+            "no-infra",
+            "disallowed_import",
+            source="domain",
+            target="infrastructure",
         )
         # Should not crash — .venv is ignored
         violations = analyzer.analyze_graph(str(tmp_path), [rule])

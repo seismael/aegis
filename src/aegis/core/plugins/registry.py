@@ -1,34 +1,37 @@
-import os
 import importlib.util
+import os
+from collections.abc import Callable
+
 import structlog
-from typing import Callable, List
+
 from aegis.domain.evaluation.ports import ASTAnalyzerInterface
 
 logger = structlog.get_logger()
 
 
 class PluginRegistry:
-    """
-    Enterprise Extensibility Hub.
-    Dynamically loads custom user-defined architectural rules and analyzers
-    from the workspace's `.aegis/plugins/` directory without requiring
-    modifications to the Aegis core engine.
-    """
+    """Dynamic loader for user-defined plugins from `.aegis/plugins/`."""
 
     def __init__(self, workspace_root: str):
         self.plugin_dir = os.path.join(workspace_root, ".aegis", "plugins")
-        self.custom_analyzers: List[ASTAnalyzerInterface] = []
-        self.custom_mcp_tools: List[Callable] = []
+        self.custom_analyzers: list[ASTAnalyzerInterface] = []
+        self.custom_mcp_tools: list[Callable] = []
+        self._loaded: list[str] = []
 
     def load_plugins(self):
-        """Scans .aegis/plugins/ and hot-loads Python modules."""
+        """Scan .aegis/plugins/ and hot-load Python modules."""
         if not os.path.isdir(self.plugin_dir):
-            logger.info("No plugin directory found", path=self.plugin_dir)
+            logger.debug("No plugin directory found", path=self.plugin_dir)
             return
 
-        for filename in os.listdir(self.plugin_dir):
+        for filename in sorted(os.listdir(self.plugin_dir)):
             if filename.endswith(".py") and not filename.startswith("__"):
                 self._load_module(filename)
+
+    @property
+    def loaded_plugins(self) -> list[str]:
+        """Names of successfully loaded plugin modules."""
+        return list(self._loaded)
 
     def _load_module(self, filename: str):
         filepath = os.path.join(self.plugin_dir, filename)
@@ -36,29 +39,55 @@ class PluginRegistry:
 
         try:
             spec = importlib.util.spec_from_file_location(module_name, filepath)
-            if spec and spec.loader:
-                module = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(module)
+            if not spec or not spec.loader:
+                logger.warning("Plugin spec could not be loaded", plugin=filename)
+                return
 
-                if hasattr(module, "register_analyzers"):
-                    analyzers = module.register_analyzers()
-                    self.custom_analyzers.extend(analyzers)
-                    logger.info(
-                        "Registered custom analyzers",
-                        plugin=filename,
-                        count=len(analyzers),
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+
+            if hasattr(module, "register_analyzers"):
+                analyzers = module.register_analyzers()
+                if not isinstance(analyzers, list):
+                    raise TypeError(
+                        f"register_analyzers() must return a list, got {type(analyzers).__name__}"
                     )
+                self.custom_analyzers.extend(analyzers)
+                logger.info(
+                    "Plugin registered analyzers",
+                    plugin=filename,
+                    count=len(analyzers),
+                )
 
-                if hasattr(module, "register_mcp_tools"):
-                    tools = module.register_mcp_tools()
-                    self.custom_mcp_tools.extend(tools)
-                    logger.info(
-                        "Registered custom MCP tools",
-                        plugin=filename,
-                        count=len(tools),
+            if hasattr(module, "register_mcp_tools"):
+                tools = module.register_mcp_tools()
+                if not isinstance(tools, list):
+                    raise TypeError(
+                        f"register_mcp_tools() must return a list, got {type(tools).__name__}"
                     )
+                for t in tools:
+                    if not callable(t):
+                        raise TypeError(
+                            f"MCP tool must be callable, got {type(t).__name__}"
+                        )
+                self.custom_mcp_tools.extend(tools)
+                logger.info(
+                    "Plugin registered MCP tools",
+                    plugin=filename,
+                    count=len(tools),
+                )
 
-                logger.info("Aegis Plugin loaded successfully", plugin=filename)
+            if hasattr(module, "register_analyzers") or hasattr(
+                module, "register_mcp_tools"
+            ):
+                self._loaded.append(filename)
+                logger.info("Plugin loaded", plugin=filename)
+            else:
+                logger.warning(
+                    "Plugin has no register_analyzers or register_mcp_tooks",
+                    plugin=filename,
+                )
+
         except Exception as e:
             logger.error(
                 "Failed to load Aegis plugin",

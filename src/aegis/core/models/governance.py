@@ -1,5 +1,6 @@
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 
@@ -44,21 +45,21 @@ class Rule(BaseModel):
     engine_type: EngineType = EngineType.TREE_SITTER
 
     # Language-specific query
-    query: Optional[str] = None
+    query: str | None = None
     language: str = "py"
 
     # For positive rules (X must have Y): violations = candidates - check
-    candidates_query: Optional[str] = None
-    check_query: Optional[str] = None
+    candidates_query: str | None = None
+    check_query: str | None = None
 
     # Scoping
-    applies_to: List[str] = Field(default_factory=lambda: ["**/*.py"])
-    excludes: List[str] = Field(default_factory=list)
+    applies_to: list[str] = Field(default_factory=lambda: ["**/*.py"])
+    excludes: list[str] = Field(default_factory=list)
 
     # Ownership
-    owner: Optional[str] = None
+    owner: str | None = None
 
     # Human rationale for why the rule exists
-    rationale: Optional[str] = None
+    rationale: str | None = None
 
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)

@@ -1,7 +1,7 @@
-import json
 import os
-from typing import Optional
-from aegis.core.models.evolution import EvolutionLog, EvolutionDecision
+
+from aegis.core.models.evolution import EvolutionDecision, EvolutionLog
+
 
 class EvolutionService:
     """
@@ -21,7 +21,7 @@ class EvolutionService:
     def load_log(self) -> EvolutionLog:
         if not os.path.exists(self.path):
             return EvolutionLog()
-        with open(self.path, "r", encoding="utf-8") as f:
+        with open(self.path, encoding="utf-8") as f:
             return EvolutionLog.model_validate_json(f.read())
 
     def save_log(self, log: EvolutionLog) -> None:

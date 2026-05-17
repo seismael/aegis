@@ -1,6 +1,3 @@
-import os
-import pytest
-from unittest.mock import MagicMock, patch
 from aegis.core.plugins.registry import PluginRegistry
 from aegis.domain.evaluation.ports import ASTAnalyzerInterface
 
@@ -75,9 +72,7 @@ def register_analyzers():
 def register_mcp_tools():
     return [my_custom_tool]
 """
-        (plugin_dir / "tool_plugin.py").write_text(
-            plugin_code, encoding="utf-8"
-        )
+        (plugin_dir / "tool_plugin.py").write_text(plugin_code, encoding="utf-8")
 
         registry = PluginRegistry(str(tmp_path))
         registry.load_plugins()

@@ -1,14 +1,15 @@
 import os
-from typing import Optional, Callable, List
-from aegis.domain.evaluation.service import EvaluationService
-from aegis.domain.policy.parser import PolicyParser
+from collections.abc import Callable
+
+from aegis.core.plugins.registry import PluginRegistry
 from aegis.domain.evaluation.baseline import BaselineManager
+from aegis.domain.evaluation.service import EvaluationService
+from aegis.domain.evolution.service import EvolutionService
+from aegis.domain.policy.parser import PolicyParser
 from aegis.infrastructure.ast_analyzer import TreeSitterAnalyzer
 from aegis.infrastructure.git_provider import GitDiffProvider
 from aegis.infrastructure.graph_analyzer import GraphAnalyzer
 from aegis.infrastructure.regex_analyzer import RegexAnalyzer
-from aegis.domain.evolution.service import EvolutionService
-from aegis.core.plugins.registry import PluginRegistry
 
 
 class Container:
@@ -17,7 +18,7 @@ class Container:
     Manages dependency injection and shared component lifecycles.
     """
 
-    def __init__(self, workspace_root: Optional[str] = None):
+    def __init__(self, workspace_root: str | None = None):
         self.workspace_root = workspace_root or self._discover_project_root()
 
         # Infrastructure — Analyzers
@@ -49,8 +50,12 @@ class Container:
         )
 
     @property
-    def custom_mcp_tools(self) -> List[Callable]:
+    def custom_mcp_tools(self) -> list[Callable]:
         return list(self.plugin_registry.custom_mcp_tools)
+
+    @property
+    def loaded_plugins(self) -> list[str]:
+        return self.plugin_registry.loaded_plugins
 
     def _discover_project_root(self) -> str:
         """
@@ -59,9 +64,9 @@ class Container:
         """
         current = os.getcwd()
         while current != os.path.dirname(current):
-            if os.path.exists(os.path.join(current, "pyproject.toml")) or os.path.exists(
-                os.path.join(current, ".git")
-            ):
+            if os.path.exists(
+                os.path.join(current, "pyproject.toml")
+            ) or os.path.exists(os.path.join(current, ".git")):
                 return current
             current = os.path.dirname(current)
         return os.getcwd()

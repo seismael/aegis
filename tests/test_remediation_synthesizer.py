@@ -1,6 +1,6 @@
+from aegis.core.models.governance import EnforcementMode, Rule, Severity
 from aegis.domain.enforcement.remediation import RemediationPromptSynthesizer
 from aegis.domain.evaluation.ports import ASTViolation
-from aegis.core.models.governance import Rule, Severity, EnforcementMode
 
 
 class TestRemediationPromptSynthesizer:
@@ -47,8 +47,18 @@ class TestRemediationPromptSynthesizer:
     def test_multiple_violations_all_listed(self):
         synth = RemediationPromptSynthesizer()
         rules_map = {
-            "r1": Rule(id="r1", description="Rule 1", severity=Severity.HIGH, mode=EnforcementMode.BLOCK),
-            "r2": Rule(id="r2", description="Rule 2", severity=Severity.MEDIUM, mode=EnforcementMode.WARN),
+            "r1": Rule(
+                id="r1",
+                description="Rule 1",
+                severity=Severity.HIGH,
+                mode=EnforcementMode.BLOCK,
+            ),
+            "r2": Rule(
+                id="r2",
+                description="Rule 2",
+                severity=Severity.MEDIUM,
+                mode=EnforcementMode.WARN,
+            ),
         }
         violations = [
             self._make_violation("a.py", 1, "r1", "Violation 1"),
@@ -71,9 +81,7 @@ class TestRemediationPromptSynthesizer:
             mode=EnforcementMode.BLOCK,
             rationale="Hexagonal architecture mandates domain isolation.",
         )
-        violations = [
-            self._make_violation("domain/main.py", 3, "r1", "Infra import")
-        ]
+        violations = [self._make_violation("domain/main.py", 3, "r1", "Infra import")]
         result = synth.generate_remediation(violations, {"r1": rule})
         assert "Hexagonal architecture" in result
         assert "Architectural Rationale" in result
@@ -86,8 +94,6 @@ class TestRemediationPromptSynthesizer:
             severity=Severity.HIGH,
             mode=EnforcementMode.BLOCK,
         )
-        violations = [
-            self._make_violation("domain/main.py", 3, "r1", "Infra import")
-        ]
+        violations = [self._make_violation("domain/main.py", 3, "r1", "Infra import")]
         result = synth.generate_remediation(violations, {"r1": rule})
         assert "Architectural Rationale" not in result

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import Dict, List
-from aegis.domain.evaluation.ports import ASTViolation
+
 from aegis.core.models.governance import Rule
+from aegis.domain.evaluation.ports import ASTViolation
 
 
 class RemediationProviderInterface(ABC):
@@ -12,7 +12,7 @@ class RemediationProviderInterface(ABC):
 
     @abstractmethod
     def generate_remediation(
-        self, violations: List[ASTViolation], rules_map: Dict[str, Rule]
+        self, violations: list[ASTViolation], rules_map: dict[str, Rule]
     ) -> str:
         """Generates a structured remediation prompt for the given violations."""
         pass

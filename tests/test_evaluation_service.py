@@ -1,6 +1,5 @@
-import pytest
 from unittest.mock import MagicMock
-from aegis.domain.evaluation.service import EvaluationService
+
 from aegis.core.models.governance import Rule, Severity
 from aegis.domain.evaluation.ports import (
     ASTAnalyzerInterface,
@@ -10,6 +9,7 @@ from aegis.domain.evaluation.ports import (
     GraphAnalyzerInterface,
     RegexAnalyzerInterface,
 )
+from aegis.domain.evaluation.service import EvaluationService
 
 
 class TestEvaluationService:
@@ -39,9 +39,7 @@ class TestEvaluationService:
 
         analyzer = MagicMock(spec=ASTAnalyzerInterface)
         analyzer.analyze_file.return_value = [
-            ASTViolation(
-                file=str(f1), line=1, rule_id="test-rule", description="error"
-            )
+            ASTViolation(file=str(f1), line=1, rule_id="test-rule", description="error")
         ]
 
         diff_provider = MagicMock(spec=DiffProviderInterface)

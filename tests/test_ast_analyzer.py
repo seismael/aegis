@@ -1,12 +1,12 @@
-import hashlib
-import pytest
-from aegis.infrastructure.ast_analyzer import TreeSitterAnalyzer
 from aegis.core.models.governance import Rule, Severity
+from aegis.infrastructure.ast_analyzer import TreeSitterAnalyzer
+
 
 class TestTreeSitterAnalyzer:
     """
     Test suite for the Polyglot TreeSitterAnalyzer.
     """
+
     def test_python_analysis(self):
         analyzer = TreeSitterAnalyzer()
         rules = [
@@ -15,7 +15,7 @@ class TestTreeSitterAnalyzer:
                 query="(module (function_definition) @violation)",
                 description="No loose functions.",
                 severity=Severity.HIGH,
-                language="py"
+                language="py",
             )
         ]
         content = "def loose(): pass"
@@ -34,7 +34,7 @@ class TestTreeSitterAnalyzer:
                 query='(call_expression function: (member_expression object: (identifier) @obj property: (property_identifier) @prop) (#eq? @obj "console") (#eq? @prop "log")) @violation',
                 description="No console.log allowed.",
                 severity=Severity.MEDIUM,
-                language="ts"
+                language="ts",
             )
         ]
         content = "console.log('test');"
@@ -52,15 +52,15 @@ class TestTreeSitterAnalyzer:
                 check_query="(class_definition body: (block (expression_statement (string)))) @class",
                 description="Classes must have docstrings.",
                 severity=Severity.LOW,
-                language="py"
+                language="py",
             )
         ]
-        
+
         # 1. Non-compliant class
         content_bad = "class NoDoc: pass"
         violations = analyzer.analyze_file("test.py", content_bad, rules)
         assert len(violations) == 1
-        
+
         # 2. Compliant class
         content_good = 'class HasDoc:\n    """Docstring."""\n    pass'
         violations = analyzer.analyze_file("test.py", content_good, rules)
@@ -68,15 +68,20 @@ class TestTreeSitterAnalyzer:
 
     def test_signature_stability(self):
         analyzer = TreeSitterAnalyzer()
-        rule = Rule(id="r", query="(module (function_definition) @v)", language="py", description="desc")
+        rule = Rule(
+            id="r",
+            query="(module (function_definition) @v)",
+            language="py",
+            description="desc",
+        )
         content = "def f(): pass"
-        
+
         v1 = analyzer.analyze_file("test.py", content, [rule])[0]
-        
+
         # Add comments/whitespace change elsewhere
         content_shifted = "\n\n# New Comment\ndef f(): pass"
         v2 = analyzer.analyze_file("test.py", content_shifted, [rule])[0]
-        
+
         # Signatures must match even if line changed
         assert v1.signature == v2.signature
         assert v1.line != v2.line

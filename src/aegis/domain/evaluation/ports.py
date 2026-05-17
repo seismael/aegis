@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Set, Optional
+
 from pydantic import BaseModel
+
 from aegis.core.models.governance import Rule
 
 
@@ -14,7 +15,7 @@ class ASTViolation(BaseModel):
     rule_id: str
     description: str
     severity: str = "HIGH"
-    signature: Optional[str] = None  # Hashed structural representation
+    signature: str | None = None  # Hashed structural representation
 
 
 class ASTAnalyzerInterface(ABC):
@@ -24,8 +25,8 @@ class ASTAnalyzerInterface(ABC):
 
     @abstractmethod
     def analyze_file(
-        self, file_path: str, content: str, rules: List[Rule]
-    ) -> List[ASTViolation]:
+        self, file_path: str, content: str, rules: list[Rule]
+    ) -> list[ASTViolation]:
         """Analyzes a single file against a set of structural rules."""
         pass
 
@@ -36,9 +37,7 @@ class GraphAnalyzerInterface(ABC):
     """
 
     @abstractmethod
-    def analyze_graph(
-        self, root_dir: str, rules: List[Rule]
-    ) -> List[ASTViolation]:
+    def analyze_graph(self, root_dir: str, rules: list[Rule]) -> list[ASTViolation]:
         """Analyzes cross-file dependency relationships across the workspace."""
         pass
 
@@ -50,8 +49,8 @@ class RegexAnalyzerInterface(ABC):
 
     @abstractmethod
     def analyze_file(
-        self, file_path: str, content: str, rules: List[Rule]
-    ) -> List[ASTViolation]:
+        self, file_path: str, content: str, rules: list[Rule]
+    ) -> list[ASTViolation]:
         """Analyzes file content using regex patterns defined in rules."""
         pass
 
@@ -63,11 +62,11 @@ class DiffResult(ABC):
 
     @property
     @abstractmethod
-    def changed_files(self) -> Set[str]:
+    def changed_files(self) -> set[str]:
         pass
 
     @abstractmethod
-    def get_modified_lines(self, file_path: str) -> Set[int]:
+    def get_modified_lines(self, file_path: str) -> set[int]:
         """Returns the set of line numbers that were added or modified."""
         pass
 

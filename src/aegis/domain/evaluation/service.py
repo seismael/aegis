@@ -1,7 +1,9 @@
 import os
 from pathlib import PurePosixPath
-from typing import List
+
 import structlog
+
+from aegis.core.models.governance import EngineType, Rule
 from aegis.domain.evaluation.ports import (
     ASTAnalyzerInterface,
     ASTViolation,
@@ -9,7 +11,6 @@ from aegis.domain.evaluation.ports import (
     GraphAnalyzerInterface,
     RegexAnalyzerInterface,
 )
-from aegis.core.models.governance import EngineType, Rule
 
 logger = structlog.get_logger()
 
@@ -29,7 +30,7 @@ class EvaluationService:
         graph_analyzer: GraphAnalyzerInterface,
         regex_analyzer: RegexAnalyzerInterface,
         diff_provider: DiffProviderInterface,
-        extra_analyzers: List[ASTAnalyzerInterface] | None = None,
+        extra_analyzers: list[ASTAnalyzerInterface] | None = None,
     ):
         self.tree_sitter_analyzer = tree_sitter_analyzer
         self.graph_analyzer = graph_analyzer
@@ -38,14 +39,14 @@ class EvaluationService:
         self.extra_analyzers = extra_analyzers or []
 
     def evaluate_workspace(
-        self, root_dir: str, rules: List[Rule]
-    ) -> List[ASTViolation]:
+        self, root_dir: str, rules: list[Rule]
+    ) -> list[ASTViolation]:
         """
         Performs a full architectural sweep of the workspace.
         Routes file-level rules (tree-sitter, regex) per-file
         and graph-level rules once across the workspace.
         """
-        all_violations: List[ASTViolation] = []
+        all_violations: list[ASTViolation] = []
 
         # Partition rules by engine type
         ts_rules = [r for r in rules if r.engine_type == EngineType.TREE_SITTER]
@@ -61,7 +62,7 @@ class EvaluationService:
                         continue
 
                     try:
-                        with open(file_path, "r", encoding="utf-8") as f:
+                        with open(file_path, encoding="utf-8") as f:
                             content = f.read()
 
                         if ts_rules:
@@ -78,9 +79,7 @@ class EvaluationService:
                             )
                         for extra in self.extra_analyzers:
                             all_violations.extend(
-                                extra.analyze_file(
-                                    file_path, content, rules
-                                )
+                                extra.analyze_file(file_path, content, rules)
                             )
                     except (UnicodeDecodeError, PermissionError):
                         continue
@@ -95,28 +94,41 @@ class EvaluationService:
 
     @staticmethod
     def _filter_excluded(
-        violations: List[ASTViolation], rules: List[Rule]
-    ) -> List[ASTViolation]:
-        """Remove violations whose file path matches a rule's excludes patterns."""
+        violations: list[ASTViolation], rules: list[Rule]
+    ) -> list[ASTViolation]:
+        """Keep violations where file matches rule's applies_to and not in excludes."""
         rule_map = {r.id: r for r in rules}
-        filtered: List[ASTViolation] = []
+        filtered: list[ASTViolation] = []
         for v in violations:
             rule = rule_map.get(v.rule_id)
-            if rule and rule.excludes:
-                pp = PurePosixPath(v.file.replace("\\", "/"))
+            if not rule:
+                filtered.append(v)
+                continue
+
+            pp = PurePosixPath(v.file.replace("\\", "/"))
+
+            # Positive filter: must match at least one applies_to pattern
+            if rule.applies_to:
+                allowed = any(pp.match(p) for p in rule.applies_to)
+                if not allowed:
+                    continue
+
+            # Negative filter: must not match any excludes pattern
+            if rule.excludes:
                 excluded = any(pp.match(p) for p in rule.excludes)
                 if excluded:
                     continue
+
             filtered.append(v)
         return filtered
 
-    def evaluate_changes(self, rules: List[Rule]) -> List[ASTViolation]:
+    def evaluate_changes(self, rules: list[Rule]) -> list[ASTViolation]:
         """
         Performs a token-efficient analysis of only the changed lines in changed files.
         Graph rules are skipped (cross-file analysis requires a full workspace sweep).
         """
         diff = self.diff_provider.get_staged_changes()
-        all_violations: List[ASTViolation] = []
+        all_violations: list[ASTViolation] = []
 
         # Partition rules
         ts_rules = [r for r in rules if r.engine_type == EngineType.TREE_SITTER]
@@ -124,7 +136,7 @@ class EvaluationService:
         graph_rules = [r for r in rules if r.engine_type == EngineType.GRAPH]
 
         if graph_rules:
-            logger.warning(
+            logger.debug(
                 "Graph rules skipped during staged evaluation "
                 "(requires full workspace sweep).",
                 rule_count=len(graph_rules),
@@ -136,21 +148,18 @@ class EvaluationService:
         for file_path in diff.changed_files:
             try:
                 full_path = (
-                    os.path.join(
-                        self.diff_provider.repo.working_dir, file_path
-                    )
-                    if hasattr(self.diff_provider, "repo")
-                    and self.diff_provider.repo
+                    os.path.join(self.diff_provider.repo.working_dir, file_path)
+                    if hasattr(self.diff_provider, "repo") and self.diff_provider.repo
                     else file_path
                 )
 
                 if not os.path.exists(full_path):
                     continue
 
-                with open(full_path, "r", encoding="utf-8") as f:
+                with open(full_path, encoding="utf-8") as f:
                     content = f.read()
 
-                file_violations: List[ASTViolation] = []
+                file_violations: list[ASTViolation] = []
                 if ts_rules:
                     file_violations.extend(
                         self.tree_sitter_analyzer.analyze_file(
