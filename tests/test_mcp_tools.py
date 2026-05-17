@@ -42,7 +42,7 @@ class TestMCPTools:
 
     @pytest.mark.asyncio
     @patch("aegis.kernel.server.os.path.exists", return_value=True)
-    async def test_validate_compliance_clean(self, mock_exists, kernel):
+    async def test_validate_compliance_clean(self, _mock_exists, kernel):
         kernel.container.evaluation_service.evaluate_workspace.return_value = []
         kernel.container.baseline_manager.is_exempt.return_value = False
         kernel.container.policy_parser.parse_rules.return_value = []
@@ -52,7 +52,7 @@ class TestMCPTools:
 
     @pytest.mark.asyncio
     @patch("aegis.kernel.server.os.path.exists", return_value=True)
-    async def test_validate_compliance_with_violations(self, mock_exists, kernel):
+    async def test_validate_compliance_with_violations(self, _mock_exists, kernel):
         from aegis.domain.evaluation.ports import ArchitecturalViolation
 
         kernel.container.policy_parser.parse_rules.return_value = [
@@ -169,7 +169,34 @@ class TestMCPTools:
 
     @pytest.mark.asyncio
     @patch("aegis.kernel.server.os.path.exists", return_value=True)
-    async def test_server_status_returns_summary(self, mock_exists, kernel):
+    async def test_validate_compliance_staged(self, _mock_exists, kernel):
+        """validate_architecture_compliance with staged_only=True calls evaluate_changes."""
+        kernel.container.policy_parser.parse_rules.return_value = []
+        kernel.container.evaluation_service.evaluate_changes.return_value = []
+        kernel.container.baseline_manager.is_exempt.return_value = False
+
+        result = await kernel.validate_architecture_compliance(staged_only=True)
+        assert "No new violations" in result
+        kernel.container.evaluation_service.evaluate_changes.assert_called_once()
+
+    @pytest.mark.asyncio
+    @patch("aegis.kernel.server.os.path.exists", return_value=True)
+    async def test_validate_compliance_full_scan(self, _mock_exists, kernel):
+        """validate_architecture_compliance with staged_only=False calls evaluate_workspace."""
+        kernel.container.policy_parser.parse_rules.return_value = []
+        kernel.container.evaluation_service.evaluate_workspace.return_value = []
+        kernel.container.baseline_manager.is_exempt.return_value = False
+
+        result = await kernel.validate_architecture_compliance(staged_only=False)
+        assert "No new violations" in result
+        kernel.container.evaluation_service.evaluate_workspace.assert_called_once()
+
+    @pytest.mark.asyncio
+    @patch("aegis.kernel.server.os.path.exists", return_value=False)
+    async def test_validate_compliance_no_rules_yaml(self, _mock_exists, kernel):
+        """validate_architecture_compliance returns error when rules.yaml missing."""
+        result = await kernel.validate_architecture_compliance()
+        assert "not initialized" in result
         kernel.container.policy_parser.parse_rules.return_value = []
         kernel.container.evaluation_service.evaluate_workspace.return_value = []
         kernel.container.baseline_manager.is_exempt.return_value = False

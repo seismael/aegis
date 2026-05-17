@@ -80,7 +80,7 @@ class EvaluationService:
                             all_violations.extend(
                                 extra.analyze_file(file_path, content, rules)
                             )
-                    except (UnicodeDecodeError, PermissionError):
+                    except (UnicodeDecodeError, OSError):
                         continue
 
         # Cross-file graph analysis (once per sweep)
@@ -89,15 +89,35 @@ class EvaluationService:
                 self.graph_analyzer.analyze_graph(root_dir, graph_rules)
             )
 
+        # Normalize paths to relative for consistent baseline matching
+        self._normalize_violation_paths(all_violations, root_dir)
+
         return ScopeFilter.filter_violations(all_violations, rules)
 
-    def evaluate_changes(self, rules: list[Rule]) -> list[ArchitecturalViolation]:
+    @staticmethod
+    def _normalize_violation_paths(
+        violations: list[ArchitecturalViolation], root_dir: str
+    ) -> None:
+        """Normalize absolute violation paths to relative for consistent baseline matching."""
+        for v in violations:
+            if os.path.isabs(v.file):
+                try:
+                    v.file = os.path.relpath(v.file, root_dir)
+                except ValueError:
+                    pass  # different drive, keep as-is
+
+    def evaluate_changes(
+        self, rules: list[Rule], root_dir: str | None = None
+    ) -> list[ArchitecturalViolation]:
         """
         Performs a token-efficient analysis of only the changed lines in changed files.
         Graph rules are skipped (cross-file analysis requires a full workspace sweep).
         """
         diff = self.diff_provider.get_staged_changes()
         all_violations: list[ArchitecturalViolation] = []
+
+        # Derive root_dir from first changed file if not provided
+        root_dir = root_dir or self._derive_root_dir(diff.changed_files)
 
         # Partition rules
         ts_rules = [r for r in rules if r.engine_type == EngineType.TREE_SITTER]
@@ -154,4 +174,18 @@ class EvaluationService:
                     error=str(e),
                 )
 
+        # Normalize paths to relative for consistent baseline matching
+        self._normalize_violation_paths(all_violations, root_dir)
+
         return ScopeFilter.filter_violations(all_violations, rules)
+
+    @staticmethod
+    def _derive_root_dir(changed_files: set[str]) -> str:
+        """Derive the workspace root from a set of changed file paths."""
+        if not changed_files:
+            return os.getcwd()
+        common = os.path.commonpath(list(changed_files))
+        # If common is a file path, use its parent
+        if common and not os.path.isdir(common):
+            common = os.path.dirname(common)
+        return common or os.getcwd()

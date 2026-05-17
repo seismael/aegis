@@ -61,7 +61,9 @@ class RemediationPromptSynthesizer(RemediationProviderInterface):
 
         return payload
 
-    def _fetch_code_context(self, filepath: str, line: int, context_lines: int = 5) -> str:
+    def _fetch_code_context(
+        self, filepath: str, line: int, context_lines: int = 5
+    ) -> str:
         """Fetches the specific lines of code surrounding a violation."""
         if not os.path.exists(filepath):
             return ""

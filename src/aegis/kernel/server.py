@@ -47,6 +47,10 @@ class AegisKernel:
     def _init_remediation(self):
         """Initialize remediation synthesizer with graceful degradation."""
         try:
+            if self.container is not None and hasattr(
+                self.container, "remediation_synthesizer"
+            ):
+                return self.container.remediation_synthesizer
             return RemediationPromptSynthesizer()
         except Exception as e:
             self.logger.error("Remediation init failed", error=str(e))
@@ -81,6 +85,12 @@ class AegisKernel:
     def _evolution_service(self):
         if self.container is not None:
             return self.container.evolution_service
+        return None
+
+    @property
+    def _graph_analyzer(self):
+        if self.container is not None:
+            return self.container.graph_analyzer
         return None
 
     def _register_tools(self):
@@ -283,7 +293,7 @@ class AegisKernel:
             self.logger.error("Status check failed", error=str(e))
             return f"ERROR: status check failed — {str(e)}"
 
-    async def validate_architecture_compliance(self, staged_only: bool = True) -> str:
+    async def validate_architecture_compliance(self, staged_only: bool = False) -> str:
         """
         Validates code against the architectural matrix.
         Returns a scorecard of NEW violations for the agent to resolve.
@@ -299,7 +309,7 @@ class AegisKernel:
         rules = self._policy_parser.parse_rules(rules_path)
 
         if staged_only:
-            violations = self._evaluation_service.evaluate_changes(rules)
+            violations = self._evaluation_service.evaluate_changes(rules, root_dir=root)
         else:
             violations = self._evaluation_service.evaluate_workspace(root, rules)
 
@@ -403,7 +413,7 @@ class AegisKernel:
             return f"ERROR: node_name '{node_name}' is not a valid module name."
 
         # Build the full dependency graph
-        analyzer = GraphAnalyzer()
+        analyzer = self._graph_analyzer or GraphAnalyzer()
         adjacency, _ = analyzer.build_import_graph(self._workspace_root)
 
         if not adjacency:

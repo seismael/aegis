@@ -44,7 +44,9 @@ class PolicyParser:
                 if remote_data and "rules" in remote_data:
                     rules_data.extend(remote_data["rules"])
             except Exception as e:
-                logger.error("Failed to fetch remote policy", url=remote_url, error=str(e))
+                logger.error(
+                    "Failed to fetch remote policy", url=remote_url, error=str(e)
+                )
 
         # 2. Merge local rules (local overrides remote)
         if "rules" in data:
@@ -63,7 +65,9 @@ class PolicyParser:
             try:
                 rules.append(Rule(**r_data))
             except Exception as e:
-                logger.warning("Skipping invalid rule", rule_id=r_data.get("id"), error=str(e))
+                logger.warning(
+                    "Skipping invalid rule", rule_id=r_data.get("id"), error=str(e)
+                )
                 continue
 
         return rules

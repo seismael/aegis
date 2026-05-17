@@ -109,7 +109,7 @@ class AegisInstaller:
     def entry_point():
         installer = AegisInstaller()
         installer.install_global_capability()
-        print("\n🛡️  Aegis Global Capability Installed!")
+        print("\n[Aegis] Global Capability Installed!")
         print(
             "Your AI agents (Claude, Aider, etc.) now have the 'Aegis Governance' capability."
         )

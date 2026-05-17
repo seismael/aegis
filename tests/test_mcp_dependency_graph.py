@@ -2,6 +2,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from aegis.infrastructure.graph_analyzer import GraphAnalyzer
 from aegis.kernel.server import AegisKernel
 
 
@@ -26,6 +27,7 @@ class TestMCPDependencyGraph:
         mock_container = MagicMock()
         mock_container.workspace_root = str(tmp_path)
         mock_container.policy_parser.parse_rules.return_value = []
+        mock_container.graph_analyzer = GraphAnalyzer()
         kernel.container = mock_container
 
         result = await kernel.get_dependency_graph("main")
@@ -38,6 +40,7 @@ class TestMCPDependencyGraph:
         mock_container = MagicMock()
         mock_container.workspace_root = str(tmp_path)
         mock_container.policy_parser.parse_rules.return_value = []
+        mock_container.graph_analyzer = GraphAnalyzer()
         kernel.container = mock_container
 
         result = await kernel.get_dependency_graph("nonexistent")

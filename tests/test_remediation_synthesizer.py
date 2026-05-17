@@ -86,6 +86,93 @@ class TestRemediationPromptSynthesizer:
         assert "Hexagonal architecture" in result
         assert "Architectural Rationale" in result
 
+    def test_code_context_included_for_existing_file(self, tmp_path):
+        """Violations with valid files get code context in remediation."""
+        synth = RemediationPromptSynthesizer()
+        f = tmp_path / "main.py"
+        f.write_text("line1\nline2\nline3\nline4\nline5\n", encoding="utf-8")
+        rule = Rule(
+            id="r1", description="test", severity=Severity.HIGH,
+            mode=EnforcementMode.BLOCK,
+        )
+        violations = [self._make_violation(str(f), 3, "r1", "Bad code")]
+        result = synth.generate_remediation(violations, {"r1": rule})
+        assert "Code Context" in result
+        assert "line3" in result
+
+    def test_code_context_omitted_for_missing_file(self, tmp_path):
+        """Violations with non-existent files get no code context."""
+        synth = RemediationPromptSynthesizer()
+        rule = Rule(
+            id="r1", description="test", severity=Severity.HIGH,
+            mode=EnforcementMode.BLOCK,
+        )
+        violations = [
+            self._make_violation("/nonexistent/path.py", 3, "r1", "Bad")
+        ]
+        result = synth.generate_remediation(violations, {"r1": rule})
+        assert "Code Context" not in result
+
+    def test_fetch_code_context_file_not_found(self, tmp_path):
+        """_fetch_code_context returns empty string for missing file."""
+        synth = RemediationPromptSynthesizer()
+        result = synth._fetch_code_context(
+            str(tmp_path / "missing.py"), 1,
+        )
+        assert result == ""
+
+    def test_fetch_code_context_normal_file(self, tmp_path):
+        """_fetch_code_context returns formatted lines around the violation line."""
+        f = tmp_path / "test.py"
+        f.write_text(
+            "line1\nline2\nline3\nline4\nline5\nline6\nline7\n",
+            encoding="utf-8",
+        )
+        synth = RemediationPromptSynthesizer()
+        result = synth._fetch_code_context(str(f), 4)
+        # Line 4 should be marked with >
+        assert ">    4 | line4" in result
+
+    def test_fetch_code_context_first_line(self, tmp_path):
+        """_fetch_code_context handles violation on line 1 without negative indexing."""
+        f = tmp_path / "test.py"
+        f.write_text(
+            "first\nsecond\nthird\nfourth\nfifth\n", encoding="utf-8"
+        )
+        synth = RemediationPromptSynthesizer()
+        result = synth._fetch_code_context(str(f), 1)
+        assert ">    1 | first" in result
+
+    def test_fetch_code_context_last_line(self, tmp_path):
+        """_fetch_code_context handles violation on last line without exceeding."""
+        f = tmp_path / "test.py"
+        f.write_text(
+            "line1\nline2\nline3\n", encoding="utf-8"
+        )
+        synth = RemediationPromptSynthesizer()
+        result = synth._fetch_code_context(str(f), 3)
+        assert ">    3 | line3" in result
+
+    def test_code_context_integration_with_remediation(self, tmp_path):
+        """Remediation prompt includes code context for real files."""
+        synth = RemediationPromptSynthesizer()
+        f = tmp_path / "service.py"
+        f.write_text(
+            "import os\nimport sys\n\ndef bad():\n    print('evil')\n",
+            encoding="utf-8",
+        )
+        rule = Rule(
+            id="no-print", description="No prints",
+            severity=Severity.HIGH, mode=EnforcementMode.BLOCK,
+        )
+        violations = [
+            self._make_violation(str(f), 4, "no-print", "Used print")
+        ]
+        result = synth.generate_remediation(violations, {"no-print": rule})
+        assert "Code Context" in result
+        assert "print('evil')" in result
+        assert "Execution Directive" in result
+
     def test_rationale_omitted_when_missing(self):
         synth = RemediationPromptSynthesizer()
         rule = Rule(

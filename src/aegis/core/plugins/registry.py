@@ -5,15 +5,18 @@ from collections.abc import Callable
 
 import structlog
 
+from aegis.core.plugins.interfaces import CustomAnalyzerInterface
 from aegis.domain.evaluation.ports import RuleAnalyzerInterface
 
 logger = structlog.get_logger()
+
 
 class PluginRegistry:
     """
     Dynamically loads custom analyzers and MCP tools from the workspace's .aegis/plugins/ directory.
     Provides Inversion of Control (IoC) for enterprise-specific governance rules.
     """
+
     def __init__(self, workspace_root: str):
         self.plugin_dir = os.path.join(workspace_root, ".aegis", "plugins")
         self.custom_analyzers: list[RuleAnalyzerInterface] = []
@@ -48,6 +51,10 @@ class PluginRegistry:
                 analyzers = module.register_analyzers()
                 if isinstance(analyzers, list):
                     self.custom_analyzers.extend(analyzers)
+                    # Collect MCP tools from CustomAnalyzerInterface instances
+                    for a in analyzers:
+                        if isinstance(a, CustomAnalyzerInterface):
+                            self.custom_mcp_tools.extend(a.mcp_tools)
 
             # Hook 2: Custom MCP Tools
             if hasattr(module, "register_mcp_tools"):

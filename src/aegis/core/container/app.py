@@ -2,6 +2,7 @@ import os
 from collections.abc import Callable
 
 from aegis.core.plugins.registry import PluginRegistry
+from aegis.domain.enforcement.remediation import RemediationPromptSynthesizer
 from aegis.domain.evaluation.baseline import BaselineManager
 from aegis.domain.evaluation.service import EvaluationService
 from aegis.domain.evolution.service import EvolutionService
@@ -48,6 +49,9 @@ class Container:
         self.evolution_service = EvolutionService(
             os.path.join(self.workspace_root, ".aegis")
         )
+
+        # Remediation
+        self.remediation_synthesizer = RemediationPromptSynthesizer()
 
     @property
     def custom_mcp_tools(self) -> list[Callable]:
