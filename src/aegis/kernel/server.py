@@ -1,11 +1,21 @@
-import asyncio
 import os
+import re
+
 import structlog
-from typing import Optional, List
 from mcp.server.fastmcp import FastMCP
+
 from aegis.core.container.app import Container
 from aegis.domain.enforcement.remediation import RemediationPromptSynthesizer
 from aegis.infrastructure.graph_analyzer import GraphAnalyzer
+
+_VALID_TOOL_NAME = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$")
+
+
+def _named_tool(fn, name: str):
+    """Wrap a function with a valid FastMCP tool name."""
+    fn.__name__ = name
+    fn.__qualname__ = name
+    return fn
 
 
 class AegisKernel:
@@ -19,7 +29,10 @@ class AegisKernel:
         self.mcp = FastMCP("Aegis Architecture Engine")
         self.container = Container()
         self.remediation_synthesizer = RemediationPromptSynthesizer()
+        self._plugin_tool_counter = 0
         self._register_tools()
+        self._register_resources()
+        self._register_prompts()
         self._register_plugin_tools()
 
     def _register_tools(self):
@@ -28,39 +41,177 @@ class AegisKernel:
         self.mcp.tool()(self.apply_architectural_remediation)
         self.mcp.tool()(self.get_rule_rationale)
         self.mcp.tool()(self.get_dependency_graph)
+        self.mcp.tool()(self.server_status)
+
+    def _register_prompts(self):
+        """Register reusable MCP prompts for agentic workflows."""
+
+        @self.mcp.prompt(
+            name="evaluate-architecture",
+            description="Run a full architecture compliance evaluation on the workspace",
+        )
+        def evaluate_architecture_prompt() -> str:
+            return (
+                "You are an architectural governance agent. "
+                "Run `validate_architecture_compliance` on the full workspace. "
+                "If violations are found, call `apply_architectural_remediation` "
+                "for structured fix instructions, then resolve each violation "
+                "one by one. Re-validate after each fix."
+            )
+
+        @self.mcp.prompt(
+            name="remediate-violations",
+            description="Fix all active architectural violations step by step",
+        )
+        def remediate_violations_prompt() -> str:
+            return (
+                "You are a remediation agent. Call `apply_architectural_remediation` "
+                "to get the current violation list with fix instructions. For each "
+                "violation: (1) read the affected file, (2) apply the suggested fix, "
+                "(3) re-run `validate_architecture_compliance` to confirm the fix "
+                "resolved it. Repeat until all violations are cleared."
+            )
+
+        @self.mcp.prompt(
+            name="explain-rule",
+            description="Get the rationale and evolution history for a specific rule",
+        )
+        def explain_rule_prompt(rule_id: str) -> str:
+            return (
+                f"Call `get_rule_rationale` for rule '{rule_id}' to understand "
+                "its purpose, evolution history, and any past decisions about it. "
+                "Then read the rule definition from the `aegis://rules` resource. "
+                "Summarize what the rule enforces, why it exists, and how it has "
+                "evolved over time."
+            )
+
+        @self.mcp.prompt(
+            name="inspect-dependency",
+            description="Analyze module dependencies and coupling in the workspace",
+        )
+        def inspect_dependency_prompt(node_name: str) -> str:
+            return (
+                f"Call `get_dependency_graph` for module '{node_name}' to inspect "
+                "its imports and reverse-dependencies. Check for: (1) circular "
+                "dependencies, (2) domain->infrastructure leaks, (3) excessive "
+                "coupling. Report findings and suggest refactoring if needed."
+            )
+
+    def _register_resources(self):
+        """Register static governance artifacts as MCP resources."""
+
+        @self.mcp.resource(
+            "aegis://rules", description="Architectural governance rules (rules.yaml)"
+        )
+        async def get_rules_resource() -> str:
+            path = os.path.join(self.container.workspace_root, ".aegis", "rules.yaml")
+            if not os.path.exists(path):
+                return "ERROR: rules.yaml not found."
+            with open(path, encoding="utf-8") as f:
+                return f.read()
+
+        @self.mcp.resource(
+            "aegis://baseline", description="Architectural debt ledger (baseline.json)"
+        )
+        async def get_baseline_resource() -> str:
+            path = os.path.join(
+                self.container.workspace_root, ".aegis", "baseline.json"
+            )
+            if not os.path.exists(path):
+                return "WARN: baseline.json not found — no debt ledger established."
+            with open(path, encoding="utf-8") as f:
+                return f.read()
+
+        @self.mcp.resource(
+            "aegis://evolution",
+            description="Rule evolution history (evolution_log.json)",
+        )
+        async def get_evolution_resource() -> str:
+            path = os.path.join(
+                self.container.workspace_root, ".aegis", "evolution_log.json"
+            )
+            if not os.path.exists(path):
+                return "WARN: evolution_log.json not found — no evolution history recorded."
+            with open(path, encoding="utf-8") as f:
+                return f.read()
+
+        @self.mcp.resource(
+            "aegis://spec", description="Architecture specification (SPEC.md)"
+        )
+        async def get_spec_resource() -> str:
+            path = os.path.join(self.container.workspace_root, "SPEC.md")
+            if not os.path.exists(path):
+                return "WARN: SPEC.md not found — architecture is undefined."
+            with open(path, encoding="utf-8") as f:
+                return f.read()
 
     def _register_plugin_tools(self):
         for tool_fn in self.container.custom_mcp_tools:
-            wrapped = self.mcp.tool()(tool_fn)
-            self.logger.info(
-                "Registered custom MCP tool", tool=tool_fn.__name__
-            )
+            name = getattr(tool_fn, "__name__", "") or ""
+            if not name or not _VALID_TOOL_NAME.match(name):
+                name = f"plugin_tool_{self._plugin_tool_counter}"
+                self._plugin_tool_counter += 1
+                wrapper = _named_tool(tool_fn, name)
+                self.mcp.tool(name=name)(wrapper)
+            else:
+                self.mcp.tool()(tool_fn)
+            self.logger.info("Registered custom MCP tool", tool=name)
 
     async def get_architecture_spec(self) -> str:
         """Retrieves the current project architectural specification (SPEC.md)."""
         try:
-            spec_path = os.path.join(
-                self.container.workspace_root, "SPEC.md"
-            )
+            spec_path = os.path.join(self.container.workspace_root, "SPEC.md")
             if not os.path.exists(spec_path):
-                return "No SPEC.md found. Architecture is currently undefined."
-            with open(spec_path, "r", encoding="utf-8") as f:
+                return "WARN: SPEC.md not found. Architecture is currently undefined."
+            with open(spec_path, encoding="utf-8") as f:
                 return f.read()
         except Exception as e:
-            return f"Error reading specification: {str(e)}"
+            return f"ERROR: reading specification — {str(e)}"
 
-    async def validate_architecture_compliance(
-        self, staged_only: bool = True
-    ) -> str:
+    async def server_status(self) -> str:
+        """
+        Returns server health and capability overview.
+        Lists registered tools, resources, and prompts with counts.
+        """
+        try:
+            rules_path = os.path.join(
+                self.container.workspace_root, ".aegis", "rules.yaml"
+            )
+            rules = (
+                self.container.policy_parser.parse_rules(rules_path)
+                if os.path.exists(rules_path)
+                else []
+            )
+
+            violations = self.container.evaluation_service.evaluate_workspace(
+                self.container.workspace_root, rules
+            )
+            active = [
+                v
+                for v in violations
+                if not self.container.baseline_manager.is_exempt(v)
+            ]
+
+            summary = "## Aegis Kernel Status\n\n"
+            summary += f"- **Workspace:** `{self.container.workspace_root}`\n"
+            summary += f"- **Rules:** {len(rules)} loaded\n"
+            summary += f"- **Tools:** 6 built-in + {len(self.container.custom_mcp_tools)} plugin\n"
+            summary += "- **Resources:** 4 governance artifacts\n"
+            summary += "- **Prompts:** 4 workflow templates\n"
+            summary += f"- **Violations:** {len(active)} active\n"
+            summary += f"- **Plugins:** {len(self.container.loaded_plugins)} loaded\n"
+            return summary
+        except Exception as e:
+            return f"ERROR: status check failed — {str(e)}"
+
+    async def validate_architecture_compliance(self, staged_only: bool = True) -> str:
         """
         Validates code against the architectural matrix.
         Returns a scorecard of NEW violations for the agent to resolve.
         """
-        rules_path = os.path.join(
-            self.container.workspace_root, ".aegis", "rules.yaml"
-        )
+        rules_path = os.path.join(self.container.workspace_root, ".aegis", "rules.yaml")
         if not os.path.exists(rules_path):
-            return "Aegis is not initialized. Run `/aegis-init` to establish governance."
+            return "ERROR: Aegis is not initialized — run `/aegis-init` to establish governance."
 
         rules = self.container.policy_parser.parse_rules(rules_path)
 
@@ -72,18 +223,14 @@ class AegisKernel:
             )
 
         active = [
-            v
-            for v in violations
-            if not self.container.baseline_manager.is_exempt(v)
+            v for v in violations if not self.container.baseline_manager.is_exempt(v)
         ]
 
         if not active:
-            return "✅ Architecture compliance check passed. No NEW violations detected."
+            return "PASS: Architecture compliance check passed. No new violations detected."
 
-        report = "⚠️ ARCHITECTURAL DRIFT DETECTED\n"
-        report += (
-            "The following NEW violations must be resolved before proceeding:\n\n"
-        )
+        report = "FAIL: ARCHITECTURAL DRIFT DETECTED\n"
+        report += "The following NEW violations must be resolved before proceeding:\n\n"
         for v in active:
             report += f"- [{v.severity}] {v.file}:{v.line}\n"
             report += f"  Violation: {v.description} ({v.rule_id})\n"
@@ -99,9 +246,7 @@ class AegisKernel:
         MCP Tool: Called when a compliance check fails.
         Returns a highly structured prompt instructing the AI how to fix the code.
         """
-        rules_path = os.path.join(
-            self.container.workspace_root, ".aegis", "rules.yaml"
-        )
+        rules_path = os.path.join(self.container.workspace_root, ".aegis", "rules.yaml")
         rules = self.container.policy_parser.parse_rules(rules_path)
         rules_map = {r.id: r for r in rules}
 
@@ -109,31 +254,31 @@ class AegisKernel:
             self.container.workspace_root, rules
         )
         active = [
-            v
-            for v in violations
-            if not self.container.baseline_manager.is_exempt(v)
+            v for v in violations if not self.container.baseline_manager.is_exempt(v)
         ]
 
         if not active:
-            return "✅ Architecture is compliant. No remediation needed."
+            return "PASS: Architecture is compliant. No remediation needed."
 
-        return self.remediation_synthesizer.generate_remediation(
-            active, rules_map
-        )
+        return self.remediation_synthesizer.generate_remediation(active, rules_map)
 
     async def get_rule_rationale(self, rule_id: str) -> str:
         """
         Fetches the human consensus history for a given rule.
         Returns the rationale and evolution decisions from evolution_log.json.
         """
-        rules_path = os.path.join(
-            self.container.workspace_root, ".aegis", "rules.yaml"
-        )
+        if not rule_id or not rule_id.strip():
+            return "ERROR: rule_id must be a non-empty string."
+
+        if not re.match(r"^[a-zA-Z0-9_-]+$", rule_id):
+            return f"ERROR: rule_id '{rule_id}' contains invalid characters."
+
+        rules_path = os.path.join(self.container.workspace_root, ".aegis", "rules.yaml")
         all_rules = self.container.policy_parser.parse_rules(rules_path)
         rule = next((r for r in all_rules if r.id == rule_id), None)
 
         if not rule:
-            return f"Rule '{rule_id}' not found in the governance matrix."
+            return f"WARN: rule '{rule_id}' not found in the governance matrix."
 
         result = f"## Rule: {rule.id}\n"
         result += f"**Description:** {rule.description}\n"
@@ -149,9 +294,7 @@ class AegisKernel:
         if decisions:
             result += "\n### Evolution History\n"
             for d in decisions:
-                result += (
-                    f"- **{d.timestamp}** — {d.action}: {d.rationale}\n"
-                )
+                result += f"- **{d.timestamp}** — {d.action}: {d.rationale}\n"
         else:
             result += "\nNo evolution history recorded for this rule."
 
@@ -162,17 +305,20 @@ class AegisKernel:
         Returns the import dependencies for a given module name.
         Shows what the module imports and what imports it.
         """
-        from aegis.core.models.governance import EngineType, Rule
+        if not node_name or not node_name.strip():
+            return "ERROR: node_name must be a non-empty string."
+
+        # Prevent path traversal in module name
+        if ".." in node_name or node_name.startswith("/") or node_name.startswith("\\"):
+            return f"ERROR: node_name '{node_name}' is not a valid module name."
 
         # Build the full dependency graph
         analyzer = GraphAnalyzer()
-        adjacency, _ = analyzer._build_import_graph(
-            self.container.workspace_root
-        )
+        adjacency, _ = analyzer._build_import_graph(self.container.workspace_root)
 
         if not adjacency:
             return (
-                "No Python modules found in the workspace "
+                "WARN: no Python modules found in the workspace "
                 "or unable to parse dependency graph."
             )
 
@@ -181,7 +327,7 @@ class AegisKernel:
 
         if not matched:
             return (
-                f"Module '{node_name}' not found in the dependency graph. "
+                f"WARN: module '{node_name}' not found in the dependency graph.\n"
                 f"Available roots: {', '.join(sorted(adjacency.keys())[:10])}"
             )
 
@@ -198,9 +344,7 @@ class AegisKernel:
                 result += "No internal imports.\n"
 
             # Find reverse dependencies
-            importers = [
-                m for m, deps in adjacency.items() if module in deps
-            ]
+            importers = [m for m, deps in adjacency.items() if module in deps]
             if importers:
                 result += "**Imported by:**\n"
                 for imp in sorted(importers):
@@ -210,13 +354,48 @@ class AegisKernel:
 
         return result
 
-    def run(self):
-        self.mcp.run()
+    def run(self, transport: str = "stdio", host: str = "127.0.0.1", port: int = 8000):
+        """
+        Runs the MCP server with the given transport.
+
+        Args:
+            transport: One of "stdio", "sse", or "streamable-http".
+            host: Host to bind (SSE/HTTP only).
+            port: Port to bind (SSE/HTTP only).
+        """
+        if transport == "stdio":
+            self.mcp.run()
+        elif transport in ("sse", "streamable-http"):
+            import uvicorn
+
+            app = (
+                self.mcp.sse_app()
+                if transport == "sse"
+                else self.mcp.streamable_http_app()
+            )
+            uvicorn.run(app, host=host, port=port, log_level="warning")
+        else:
+            raise ValueError(f"Unsupported transport: {transport}")
 
     @staticmethod
     def entry_point():
+        import argparse
+
+        parser = argparse.ArgumentParser(description="Aegis Architecture Engine (MCP)")
+        parser.add_argument(
+            "--transport",
+            choices=["stdio", "sse", "streamable-http"],
+            default="stdio",
+            help="MCP transport protocol (default: stdio)",
+        )
+        parser.add_argument("--host", default="127.0.0.1", help="Bind host (SSE/HTTP)")
+        parser.add_argument(
+            "--port", type=int, default=8000, help="Bind port (SSE/HTTP)"
+        )
+        args = parser.parse_args()
+
         kernel = AegisKernel()
-        kernel.run()
+        kernel.run(transport=args.transport, host=args.host, port=args.port)
 
 
 if __name__ == "__main__":

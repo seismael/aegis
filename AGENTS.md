@@ -1,38 +1,54 @@
-# Aegis Universal Agentic Governance Protocol
+# Aegis Agentic Operational Invariants
 
-This document establishes the mandatory architectural enforcement protocol for ALL agentic entities (Claude, Aider, OpenCode, Gemini, etc.) operating within this repository.
+## Governance Protocol
+- Run `uv run aegis check` before every commit. Blocking violations must be resolved.
+- Run `uv run aegis status` to inspect the current rule matrix and debt ledger.
+- Baseline new or unavoidable violations with `uv run aegis baseline` (never suppress silently).
 
-## 🛡️ The Governance Mandate
-Architecture is an **active gate**, not a static document. Every code change MUST be validated against the project's structural invariants defined in `.aegis/rules.yaml`.
+## Development Workflow
+- **Test-Driven Development**: Write tests before feature logic. Run `uv run pytest tests/` after every change.
+- **Linting**: Format and lint with `ruff check --fix && ruff format` before every commit.
+- **Architecture**: Strict hexagonal architecture (Domain -> ports <- Infrastructure). Domain layer must never import from infrastructure.
+- **Engine-Type Awareness**: When adding rules, choose the correct engine_type (tree-sitter for AST structure, graph for cross-file dependencies, regex for pattern matching).
 
-## 🤖 Agent Workflow (Universal)
+## MCP Tools (AI Agent Integration)
+- Use `validate_architecture_compliance` to scan the full workspace.
+- Use `apply_architectural_remediation` to get structured fix instructions for active violations.
+- Use `get_rule_rationale` to trace why a rule exists and its evolution history.
+- Use `get_dependency_graph` to inspect module coupling.
+- Use `server_status` for a health overview including counts of rules, tools, and violations.
 
-### 1. Context Gathering
-Before proposing or executing any structural change, you MUST:
-- Read `SPEC.md` to understand the system topology.
-- Read `.aegis/rules.yaml` to identify active logical constraints.
+## MCP Resources (Data Access)
+Read-only governance artifacts exposed as MCP resource URIs:
+- Read `aegis://rules` for the full rule matrix (rules.yaml).
+- Read `aegis://baseline` for the architectural debt ledger (baseline.json).
+- Read `aegis://evolution` for rule evolution history (evolution_log.json).
+- Read `aegis://spec` for the architecture specification (SPEC.md).
 
-### 2. Pre-Correction Validation
-Run the **`validate_architecture_compliance`** MCP tool (or execute `uv run aegis check --staged`) BEFORE finalizing any code modification.
+## MCP Prompts (Workflow Templates)
+Reusable prompt templates for common agentic workflows:
+- `evaluate-architecture` — Full compliance scan → remediate → re-validate loop.
+- `remediate-violations` — Step-by-step violation fix workflow.
+- `explain-rule` — Fetch rationale + evolution history for a specific rule.
+- `inspect-dependency` — Analyze module coupling and detect leaks.
 
-### 3. Self-Remediation Loop
-If violations are detected:
-- Call the **`get_remediation_prompt`** tool for the specific violation ID.
-- Use your internal reasoning to apply the refactor described in the prompt.
-- Re-run the validation until the check passes.
+## Server Configuration
+The MCP kernel supports three transports:
+- `stdio` (default) — Standard input/output, ideal for Claude Desktop / CLI integration.
+- `sse` — Server-Sent Events over HTTP for remote agent connections.
+- `streamable-http` — Full HTTP transport with streaming support.
 
-### 4. Consensus Evolution
-Agents are FORBIDDEN from modifying `.aegis/rules.yaml` or `SPEC.md` directly. All changes to the "Law" must be negotiated with the user.
-- **Claude**: Use the `/aegis-evolve` skill.
-- **Aider/Others**: Explicitly ask the user: "The current [Rule ID] blocks this change. Should we evolve the rule or refactor the code?"
+Run with: `uv run aegis-kernel --transport sse --host 0.0.0.0 --port 8000`
 
-## 🛠️ Tool-Specific Integration
+## Plugin System
+- Drop Python modules into `.aegis/plugins/*.py` — they auto-load on next CLI command.
+- Each plugin can expose two optional hooks:
+  - `register_analyzers() -> list[ASTAnalyzerInterface]` — custom code analyzers.
+  - `register_mcp_tools() -> list[Callable]` — custom MCP tools for AI agents.
+- Plugin errors are logged and never crash the engine.
+- Run `uv run aegis plugins` to see what's loaded.
+- Run `uv run aegis status` to see the plugin count in the summary.
 
-### Claude Code
-Aegis is integrated via skills in `.claude/skills/`. Use `/aegis-init` to start.
-
-### Aider
-Aegis is mapped via `.aider.conf.yml`. Ensure the `mcp-server` is active. Aider's "Architect Mode" natively respects this protocol.
-
-### OpenCode / OpenDevin
-The environment is bootstrapped with the Aegis headless check. Use `uv run aegis check` to verify your sandbox state before submitting.
+## Self-Governance
+- Aegis enforces OOD, hexagonal isolation, docstring completeness, and import hygiene on its own source code.
+- The project must remain self-compliant with zero active violations at all times.

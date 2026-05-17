@@ -1,5 +1,6 @@
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 
 from aegis.kernel.server import AegisKernel
 
@@ -40,4 +41,4 @@ class TestMCPDependencyGraph:
         kernel.container = mock_container
 
         result = await kernel.get_dependency_graph("nonexistent")
-        assert "No Python modules" in result or "not found" in result
+        assert "no python modules" in result.lower() or "not found" in result.lower()

@@ -1,8 +1,10 @@
-import pytest
 from unittest.mock import MagicMock, patch
-from aegis.kernel.server import AegisKernel
-from aegis.core.models.governance import Rule, Severity, EnforcementMode
+
+import pytest
+
 from aegis.core.models.evolution import EvolutionDecision
+from aegis.core.models.governance import EnforcementMode, Rule, Severity
+from aegis.kernel.server import AegisKernel
 
 
 @pytest.fixture
@@ -46,7 +48,7 @@ class TestMCPTools:
         kernel.container.policy_parser.parse_rules.return_value = []
 
         result = await kernel.validate_architecture_compliance(staged_only=False)
-        assert "No NEW violations" in result
+        assert "No new violations" in result
 
     @pytest.mark.asyncio
     @patch("aegis.kernel.server.os.path.exists", return_value=True)
@@ -54,10 +56,17 @@ class TestMCPTools:
         from aegis.domain.evaluation.ports import ASTViolation
 
         kernel.container.policy_parser.parse_rules.return_value = [
-            Rule(id="r1", description="desc", severity=Severity.HIGH, mode=EnforcementMode.BLOCK)
+            Rule(
+                id="r1",
+                description="desc",
+                severity=Severity.HIGH,
+                mode=EnforcementMode.BLOCK,
+            )
         ]
         kernel.container.evaluation_service.evaluate_workspace.return_value = [
-            ASTViolation(file="src/main.py", line=5, rule_id="r1", description="violation")
+            ASTViolation(
+                file="src/main.py", line=5, rule_id="r1", description="violation"
+            )
         ]
         kernel.container.baseline_manager.is_exempt.return_value = False
 
@@ -78,10 +87,17 @@ class TestMCPTools:
     async def test_apply_remediation_with_violations(self, kernel):
         from aegis.domain.evaluation.ports import ASTViolation
 
-        rule = Rule(id="r1", description="desc", severity=Severity.HIGH, mode=EnforcementMode.BLOCK)
+        rule = Rule(
+            id="r1",
+            description="desc",
+            severity=Severity.HIGH,
+            mode=EnforcementMode.BLOCK,
+        )
         kernel.container.policy_parser.parse_rules.return_value = [rule]
         kernel.container.evaluation_service.evaluate_workspace.return_value = [
-            ASTViolation(file="src/main.py", line=5, rule_id="r1", description="violation")
+            ASTViolation(
+                file="src/main.py", line=5, rule_id="r1", description="violation"
+            )
         ]
         kernel.container.baseline_manager.is_exempt.return_value = False
 
@@ -92,8 +108,11 @@ class TestMCPTools:
     @pytest.mark.asyncio
     async def test_get_rule_rationale_found(self, kernel):
         rule = Rule(
-            id="r1", description="desc", severity=Severity.HIGH,
-            mode=EnforcementMode.BLOCK, rationale="Keep architecture clean.",
+            id="r1",
+            description="desc",
+            severity=Severity.HIGH,
+            mode=EnforcementMode.BLOCK,
+            rationale="Keep architecture clean.",
         )
         kernel.container.policy_parser.parse_rules.return_value = [rule]
         kernel.container.evolution_service.load_log.return_value = MagicMock(
@@ -117,3 +136,48 @@ class TestMCPTools:
 
         result = await kernel.get_rule_rationale("nonexistent")
         assert "not found" in result.lower()
+
+    @pytest.mark.asyncio
+    async def test_get_rule_rationale_empty_id(self, kernel):
+        result = await kernel.get_rule_rationale("")
+        assert "ERROR" in result
+        assert "non-empty" in result
+
+    @pytest.mark.asyncio
+    async def test_get_rule_rationale_invalid_chars(self, kernel):
+        result = await kernel.get_rule_rationale("../etc")
+        assert "ERROR" in result
+        assert "invalid characters" in result
+
+    @pytest.mark.asyncio
+    async def test_get_dependency_graph_empty_name(self, kernel):
+        result = await kernel.get_dependency_graph("")
+        assert "ERROR" in result
+        assert "non-empty" in result
+
+    @pytest.mark.asyncio
+    async def test_get_dependency_graph_path_traversal(self, kernel):
+        result = await kernel.get_dependency_graph("../secrets")
+        assert "ERROR" in result
+        assert "not a valid module" in result
+
+    @pytest.mark.asyncio
+    async def test_get_dependency_graph_root_path(self, kernel):
+        result = await kernel.get_dependency_graph("/etc/passwd")
+        assert "ERROR" in result
+        assert "not a valid module" in result
+
+    @pytest.mark.asyncio
+    @patch("aegis.kernel.server.os.path.exists", return_value=True)
+    async def test_server_status_returns_summary(self, mock_exists, kernel):
+        kernel.container.policy_parser.parse_rules.return_value = []
+        kernel.container.evaluation_service.evaluate_workspace.return_value = []
+        kernel.container.baseline_manager.is_exempt.return_value = False
+        kernel.container.custom_mcp_tools = []
+        kernel.container.loaded_plugins = []
+
+        result = await kernel.server_status()
+        assert "Aegis Kernel Status" in result
+        assert "/fake/project" in result
+        assert "Rules:" in result
+        assert "Tools:" in result

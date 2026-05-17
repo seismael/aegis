@@ -16,6 +16,17 @@ All architectural laws are discovered and codified via **AI Skills** located in 
 - `aegis-rule-modify` — Rule evolution with auditable rationale logging
 - `aegis-evaluate` — Scorecard rendering with baseline comparison
 
+## L3.5: Agentic Operational Invariants
+See `AGENTS.md` for the agentic operational invariants — workflow conventions that AI agents must follow when working in this project.
+
+## L3.6: MCP Server (AI Agent Integration)
+The `AegisKernel` runs as an MCP server with three capability layers:
+- **6 Tools**: `get_architecture_spec`, `validate_architecture_compliance`, `apply_architectural_remediation`, `get_rule_rationale`, `get_dependency_graph`, `server_status`
+- **4 Resources**: `aegis://rules`, `aegis://baseline`, `aegis://evolution`, `aegis://spec` (read-only governance artifacts)
+- **4 Prompts**: `evaluate-architecture`, `remediate-violations`, `explain-rule`, `inspect-dependency` (workflow templates)
+
+Supports three transports: `stdio` (default), `sse`, `streamable-http`.
+
 ## L4: Active Rules
 See `.aegis/rules.yaml` for the machine-parseable source of truth.
 

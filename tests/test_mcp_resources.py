@@ -1,0 +1,81 @@
+from unittest.mock import MagicMock, patch
+
+import pytest
+
+from aegis.kernel.server import AegisKernel
+
+
+@pytest.fixture
+def kernel():
+    """AegisKernel with a mocked container."""
+    k = AegisKernel()
+    mock_container = MagicMock()
+    mock_container.workspace_root = "/fake/project"
+    mock_container.policy_parser.parse_rules.return_value = []
+    k.container = mock_container
+    return k
+
+
+class TestMCPResources:
+    """Test suite for MCP Resource endpoints."""
+
+    @pytest.mark.asyncio
+    async def test_all_governance_resources_registered(self, kernel):
+        """Verify all four governance artifact resources are registered."""
+        resources = await kernel.mcp.list_resources()
+        uris = [str(r.uri) for r in resources]
+        assert "aegis://rules" in uris
+        assert "aegis://baseline" in uris
+        assert "aegis://evolution" in uris
+        assert "aegis://spec" in uris
+
+    @pytest.mark.asyncio
+    async def test_resources_have_description(self, kernel):
+        """Each resource should carry a human-readable description."""
+        resources = await kernel.mcp.list_resources()
+        for r in resources:
+            if str(r.uri).startswith("aegis://"):
+                assert r.description, f"Resource {r.uri} missing description"
+
+    @pytest.mark.asyncio
+    @patch("aegis.kernel.server.open")
+    @patch("aegis.kernel.server.os.path.exists", return_value=True)
+    async def test_resource_content_returned(self, mock_exists, mock_open, kernel):
+        """Verify read_resource returns content for existing files."""
+        mock_file = MagicMock()
+        mock_file.__enter__.return_value.read.return_value = "rules: []"
+        mock_open.return_value = mock_file
+
+        results = await kernel.mcp.read_resource("aegis://rules")
+        assert len(results) == 1
+        content = results[0].content
+        assert isinstance(content, str)
+        assert "rules:" in content
+
+    @pytest.mark.asyncio
+    @patch("aegis.kernel.server.os.path.exists", return_value=False)
+    async def test_rules_resource_not_found(self, mock_exists, kernel):
+        """Missing rules.yaml returns ERROR."""
+        results = await kernel.mcp.read_resource("aegis://rules")
+        assert "ERROR" in results[0].content
+
+    @pytest.mark.asyncio
+    @patch("aegis.kernel.server.os.path.exists", return_value=False)
+    async def test_baseline_resource_not_found(self, mock_exists, kernel):
+        """Missing baseline.json returns WARN."""
+        results = await kernel.mcp.read_resource("aegis://baseline")
+        assert "WARN" in results[0].content
+
+    @pytest.mark.asyncio
+    @patch("aegis.kernel.server.os.path.exists", return_value=False)
+    async def test_evolution_resource_not_found(self, mock_exists, kernel):
+        """Missing evolution_log.json returns WARN."""
+        results = await kernel.mcp.read_resource("aegis://evolution")
+        assert "WARN" in results[0].content
+
+    @pytest.mark.asyncio
+    @patch("aegis.kernel.server.os.path.exists", return_value=False)
+    async def test_spec_resource_not_found(self, mock_exists, kernel):
+        """Missing SPEC.md returns WARN."""
+        results = await kernel.mcp.read_resource("aegis://spec")
+        assert "WARN" in results[0].content

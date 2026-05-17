@@ -13,7 +13,9 @@
       "Bash(curl *)",
       "PowerShell(Write-Output \"=== SESSION ===\"; Write-Output \"AUTH_TOKEN: '$env:ANTHROPIC_AUTH_TOKEN'\"; Write-Output \"API_KEY: '$env:ANTHROPIC_API_KEY'\"; Write-Output \"BASE_URL: '$env:ANTHROPIC_BASE_URL'\"; Write-Output \"`n=== USER SCOPE ===\"; [Environment]::GetEnvironmentVariable\\('ANTHROPIC_AUTH_TOKEN', 'User'\\); [Environment]::GetEnvironmentVariable\\('ANTHROPIC_API_KEY', 'User'\\); [Environment]::GetEnvironmentVariable\\('ANTHROPIC_BASE_URL', 'User'\\); Write-Output \"`n=== MACHINE SCOPE ===\"; [Environment]::GetEnvironmentVariable\\('ANTHROPIC_AUTH_TOKEN', 'Machine'\\); [Environment]::GetEnvironmentVariable\\('ANTHROPIC_API_KEY', 'Machine'\\); [Environment]::GetEnvironmentVariable\\('ANTHROPIC_BASE_URL', 'Machine'\\))",
       "Bash(reg query *)",
-      "PowerShell(reg query *)"
+      "PowerShell(reg query *)",
+      "mcp__filesystem__directory_tree",
+      "mcp__filesystem__list_directory"
     ]
   }
 }
