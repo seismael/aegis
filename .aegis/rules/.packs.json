@@ -1,0 +1,123 @@
+{
+  "installed_packs": {
+    "python-best-practices": {
+      "name": "python-best-practices",
+      "version": "1.0.0",
+      "install_time": "2026-05-18T12:42:41.844229+00:00",
+      "files": [
+        "python-best-practices/rules.yaml"
+      ],
+      "custom_overrides": []
+    },
+    "architecture": {
+      "name": "architecture",
+      "version": "1.0.0",
+      "install_time": "2026-05-18T12:42:43.980922+00:00",
+      "files": [
+        "architecture/rules.yaml"
+      ],
+      "custom_overrides": []
+    },
+    "structure": {
+      "name": "structure",
+      "version": "1.0.0",
+      "install_time": "2026-05-18T12:42:46.350475+00:00",
+      "files": [
+        "structure/rules.yaml"
+      ],
+      "custom_overrides": []
+    },
+    "security": {
+      "name": "security",
+      "version": "1.0.0",
+      "install_time": "2026-05-18T12:42:50.510935+00:00",
+      "files": [
+        "security/rules.yaml"
+      ],
+      "custom_overrides": []
+    },
+    "testing": {
+      "name": "testing",
+      "version": "1.0.0",
+      "install_time": "2026-05-18T12:42:52.491437+00:00",
+      "files": [
+        "testing/rules.yaml"
+      ],
+      "custom_overrides": []
+    },
+    "style": {
+      "name": "style",
+      "version": "1.0.0",
+      "install_time": "2026-05-18T12:42:54.440609+00:00",
+      "files": [
+        "style/rules.yaml"
+      ],
+      "custom_overrides": []
+    },
+    "documentation": {
+      "name": "documentation",
+      "version": "1.0.0",
+      "install_time": "2026-05-18T12:42:56.549677+00:00",
+      "files": [
+        "documentation/rules.yaml"
+      ],
+      "custom_overrides": []
+    },
+    "general": {
+      "name": "general",
+      "version": "1.0.0",
+      "install_time": "2026-05-18T12:42:58.961462+00:00",
+      "files": [
+        "general/rules.yaml"
+      ],
+      "custom_overrides": []
+    },
+    "performance": {
+      "name": "performance",
+      "version": "1.0.0",
+      "install_time": "2026-05-18T12:43:00.961411+00:00",
+      "files": [
+        "performance/rules.yaml"
+      ],
+      "custom_overrides": []
+    },
+    "tools": {
+      "name": "tools",
+      "version": "1.0.0",
+      "install_time": "2026-05-18T12:43:02.945542+00:00",
+      "files": [
+        "tools/rules.yaml"
+      ],
+      "custom_overrides": []
+    },
+    "dependencies": {
+      "name": "dependencies",
+      "version": "1.0.0",
+      "install_time": "2026-05-18T12:43:04.912447+00:00",
+      "files": [
+        "dependencies/rules.yaml"
+      ],
+      "custom_overrides": []
+    },
+    "design": {
+      "name": "design",
+      "version": "1.0.0",
+      "install_time": "2026-05-18T12:44:34.312367+00:00",
+      "files": [
+        "design/rules.yaml"
+      ],
+      "custom_overrides": []
+    },
+    "best-practices": {
+      "name": "best-practices",
+      "version": "1.0.0",
+      "install_time": "2026-05-18T12:49:45.679399+00:00",
+      "files": [
+        "best-practices/rules.yaml"
+      ],
+      "custom_overrides": []
+    }
+  },
+  "custom_files": [],
+  "version": 1
+}

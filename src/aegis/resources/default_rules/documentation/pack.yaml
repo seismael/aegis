@@ -1,0 +1,4 @@
+name: documentation
+version: 1.0.0
+description: Documentation standards — docstrings, README, changelog, and deprecation notices
+author: Aegis

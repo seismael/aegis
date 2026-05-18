@@ -11,7 +11,13 @@ from aegis.domain.evaluation.ports import (
     RuleAnalyzerInterface,
 )
 from aegis.domain.evaluation.scoping import ScopeFilter
-from aegis.domain.policy.models import EngineType, Rule
+from aegis.domain.policy.models import (
+    CategoryPhaseMapping,
+    EngineType,
+    EvaluationPhase,
+    Rule,
+    RuleCategory,
+)
 
 logger = structlog.get_logger()
 
@@ -38,13 +44,19 @@ class EvaluationService:
         self.extra_analyzers = extra_analyzers or []
 
     def evaluate_workspace(
-        self, root_dir: str, rules: list[Rule]
+        self,
+        root_dir: str,
+        rules: list[Rule],
+        phase: EvaluationPhase | None = None,
+        category: RuleCategory | None = None,
+        phase_mapping: CategoryPhaseMapping | None = None,
     ) -> list[ArchitecturalViolation]:
         """
         Performs a full architectural sweep of the workspace.
         Routes file-level rules (tree-sitter, regex) per-file
         and graph-level rules once across the workspace.
         """
+        rules = self.filter_rules_by_phase(rules, phase, category, phase_mapping)
         all_violations: list[ArchitecturalViolation] = []
 
         # Lifecycle hook: Start
@@ -121,13 +133,50 @@ class EvaluationService:
                 except ValueError:
                     pass  # different drive, keep as-is
 
+    @staticmethod
+    def filter_rules_by_phase(
+        rules: list[Rule],
+        phase: EvaluationPhase | None = None,
+        category: RuleCategory | None = None,
+        phase_mapping: CategoryPhaseMapping | None = None,
+    ) -> list[Rule]:
+        """Filter rules by evaluation phase and/or category.
+
+        - When *phase* is None, all rules pass (backward compatible).
+        - When *phase* is set, rules pass if their explicit ``phases``
+          contain the phase, or their category's default mapping includes it.
+        - When *category* is set, only rules of that category pass.
+        - Both filters can be combined (AND logic).
+        """
+        mapping = phase_mapping or CategoryPhaseMapping()
+
+        def _matches(r: Rule) -> bool:
+            if category is not None and r.category != category:
+                return False
+            if phase is None:
+                return True
+            # Explicit phases on the rule take priority
+            if r.phases is not None:
+                return phase in r.phases
+            # Fall back to category default mapping
+            return phase in mapping.category_defaults.get(r.category, [EvaluationPhase.ON_DEMAND])
+
+        return [r for r in rules if _matches(r)]
+
     def evaluate_changes(
-        self, rules: list[Rule], root_dir: str | None = None
+        self,
+        rules: list[Rule],
+        root_dir: str | None = None,
+        phase: EvaluationPhase | None = None,
+        category: RuleCategory | None = None,
+        phase_mapping: CategoryPhaseMapping | None = None,
     ) -> list[ArchitecturalViolation]:
         """
         Performs a token-efficient analysis of only the changed lines in changed files.
         Graph rules are skipped (cross-file analysis requires a full workspace sweep).
         """
+        rules = self.filter_rules_by_phase(rules, phase, category, phase_mapping)
+
         if not self.diff_provider:
             logger.warning(
                 "evaluate_changes: diff_provider unavailable (not a git repo?)"

@@ -1,0 +1,74 @@
+# Default Aegis Testing Rule Pack
+# Testing conventions — naming, focus isolation, assertion style.
+
+rules:
+  - id: test-naming-convention
+    description: Test files should follow test_<name>.py or <name>_test.py convention.
+    engine_type: regex
+    severity: LOW
+    mode: report
+    applies_to:
+      - "**/test*/**"
+      - "**/*test*/**"
+    query: ^$
+    rationale: Consistent test file naming enables automated test discovery across all tools.
+
+  - id: test-no-focused
+    description: Focused tests (pytest.mark.focus, fit, fdescribe) should not be committed.
+    engine_type: regex
+    severity: HIGH
+    mode: block
+    query: \b(pytest\.mark\.focus|fit\s*\(|fdescribe\s*\(|\.only\s*\))
+    rationale: Focused tests mask failures in the rest of the suite. Remove before committing.
+
+  - id: test-assert-style
+    description: Prefer plain assert over self.assert* methods in test files.
+    engine_type: regex
+    severity: LOW
+    mode: report
+    applies_to:
+      - "**/test*/**"
+    query: \bself\.assert
+    rationale: Plain assert statements are more readable and produce better failure messages.
+
+  - id: test-no-print
+    description: Print statements in test files indicate leftover debug output.
+    engine_type: regex
+    severity: LOW
+    mode: report
+    applies_to:
+      - "**/test*/**"
+    query: \bprint\s*\(
+    rationale: Debug print statements in tests create noise. Use pytest's -s flag or logging instead.
+
+  - id: test-coverage-thresholds
+    description: Test configuration should include minimum coverage thresholds.
+    engine_type: regex
+    severity: LOW
+    mode: report
+    applies_to:
+      - ".coveragerc"
+      - "pyproject.toml"
+      - "setup.cfg"
+    query: \[tool\.coverage|[coverage:run]
+    rationale: Explicit coverage thresholds prevent untested code from merging without visibility.
+
+  - id: test-isolation
+    description: Tests should not depend on shared state or execution ordering via module/session fixtures.
+    engine_type: regex
+    severity: MEDIUM
+    mode: warn
+    applies_to:
+      - "**/test*/**"
+    query: '@pytest\.fixture\(.*scope\s*=\s*["''](session|module)["'']'
+    rationale: Broad-scoped fixtures create hidden test dependencies and non-deterministic failures.
+
+  - id: test-mocking-standards
+    description: Mock external service boundaries, not internal domain logic.
+    engine_type: regex
+    severity: MEDIUM
+    mode: warn
+    applies_to:
+      - "**/test*/**"
+    query: \bmonkeypatch\.setattr|mocker\.patch\s*\(
+    rationale: Over-mocking internal logic makes tests brittle and tied to implementation details.

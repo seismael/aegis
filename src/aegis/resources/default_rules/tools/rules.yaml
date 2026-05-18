@@ -1,0 +1,51 @@
+# Default Aegis Tools Rule Pack
+# Toolchain conventions — formatters, linters, CI, and version pinning.
+
+rules:
+  - id: tools-formatter-declared
+    description: Project should declare a code formatter (Black, ruff, prettier) with configuration.
+    engine_type: regex
+    severity: LOW
+    mode: report
+    applies_to:
+      - "pyproject.toml"
+      - "package.json"
+      - ".pre-commit-config.yaml"
+    query: (black|ruff|prettier|gofmt|rustfmt)
+    rationale: Undeclared formatting tools lead to inconsistent code style across contributions.
+
+  - id: tools-linter-configured
+    description: Project should include linter configuration (ruff, flake8, eslint, golangci-lint).
+    engine_type: regex
+    severity: LOW
+    mode: report
+    applies_to:
+      - "pyproject.toml"
+      - ".ruff.toml"
+      - ".eslintrc*"
+      - ".golangci.yml"
+      - ".pre-commit-config.yaml"
+    query: (\[tool\.ruff|\[tool\.flake8|rules:|linters:)
+    rationale: Missing linter configuration allows inconsistent code quality standards.
+
+  - id: tools-ci-pipeline
+    description: Project should have CI pipeline configuration for automated verification.
+    engine_type: regex
+    severity: MEDIUM
+    mode: warn
+    applies_to:
+      - ".github/workflows/*.yml"
+      - ".gitlab-ci.yml"
+    query: (test|lint|check|build)
+    rationale: Without CI, code quality checks are manual and easily skipped.
+
+  - id: tools-pinned-versions
+    description: Tool and dependency versions should be pinned for reproducible builds.
+    engine_type: regex
+    severity: LOW
+    mode: report
+    applies_to:
+      - ".pre-commit-config.yaml"
+      - "requirements*.txt"
+    query: (rev:\s+[0-9]|==\s*[0-9])
+    rationale: Unpinned versions cause non-deterministic builds when upstream releases change.

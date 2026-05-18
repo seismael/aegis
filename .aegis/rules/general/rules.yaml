@@ -1,0 +1,43 @@
+# Default Aegis General Rule Pack
+# Catch-all meta-rules — binary artifacts, sensitive patterns, and repository conventions.
+
+rules:
+  - id: general-binary-artifacts
+    description: Binary artifacts and generated files should not be committed to version control.
+    engine_type: regex
+    severity: MEDIUM
+    mode: warn
+    query: __pycache__|\.egg-info|\.DS_Store|node_modules|\.idea
+    rationale: Committed build artifacts bloat repository size and cause unnecessary merge conflicts.
+
+  - id: general-private-keys
+    description: Private keys in source code are a critical security risk.
+    engine_type: regex
+    severity: CRITICAL
+    mode: block
+    query: (?i)(BEGIN\s+(RSA|DSA|EC|PGP|OPENSSH)\s+PRIVATE|PRIVATE\s+KEY)
+    rationale: Private keys committed to source are compromised regardless of repo visibility.
+
+  - id: general-large-files
+    description: Very large files should not be committed without clear justification.
+    engine_type: regex
+    severity: MEDIUM
+    mode: warn
+    applies_to:
+      - "*.csv"
+      - "*.json"
+      - "*.sql"
+    query: ^$
+    rationale: Large data files in repos slow down clone, fetch, and history operations.
+
+  - id: general-config-standards
+    description: Project should define editor and git configuration conventions.
+    engine_type: regex
+    severity: LOW
+    mode: report
+    applies_to:
+      - ".editorconfig"
+      - ".gitattributes"
+      - ".gitignore"
+    query: .+
+    rationale: Missing configuration files lead to inconsistent editor behavior and OS-specific artifacts.

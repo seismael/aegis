@@ -1,0 +1,4 @@
+name: tools
+version: 1.0.0
+description: Toolchain conventions — formatters, linters, CI configuration, and version pinning
+author: Aegis

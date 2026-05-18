@@ -6,7 +6,7 @@ from aegis.infrastructure.adapters.base import ToolAdapter, logger
 class GenericMCPAdapter(ToolAdapter):
     """
     Fallback adapter for any tool following the standard MCP manifest pattern.
-    Ensures Aegis is discoverable by generic agentic ecosystems.
+    Ensures Aegis is discoverable by standard tool ecosystems.
     """
 
     @property

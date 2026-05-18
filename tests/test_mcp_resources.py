@@ -82,10 +82,11 @@ class TestMCPResources:
     @pytest.mark.asyncio
     async def test_rules_resource_directory_mode(self, kernel):
         """rules/ directory with yaml files returns combined content."""
+        root = "/fake/project/.aegis/rules"
         with patch("aegis.kernel.server.os.path.isdir", return_value=True):
             with patch(
-                "aegis.kernel.server.os.listdir",
-                return_value=["arch.yaml", "sec.yaml"],
+                "aegis.kernel.server.os.walk",
+                return_value=[(root, [], ["arch.yaml", "sec.yaml"])],
             ):
                 with patch("aegis.kernel.server.open") as mock_open:
                     mock_file = MagicMock()
@@ -101,8 +102,9 @@ class TestMCPResources:
     @pytest.mark.asyncio
     async def test_rules_resource_directory_empty(self, kernel):
         """Empty rules/ directory returns WARN."""
+        root = "/fake/project/.aegis/rules"
         with patch("aegis.kernel.server.os.path.isdir", return_value=True):
-            with patch("aegis.kernel.server.os.listdir", return_value=[]):
+            with patch("aegis.kernel.server.os.walk", return_value=[(root, [], [])]):
                 results = await kernel.mcp.read_resource("aegis://rules")
         assert "WARN" in results[0].content
         assert "empty" in results[0].content
@@ -110,8 +112,12 @@ class TestMCPResources:
     @pytest.mark.asyncio
     async def test_rules_resource_directory_read_error(self, kernel):
         """Read error in rules/ directory is non-fatal per-file."""
+        root = "/fake/project/.aegis/rules"
         with patch("aegis.kernel.server.os.path.isdir", return_value=True):
-            with patch("aegis.kernel.server.os.listdir", return_value=["bad.yaml"]):
+            with patch(
+                "aegis.kernel.server.os.walk",
+                return_value=[(root, [], ["bad.yaml"])],
+            ):
                 with patch("aegis.kernel.server.open", side_effect=OSError("denied")):
                     results = await kernel.mcp.read_resource("aegis://rules")
         assert "ERROR" in results[0].content or "bad.yaml" in results[0].content

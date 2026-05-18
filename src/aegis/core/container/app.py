@@ -1,14 +1,25 @@
 import os
 from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 import structlog
 
+if TYPE_CHECKING:
+    from aegis.domain.policy.pack_manager import RulePackManager
+
+from aegis.core.container.config_loader import load_aegis_config
+from aegis.core.models.config import AegisConfig
 from aegis.core.plugins.registry import PluginRegistry
 from aegis.domain.enforcement.remediation import RemediationPromptSynthesizer
 from aegis.domain.evaluation.baseline import BaselineManager
 from aegis.domain.evaluation.service import EvaluationService
 from aegis.domain.evolution.service import EvolutionService
 from aegis.domain.governance.service import GovernanceService
+from aegis.domain.policy.models import (
+    CategoryPhaseMapping,
+    EvaluationPhase,
+    RuleCategory,
+)
 from aegis.domain.policy.parser import PolicyParser
 from aegis.infrastructure.ast_analyzer import TreeSitterAnalyzer
 from aegis.infrastructure.git_provider import GitDiffProvider
@@ -30,6 +41,9 @@ class Container:
     def __init__(self, workspace_root: str | None = None):
         self._init_errors: list[str] = []
         self.workspace_root = workspace_root or self._discover_project_root()
+
+        # Configuration
+        self._aegis_config: AegisConfig = load_aegis_config(self.workspace_root)
 
         # Infrastructure — Analyzers (always safe to construct)
         self.tree_sitter_analyzer = TreeSitterAnalyzer()
@@ -59,6 +73,7 @@ class Container:
         self.evaluation_service = self._build_evaluation_service()
 
         self.policy_parser = PolicyParser()
+        self._rule_pack_manager: RulePackManager | None = None
 
         # Evolution (may fail on permissions)
         self.evolution_service = self._try_init(
@@ -78,6 +93,16 @@ class Container:
     # ------------------------------------------------------------------
     # Public helpers
     # ------------------------------------------------------------------
+
+    @property
+    def rule_pack_manager(self) -> "RulePackManager":
+        """Lazily-initialized pack manager for rule lifecycle operations."""
+        if self._rule_pack_manager is None:
+            from aegis.domain.policy.pack_manager import RulePackManager
+
+            rules_dir = os.path.join(self.workspace_root, ".aegis", "rules")
+            self._rule_pack_manager = RulePackManager(rules_dir)
+        return self._rule_pack_manager
 
     @property
     def custom_mcp_tools(self) -> list[Callable]:
@@ -156,6 +181,39 @@ class Container:
             rules.extend(self.plugin_registry.auto_rules)
 
         return rules
+
+    @property
+    def category_phase_mapping(self) -> CategoryPhaseMapping:
+        """Default phase mapping merged with config overrides."""
+        base = CategoryPhaseMapping()
+        if self._aegis_config and self._aegis_config.phase_defaults:
+            for cat_name, phases in self._aegis_config.phase_defaults.items():
+                try:
+                    cat = RuleCategory(cat_name)
+                    base.category_defaults[cat] = [
+                        EvaluationPhase(p) for p in phases
+                    ]
+                except (ValueError, TypeError):
+                    continue
+        return base
+
+    def load_rules_for_phase(
+        self,
+        phase: str | None = None,
+        category: str | None = None,
+    ) -> list:
+        """Load rules and optionally filter by phase and/or category.
+
+        Returns all rules when no filters are provided (backward compatible).
+        """
+        all_rules = self.load_rules()
+        mapping = self.category_phase_mapping
+        phase_enum = EvaluationPhase(phase) if phase else None
+        cat_enum = RuleCategory(category) if category else None
+
+        return EvaluationService.filter_rules_by_phase(
+            all_rules, phase=phase_enum, category=cat_enum, phase_mapping=mapping
+        )
 
     def _discover_project_root(self) -> str:
         """

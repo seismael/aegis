@@ -1,6 +1,4 @@
-import importlib.resources
 import os
-import shutil
 
 from aegis.domain.evaluation.baseline import BaselineManager
 from aegis.domain.evaluation.ports import ArchitecturalViolation
@@ -54,17 +52,19 @@ class GovernanceService:
         config_path = os.path.join(aegis_dir, "config.yaml")
         if not os.path.exists(config_path):
             with open(config_path, "w", encoding="utf-8") as f:
-                f.write("enforcement: warn\n")
+                f.write(
+                    "enforcement: warn\n"
+                    "# Optional: override default evaluation phases per category\n"
+                    "# phase_defaults:\n"
+                    "#   style: [pre-commit]\n"
+                    "#   security: [ci, nightly, on-demand]\n"
+                )
 
         rules_dir = os.path.join(aegis_dir, "rules")
         if not os.path.exists(rules_dir):
             os.makedirs(rules_dir)
-            for pack in ("architecture.yaml", "security.yaml", "cloud_isolation.yaml"):
-                src = importlib.resources.files(
-                    "aegis.resources.default_rules"
-                ).joinpath(pack)
-                if src.is_file():
-                    with importlib.resources.as_file(src) as sf:
-                        shutil.copy2(str(sf), str(rules_dir))
+            from aegis.domain.policy.pack_manager import RulePackManager
+
+            RulePackManager(rules_dir).install_defaults()
 
         return aegis_dir

@@ -369,3 +369,101 @@ class TestPolicyParserDirectory:
         rules = parser.parse_directory(str(rules_dir))
         assert len(rules) == 1
         assert rules[0].id == "valid"
+
+    # --- Recursive scanning (rglob) tests ---
+
+    def test_subdirectory_packs_loaded(self, tmp_path):
+        """Rules in subdirectories are found via rglob."""
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        arch_dir = rules_dir / "architecture"
+        arch_dir.mkdir()
+        (arch_dir / "rules.yaml").write_text(
+            yaml.dump({"rules": [{"id": "arch-1", "description": "Arch rule"}]}),
+            encoding="utf-8",
+        )
+        parser = PolicyParser()
+        rules = parser.parse_directory(str(rules_dir))
+        assert len(rules) == 1
+        assert any(r.id == "arch-1" for r in rules)
+
+    def test_subdirectory_category_inference(self, tmp_path):
+        """Rules in subdirectory get category from parent dir name, not stem."""
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        arch_dir = rules_dir / "architecture"
+        arch_dir.mkdir()
+        (arch_dir / "rules.yaml").write_text(
+            yaml.dump({"rules": [{"id": "arch-1", "description": "Arch rule"}]}),
+            encoding="utf-8",
+        )
+        parser = PolicyParser()
+        rules = parser.parse_directory(str(rules_dir))
+        assert len(rules) == 1
+        assert rules[0].category == RuleCategory.ARCHITECTURE
+
+    def test_mixed_root_and_subdirectory(self, tmp_path):
+        """Root-level files and subdirectory packs coexist."""
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        # Root-level file
+        (rules_dir / "security.yaml").write_text(
+            yaml.dump({"rules": [{"id": "sec-1", "description": "Sec"}]}),
+            encoding="utf-8",
+        )
+        # Subdirectory pack
+        style_dir = rules_dir / "style"
+        style_dir.mkdir()
+        (style_dir / "rules.yaml").write_text(
+            yaml.dump({"rules": [{"id": "style-1", "description": "Style"}]}),
+            encoding="utf-8",
+        )
+        parser = PolicyParser()
+        rules = parser.parse_directory(str(rules_dir))
+        assert len(rules) == 2
+        ids = {r.id for r in rules}
+        assert ids == {"sec-1", "style-1"}
+
+    def test_pack_yaml_skipped(self, tmp_path):
+        """pack.yaml metadata files are skipped."""
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        arch_dir = rules_dir / "architecture"
+        arch_dir.mkdir()
+        (arch_dir / "pack.yaml").write_text(
+            yaml.dump({"name": "architecture", "version": "1.0.0"}),
+            encoding="utf-8",
+        )
+        (arch_dir / "rules.yaml").write_text(
+            yaml.dump({"rules": [{"id": "arch-1", "description": "Arch"}]}),
+            encoding="utf-8",
+        )
+        parser = PolicyParser()
+        rules = parser.parse_directory(str(rules_dir))
+        assert len(rules) == 1
+        assert rules[0].id == "arch-1"
+
+    def test_explicit_category_in_subdirectory(self, tmp_path):
+        """Explicit category overrides subdirectory name."""
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        sec_dir = rules_dir / "style"
+        sec_dir.mkdir()
+        (sec_dir / "rules.yaml").write_text(
+            yaml.dump(
+                {
+                    "rules": [
+                        {
+                            "id": "sec-rule",
+                            "description": "Security rule in style dir",
+                            "category": "security",
+                        }
+                    ]
+                }
+            ),
+            encoding="utf-8",
+        )
+        parser = PolicyParser()
+        rules = parser.parse_directory(str(rules_dir))
+        assert len(rules) == 1
+        assert rules[0].category == RuleCategory.SECURITY

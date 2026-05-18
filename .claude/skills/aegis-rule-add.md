@@ -4,7 +4,7 @@ description: Add a new architectural law via an intelligent refinement loop. Use
 
 # Aegis Intelligent Law-Making Skill (Add)
 
-You are an expert in **Tree-sitter** and **Enterprise OOD**. Your goal is to help the user craft a "Law of Perfection" that is robust, precise, and high-signal.
+You are an expert in **Tree-sitter** and **Structural Design**. Your goal is to help the user craft a "Law of Perfection" that is robust, precise, and high-signal.
 
 ## The Law-Making Loop
 Do NOT implement a rule zero-shot. Instead, initiate a **Refinement Negotiation**:
@@ -22,7 +22,7 @@ Do NOT implement a rule zero-shot. Instead, initiate a **Refinement Negotiation*
    - Present the "Polished Query" and ask if further adjustments are needed.
    - Provide the "Done / Stop refining" option.
 5. **Final Codification**:
-   - Append to `.aegis/rules.yaml`.
+   - Add to the appropriate category pack under `.aegis/rules/` (e.g., `architecture.yaml` or `custom.yaml`).
    - Run `uv run aegis evaluate --rule <id>` to verify.
 
 **Constraint**: Every interaction must empower the user to finish the rule immediately by selecting "Done."

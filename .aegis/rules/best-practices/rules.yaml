@@ -1,0 +1,101 @@
+# Default Aegis Python Best Practices Rule Pack
+# Idiomatic Python — pathlib, mutable defaults, exception handling, type hints.
+
+rules:
+  - id: bp-use-pathlib
+    description: Prefer pathlib over os.path for path manipulation.
+    engine_type: regex
+    severity: LOW
+    mode: report
+    query: \bos\.path\.(join|exists|isfile|isdir|abspath|dirname|basename|splitext)\b
+    rationale: pathlib provides an object-oriented, cross-platform API that is more readable and testable.
+
+  - id: bp-no-mutable-defaults
+    description: Mutable default arguments cause surprising shared-state bugs.
+    engine_type: regex
+    severity: MEDIUM
+    mode: warn
+    query: 'def \w+\(.*=\s*(\[\s*\]|\{\s*\}|set\s*\(\s*\))'
+    rationale: Mutable defaults are evaluated once at definition time, not at call time, leading to subtle bugs.
+
+  - id: bp-explicit-exceptions
+    description: 'Bare except: clauses catch unexpected errors and should specify exception types.'
+    engine_type: regex
+    severity: HIGH
+    mode: warn
+    query: '^\s*except\s*:'
+    rationale: Bare except catches KeyboardInterrupt and SystemExit, making crashes silent and debugging impossible.
+
+  - id: bp-context-managers
+    description: Use context managers (with statement) for resource handling.
+    engine_type: regex
+    severity: LOW
+    mode: report
+    query: \bopen\s*\([^)]+\)\s*(?!\.)
+    rationale: open() without 'with' can leak file descriptors on exception.
+    excludes:
+      - "**/*.md"
+
+  - id: bp-type-hints
+    description: Functions with complex parameters should include type annotations.
+    engine_type: regex
+    severity: LOW
+    mode: report
+    query: '^def \w+\([^):]{20,}\):'
+    rationale: Type hints enable static analysis, better IDE support, and self-documenting code.
+
+  - id: bp-fstring-usage
+    description: Prefer f-strings over str.format() or % formatting for string interpolation.
+    engine_type: regex
+    severity: LOW
+    mode: report
+    query: \.\s*format\s*\(|%\s*\(|%\s+\w
+    rationale: f-strings are more readable, faster, and less error-prone than older formatting styles.
+
+  - id: bp-list-comprehension
+    description: Use list comprehensions over map/filter with lambda for clarity.
+    engine_type: regex
+    severity: LOW
+    mode: report
+    query: \b(map|filter)\s*\(\s*lambda
+    rationale: List comprehensions are more Pythonic and readable than lambda-based functional transforms.
+
+  - id: bp-walrus-appropriate
+    description: Walrus operator (:=) should be used primarily in conditional expressions, not standalone.
+    engine_type: regex
+    severity: LOW
+    mode: report
+    query: \w+\s*:=\s*\w+\s*(?![=!<>])
+    rationale: Walrus outside conditionals can reduce readability and is often better written as separate lines.
+
+  - id: bp-dataclass-usage
+    description: Prefer dataclasses or Pydantic models over plain dicts for structured data.
+    engine_type: regex
+    severity: LOW
+    mode: report
+    query: ^class\s+\w+\(\):[\s\S]{0,200}def __init__
+    rationale: dataclasses provide validation, immutability options, and better IDE support than manual init.
+
+  - id: bp-dunder-methods
+    description: Classes should implement __str__ or __repr__ for debuggability.
+    engine_type: regex
+    severity: LOW
+    mode: report
+    query: ^class\s+\w+[\s\S]{0,300}(?!(__str__|__repr__))
+    rationale: Without string representations, instances are indistinguishable in logs and debug output.
+
+  - id: bp-iterator-protocol
+    description: Custom iterables should implement __iter__ or __next__, not rely solely on __getitem__.
+    engine_type: regex
+    severity: MEDIUM
+    mode: warn
+    query: __getitem__[\s\S]{0,50}(?!(__iter__|__next__))
+    rationale: Legacy __getitem__-based iteration is fragile and produces confusing error messages.
+
+  - id: bp-error-handling-depth
+    description: Deeply nested try/except blocks indicate poor error handling design.
+    engine_type: regex
+    severity: MEDIUM
+    mode: warn
+    query: try[\s\S]{0,500}try[\s\S]{0,500}try
+    rationale: More than two levels of try nesting signals that exception flow is too complex to reason about.

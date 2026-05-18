@@ -19,7 +19,7 @@ Initiate an **Impact-Aware Consensus Cycle**:
    - Refine the rule logic based on the user's feedback.
    - Loop on these refinements until the user is satisfied.
 4. **Final Consensus Recording**:
-   - Once the user selects **'Done'**, apply the changes to `.aegis/rules.yaml`.
+   - Once the user selects **'Done'**, apply the changes to the relevant rule file under `.aegis/rules/` (e.g. `architecture/rules.yaml`).
    - Record the decision and rationale in the `evolution_log.json` via the `aegis evolve` command.
    - Present the new **Governance Scorecard**.
 

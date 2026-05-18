@@ -1,0 +1,60 @@
+# Default Aegis Documentation Rule Pack
+# Documentation standards — docstrings, README, changelog, and deprecation notices.
+
+rules:
+  - id: docs-module-docstring
+    description: Every Python module should have a module-level docstring.
+    engine_type: regex
+    severity: LOW
+    mode: report
+    applies_to:
+      - "**/src/**/*.py"
+      - "**/*.py"
+    query: ^(?!""")
+    rationale: Module docstrings explain the purpose and responsibility of each module.
+
+  - id: docs-public-api
+    description: Public functions and classes should have docstrings.
+    engine_type: regex
+    severity: LOW
+    mode: report
+    applies_to:
+      - "**/src/**/*.py"
+    query: ^(def|class)\s+(?!_)[\s\S]{0,3}:\n(?!\s*""")
+    rationale: Public APIs without documentation force consumers to read implementation details.
+
+  - id: docs-stale-markers
+    description: FIXME, HACK, and XXX comments indicate untracked technical debt.
+    engine_type: regex
+    severity: LOW
+    mode: report
+    query: \b(FIXME|HACK|XXX|WORKAROUND)\b
+    rationale: Technical debt markers in code are invisible to project tracking and accumulate silently.
+
+  - id: docs-readme-present
+    description: Project root should contain a README.md with setup instructions.
+    engine_type: regex
+    severity: MEDIUM
+    mode: warn
+    applies_to:
+      - "README.md"
+    query: .+
+    rationale: A missing README creates onboarding friction and signals unmaintained documentation.
+
+  - id: docs-changelog-format
+    description: Changelog should follow keepachangelog conventions (Added, Changed, Fixed, etc).
+    engine_type: regex
+    severity: LOW
+    mode: report
+    applies_to:
+      - "CHANGELOG.md"
+    query: (## \[|Added|Changed|Deprecated|Fixed|Security)
+    rationale: Standard changelog format enables automated release notes and version comparison.
+
+  - id: docs-deprecation-notice
+    description: Deprecated functions should use a deprecation warning or decorator.
+    engine_type: regex
+    severity: MEDIUM
+    mode: warn
+    query: (warnings\.warn|DeprecationWarning|@deprecated)
+    rationale: Undocumented deprecations break consumers silently; explicit notices ease migration.

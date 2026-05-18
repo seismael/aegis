@@ -6,6 +6,20 @@
       "rationale": "",
       "timestamp": "2026-05-17T21:47:11.510305",
       "metadata": {}
+    },
+    {
+      "rule_id": "sec-no-eval",
+      "action": "suppress",
+      "rationale": "This is a false positive - the eval is in test data matching regex patterns",
+      "timestamp": "2026-05-18T16:00:49.306571",
+      "metadata": {}
+    },
+    {
+      "rule_id": "sec-no-hardcoded-passwords",
+      "action": "suppress",
+      "rationale": "False positive in test data - testing regex patterns against password strings",
+      "timestamp": "2026-05-18T16:00:54.456303",
+      "metadata": {}
     }
   ]
 }

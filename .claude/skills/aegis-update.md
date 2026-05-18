@@ -20,7 +20,7 @@ Do NOT perform a one-off update. Instead, initiate an **Iterative Alignment Cycl
    - Continue looping until the user is satisfied with the specific area.
 4. **Interactive Conclusion**:
    - Once all areas are addressed or the user selects **'Done'**, summarize the changes.
-   - Update `.aegis/rules.yaml` and synchronization artifacts.
+   - Update `.aegis/rules/` rule files and synchronization artifacts.
    - Run `uv run aegis status` to verify the new state.
 
 **Constraint**: Always provide an explicit "Done / Stop refining" option in every interaction to maintain user control.

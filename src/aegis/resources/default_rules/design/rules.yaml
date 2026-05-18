@@ -1,0 +1,76 @@
+# Default Aegis Design Patterns Rule Pack
+# SOLID, DDD tactical patterns, and GoF design pattern enforcement.
+
+rules:
+  - id: design-srp-class-size
+    description: Classes over 300 lines or with many public methods likely violate Single Responsibility.
+    engine_type: regex
+    severity: MEDIUM
+    mode: warn
+    applies_to:
+      - "**/*.py"
+    query: ^class\s+\w+[\s\S]{0,300}(def \w+[\s\S]{0,300}){10,}
+    rationale: Large classes with many public methods suggest multiple responsibilities needing extraction.
+
+  - id: design-ocp-type-dispatch
+    description: Repeated isinstance checks indicate missing polymorphism (violates Open-Closed).
+    engine_type: regex
+    severity: MEDIUM
+    mode: warn
+    query: isinstance[\s\S]{0,500}isinstance[\s\S]{0,500}isinstance
+    rationale: Type dispatch chains require modification to extend; polymorphism allows extension without change.
+
+  - id: design-isp-interface-size
+    description: Interfaces with many methods force implementors to depend on methods they do not use.
+    engine_type: regex
+    severity: LOW
+    mode: report
+    query: ^class\s+\w+[\s\S]{0,200}(def \w+[\s\S]{0,200}){6,}
+    rationale: Large interfaces violate Interface Segregation; split into smaller role-specific interfaces.
+
+  - id: design-dip-abstractions
+    description: High-level modules should depend on abstractions, not concretions.
+    engine_type: graph
+    severity: HIGH
+    mode: block
+    metadata:
+      rule: dip
+    rationale: Direct instantiation of concretions in high-level modules creates rigid dependency graphs.
+
+  - id: design-entity-identity
+    description: Domain entities should have explicit identity fields (id, uuid, or __eq__).
+    engine_type: regex
+    severity: LOW
+    mode: report
+    applies_to:
+      - "**/domain/**"
+    query: ^class\s+\w+[\s\S]{0,100}(?!(def\s+__eq__|def\s+__hash__|\bid\b|\buuid\b|\bguid\b))
+    rationale: Entities without identity may be better modeled as value objects in DDD.
+
+  - id: design-aggregate-boundary
+    description: Aggregates should reference other aggregates by ID, not by direct object reference.
+    engine_type: regex
+    severity: HIGH
+    mode: warn
+    applies_to:
+      - "**/domain/**"
+    query: from\s+\S+\.(aggregate|entity)\s+import[\s\S]{0,200}def __init__[\s\S]{0,200}(?<!id)
+    rationale: Direct aggregate references cross consistency boundaries and complicate transaction management.
+
+  - id: design-repository-pattern
+    description: Data access should be abstracted behind repository interfaces in the domain layer.
+    engine_type: regex
+    severity: MEDIUM
+    mode: warn
+    applies_to:
+      - "**/domain/**"
+    query: (import|from)\s+\S+\.(db|database|models)\s+
+    rationale: Direct database access in domain layer couples business logic to persistence infrastructure.
+
+  - id: design-factory-method
+    description: Complex constructors with conditional logic should use factory methods.
+    engine_type: regex
+    severity: LOW
+    mode: report
+    query: def __init__[\s\S]{0,500}(if|else|try|for|while)
+    rationale: Constructors with branching logic suggest the need for factory methods or builder pattern.

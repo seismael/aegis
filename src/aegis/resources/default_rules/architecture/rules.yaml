@@ -1,0 +1,73 @@
+# Default Aegis Architecture Rule Pack
+# These rules enforce structural and layered architecture invariants.
+
+rules:
+  - id: arch-no-print
+    description: Print statements should not be used in production code.
+    engine_type: regex
+    severity: MEDIUM
+    mode: warn
+    query: (?<!#.*)\bprint\s*\(
+    rationale: Use proper logging instead of print statements for production observability.
+
+  - id: arch-no-todo
+    description: TODO comments indicate incomplete work.
+    engine_type: regex
+    severity: LOW
+    mode: report
+    query: \bTODO\b
+    rationale: Incomplete work should be tracked in your issue tracker, not in code comments.
+
+  - id: arch-no-star-import
+    description: Wildcard imports pollute the namespace and hide dependencies.
+    engine_type: regex
+    severity: MEDIUM
+    mode: warn
+    query: ^from\s+\S+\s+import\s+\*
+    rationale: Explicit imports improve readability and make dependency analysis possible.
+
+  - id: arch-layer-violation
+    description: Domain layer must not import infrastructure or framework modules directly.
+    engine_type: graph
+    severity: HIGH
+    mode: block
+    applies_to:
+      - "**/domain/**"
+    metadata:
+      source: domain
+      target: infrastructure
+    rationale: Layered architecture requires domain purity. Infrastructure concerns leak business logic coupling.
+
+  - id: arch-circular-import
+    description: Modules must not form circular dependency cycles.
+    engine_type: graph
+    severity: HIGH
+    mode: block
+    query: circular_dependency
+    rationale: Circular dependencies create tight coupling and prevent independent testing.
+
+  - id: arch-layer-naming
+    description: Domain layer classes should reflect domain concepts, not technical implementation patterns.
+    engine_type: regex
+    severity: MEDIUM
+    mode: warn
+    applies_to:
+      - "**/domain/**"
+    query: ^class\s+\w+(Controller|Service|Repository|Manager)
+    rationale: Names like UserService or OrderController in domain layer reveal anemic domain models.
+
+  - id: arch-module-boundary
+    description: Private module members (leading underscore) should not be imported across package boundaries.
+    engine_type: regex
+    severity: MEDIUM
+    mode: warn
+    query: from\s+\w+\._\w+ import
+    rationale: Private members are implementation details and importing them creates hidden coupling.
+
+  - id: arch-import-groups
+    description: Imports should follow a consistent grouping convention (stdlib, third-party, local).
+    engine_type: regex
+    severity: LOW
+    mode: report
+    query: ^(import|from)\s+\S+\n\s*\n(import|from)\s+\S+
+    rationale: Disorganized imports reduce readability and make dependency review harder.

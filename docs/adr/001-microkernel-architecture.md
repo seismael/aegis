@@ -1,10 +1,10 @@
-# ADR 001: Agentic Microkernel Architecture
+# ADR 001: Governance Microkernel Architecture
 
 ## Status
-Proposed
+Accepted
 
 ## Context
-Aegis needs to be a language-agnostic, extensible governance engine that can interface with multiple AI coding agents (Claude, Aider, etc.) via the Model Context Protocol (MCP).
+Aegis needs to be a language-agnostic, extensible governance engine that can interface with multiple development tools and assistants via the Model Context Protocol (MCP) and CLI.
 
 ## Decision
 We will adopt a **Microkernel Architecture** (also known as Plug-in Architecture).

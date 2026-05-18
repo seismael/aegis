@@ -4,7 +4,7 @@ Aegis Plugin: Cloud Isolation Guard
 Enforces strict hexagonal boundaries by ensuring that domain logic
 is decoupled from cloud-provider SDKs (AWS, GCP, Azure).
 
-Use-case: Enterprise-grade isolation of business logic from infrastructure providers.
+Use-case: High-fidelity isolation of business logic from infrastructure providers.
 """
 
 import re

@@ -6,6 +6,7 @@ from collections import Counter
 import typer
 from rich.console import Console
 from rich.prompt import Confirm, Prompt
+from rich.table import Table
 
 from aegis.core.container.app import Container
 from aegis.core.models.evolution import EvolutionDecision
@@ -20,10 +21,16 @@ class AegisCLI:
     """
 
     def __init__(self, container: Container | None = None):
-        self.container = container or Container()
+        self._container = container
         self.console = Console()
         self.app = typer.Typer(help="Aegis: Headless Architectural Governance Engine")
         self._register_commands()
+
+    @property
+    def container(self) -> Container:
+        if self._container is None:
+            self._container = Container()
+        return self._container
 
     def _require_governance(self) -> None:
         """Exit with error if governance service is unavailable."""
@@ -46,6 +53,199 @@ class AegisCLI:
         self.app.command()(self.setup_hooks)
         self.app.command()(self.serve)
         self.app.command()(self.self_check)
+        self.app.add_typer(
+            self._rules_app, name="rules", help="Manage governance rule packs"
+        )
+
+    @property
+    def _rules_app(self) -> typer.Typer:
+        """Sub-command group for rule pack lifecycle management."""
+
+        rules_cmd = typer.Typer(help="Manage architectural rule packs")
+
+        @rules_cmd.command("list")
+        def rules_list(
+            verbose: bool = typer.Option(
+                False, "--verbose", "-v", help="Show per-pack rule counts"
+            ),
+        ):
+            """List installed and available rule packs."""
+            pm = self.container.rule_pack_manager
+            installed = pm.list_installed()
+            available = pm.list_available()
+
+            if available:
+                self.console.print("\n[bold]Available rule packs:[/bold]")
+                table = Table(box=None, padding=(0, 2))
+                table.add_column("Pack", style="cyan", width=22)
+                table.add_column("Description", style="white", ratio=1)
+                table.add_column("Status", width=18)
+                if verbose:
+                    table.add_column("Version", width=12)
+                    table.add_column("Author", style="dim", width=16)
+                for name, meta in available.items():
+                    status = (
+                        "[green]installed[/green]"
+                        if name in installed
+                        else "[dim]not installed[/dim]"
+                    )
+                    if verbose:
+                        table.add_row(
+                            name,
+                            meta.description,
+                            status,
+                            f"v{meta.version}",
+                            meta.author,
+                        )
+                    else:
+                        table.add_row(name, meta.description, status)
+                self.console.print(table)
+
+            custom = pm.list_custom()
+            if custom:
+                self.console.print("\n[bold]Custom (unpackaged) rules:[/bold]")
+                for f in custom:
+                    self.console.print(f"  {f}")
+
+            if not available and not custom:
+                self.console.print("[yellow]No rule packs found.[/yellow]")
+
+        @rules_cmd.command("install")
+        def rules_install(
+            pack_name: str = typer.Argument(..., help="Pack name to install"),
+        ):
+            """Install a rule pack from Aegis defaults."""
+            pm = self.container.rule_pack_manager
+            try:
+                pm.install(pack_name)
+                self.console.print(f"[green]Installed '{pack_name}' rule pack.[/green]")
+            except ValueError as e:
+                self.console.print(f"[red]{e}[/red]")
+                raise typer.Exit(code=1) from e
+
+        @rules_cmd.command("remove")
+        def rules_remove(
+            pack_name: str = typer.Argument(..., help="Pack name to remove"),
+        ):
+            """Remove an installed rule pack."""
+            pm = self.container.rule_pack_manager
+            try:
+                pm.remove(pack_name)
+                self.console.print(f"[green]Removed '{pack_name}' rule pack.[/green]")
+            except ValueError as e:
+                self.console.print(f"[red]{e}[/red]")
+                raise typer.Exit(code=1) from e
+
+        @rules_cmd.command("update")
+        def rules_update(
+            pack_name: str | None = typer.Argument(
+                None, help="Pack to update (omit to update all)"
+            ),
+        ):
+            """
+            Update installed pack(s) to latest defaults,
+            preserving custom overrides.
+            """
+            pm = self.container.rule_pack_manager
+            updated = pm.update(pack_name)
+            if updated:
+                self.console.print(f"[green]Updated: {', '.join(updated)}[/green]")
+            else:
+                self.console.print("[yellow]All packs are up-to-date.[/yellow]")
+
+        @rules_cmd.command("reset")
+        def rules_reset(
+            yes: bool = typer.Option(False, "--yes", "-y", help="Skip confirmation"),
+        ):
+            """Remove all installed packs (preserves custom root-level rules)."""
+            pm = self.container.rule_pack_manager
+            installed = pm.list_installed()
+            if not installed:
+                self.console.print("[yellow]No packs installed.[/yellow]")
+                return
+
+            if not yes:
+                names = ", ".join(installed.keys())
+                result = Confirm.ask(
+                    f"Remove all {len(installed)} installed pack(s): {names}?"
+                )
+                if not result:
+                    self.console.print("[dim]Cancelled.[/dim]")
+                    return
+
+            pm.reset()
+            self.console.print(
+                "[green]All packs removed. Custom rules preserved.[/green]"
+            )
+
+        @rules_cmd.command("create")
+        def rules_create(
+            pack_name: str = typer.Argument(..., help="Name for the new custom pack"),
+            file: str | None = typer.Option(
+                None, "--file", "-f", help="YAML file with rule definitions"
+            ),
+        ):
+            """Create a custom rule pack from YAML rule definitions."""
+            if file:
+                if not os.path.isfile(file):
+                    self.console.print(f"[red]File not found: {file}[/red]")
+                    raise typer.Exit(code=1)
+                import yaml as ymlib
+
+                with open(file, encoding="utf-8") as f:
+                    data = ymlib.safe_load(f)
+                rules = data.get("rules", []) if isinstance(data, dict) else []
+            else:
+                self.console.print(
+                    "[yellow]No --file provided. Creating empty pack.[/yellow]"
+                )
+                rules = []
+
+            pm = self.container.rule_pack_manager
+            try:
+                path = pm.create(pack_name, rules)
+                self.console.print(
+                    f"[green]Created custom pack '{pack_name}' at {path}[/green]"
+                )
+            except ValueError as e:
+                self.console.print(f"[red]{e}[/red]")
+                raise typer.Exit(code=1) from e
+
+        @rules_cmd.command("phases")
+        def rules_phases():
+            """List evaluation phases with rule counts."""
+            all_rules = self.container.load_rules()
+            from aegis.domain.policy.models import EvaluationPhase
+
+            phase_counts: dict[str, int] = {}
+            mapping = self.container.category_phase_mapping
+
+            for p in EvaluationPhase:
+                filtered = [
+                    r
+                    for r in all_rules
+                    if r.phases is not None
+                    and p in r.phases
+                    or r.phases is None
+                    and p in mapping.category_defaults.get(r.category, [])
+                ]
+                phase_counts[p.value] = len(filtered)
+
+            self.console.print("\n[bold]Evaluation phases:[/bold]")
+            for phase_name in sorted(phase_counts.keys()):
+                count = phase_counts[phase_name]
+                self.console.print(f"  {phase_name:20s} {count} rules")
+
+        @rules_cmd.command("phase-mapping")
+        def rules_phase_mapping():
+            """Show the current category-to-phase mapping."""
+            mapping = self.container.category_phase_mapping
+            self.console.print("\n[bold]Category -> Phase mapping:[/bold]")
+            for cat, phases in sorted(mapping.category_defaults.items()):
+                phase_str = ", ".join(p.value for p in phases)
+                self.console.print(f"  {cat.value:20s} -> {phase_str}")
+
+        return rules_cmd
 
     def install(
         self,
@@ -96,6 +296,14 @@ class AegisCLI:
         strict: bool = typer.Option(
             False, "--strict", help="Treat warnings/reports as blocking"
         ),
+        phase: str | None = typer.Option(
+            None,
+            "--phase",
+            help="Evaluation phase: pre-commit, pre-push, ci, nightly, on-demand",
+        ),
+        category: str | None = typer.Option(
+            None, "--category", help="Filter by rule category"
+        ),
     ):
         """Performs a gated compliance check. Non-zero exit on blocking violations."""
         all_rules = self.container.load_rules()
@@ -105,6 +313,16 @@ class AegisCLI:
                 " Run 'aegis init' first.[/red]"
             )
             raise typer.Exit(code=1)
+
+        # --staged implies --phase pre-commit unless explicitly overridden
+        effective_phase = phase
+        if staged and not phase:
+            effective_phase = "pre-commit"
+
+        if effective_phase or category:
+            all_rules = self.container.load_rules_for_phase(
+                phase=effective_phase, category=category
+            )
 
         rules = [r for r in all_rules if r.id == rule] if rule else all_rules
         rule_map = {r.id: r for r in rules}
@@ -250,9 +468,21 @@ class AegisCLI:
             ]
             print(json.dumps(full_stats, indent=2))
         else:
-            self.console.print(
-                f"Aegis Status: {len(rules)} rules, {len(baseline)} legacy debt items."
+            engine_str = ", ".join(
+                f"{name}: {count}" for name, count in sorted(engine_counts.items())
             )
+            self.console.print(
+                f"[bold]Aegis Status[/bold] — "
+                f"{len(rules)} rules, "
+                f"{len(active_violations)} active, "
+                f"{len(baseline)} baselined"
+            )
+            self.console.print(f"  Engines: {engine_str}")
+            if self.container.loaded_plugins:
+                self.console.print(
+                    f"  Plugins: {', '.join(self.container.loaded_plugins)}"
+                )
+            self.console.print(f"  Project: {self.container.workspace_root}")
 
     def apply(
         self,
@@ -348,7 +578,7 @@ class AegisCLI:
                 f"[green]Successfully suppressed {violation_count} violations.[/green]"
             )
 
-        self.console.print("\n✅ Decision recorded in evolution_log.json")
+        self.console.print("\nOK Decision recorded in evolution_log.json")
 
     def setup_hooks(self):
         """Demonstrates how to wire Aegis into Git hooks as an optional capability."""
@@ -389,8 +619,7 @@ class AegisCLI:
             os.chmod(hook_path, 0o755)
 
         self.console.print(
-            "[bold green]Optional Git pre-commit hook"
-            " wired successfully.[/bold green]"
+            "[bold green]Optional Git pre-commit hook wired successfully.[/bold green]"
         )
 
     def serve(
@@ -415,15 +644,16 @@ class AegisCLI:
         """Enforces the self-governance invariant by auditing Aegis itself."""
         self.console.print("[bold blue]Aegis Self-Governance Audit[/bold blue]")
         try:
-            self.check(staged=False)
+            self.check(staged=False, phase=None, rule=None, strict=False, category=None)
         except typer.Exit as e:
             if e.exit_code == 0:
                 self.console.print(
-                    "[bold green]✅ Aegis is compliant with its own laws.[/bold green]"
+                    "[bold green]PASS - Aegis is compliant"
+                    " with its own laws.[/bold green]"
                 )
             else:
                 self.console.print(
-                    "[bold red]❌ Self-governance violation detected![/bold red]"
+                    "[bold red]FAIL - Self-governance violation detected![/bold red]"
                 )
             raise e
 

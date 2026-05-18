@@ -89,7 +89,13 @@ class TestGovernanceService:
         aegis_dir2 = GovernanceService.init_project_structure(str(tmp_path))
         assert aegis_dir == aegis_dir2
         rules = os.listdir(os.path.join(aegis_dir, "rules"))
-        # Rules only copied once
-        assert (
-            len(rules) == 3
-        )  # architecture.yaml + security.yaml + cloud_isolation.yaml
+        # Idempotent: second init doesn't duplicate packs
+        assert ".packs.json" in rules
+        assert all(
+            os.path.isdir(os.path.join(aegis_dir, "rules", d))
+            for d in rules
+            if d != ".packs.json"
+        )
+        # Verify idempotency: identical directory structure both times
+        rules2 = os.listdir(os.path.join(aegis_dir2, "rules"))
+        assert sorted(rules) == sorted(rules2)

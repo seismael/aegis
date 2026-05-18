@@ -1,0 +1,53 @@
+# Default Aegis Performance Rule Pack
+# Performance anti-patterns and efficiency enforcement.
+
+rules:
+  - id: perf-repeated-computation
+    description: Repeated len() calls in loop conditions are redundant (Python caches length).
+    engine_type: regex
+    severity: MEDIUM
+    mode: warn
+    applies_to:
+      - "**/*.py"
+    query: for\s+\w+\s+in[\s\S]{0,100}len\([\s\S]{0,50}len\(
+    rationale: len() inside loop conditions is redundant and wastes cycles.
+
+  - id: perf-large-data-copies
+    description: Full list slices [:] in loops create unnecessary O(n²) copies.
+    engine_type: regex
+    severity: LOW
+    mode: report
+    query: for\s+\w+\s+in[\s\S]{0,100}\[:\]
+    rationale: Full list copies in loops create quadratic memory and time overhead.
+
+  - id: perf-sync-io-async
+    description: Synchronous IO calls in async functions block the event loop.
+    engine_type: regex
+    severity: HIGH
+    mode: warn
+    query: async\s+def[\s\S]{0,500}\b(requests\.|open\(|time\.sleep|subprocess\.)
+    rationale: Blocking calls in async functions defeat the purpose of async and hang the event loop.
+
+  - id: perf-unbounded-append
+    description: Repeated .append() calls in loops on long-lived objects may grow without bound.
+    engine_type: regex
+    severity: MEDIUM
+    mode: warn
+    query: \.\s*append\s*\([\s\S]{0,200}\.\s*append[\s\S]{0,200}\.\s*append
+    rationale: Unbounded appends in long-lived objects create memory leaks over time.
+
+  - id: perf-string-concat
+    description: Use str.join() instead of += for string concatenation in loops.
+    engine_type: regex
+    severity: LOW
+    mode: report
+    query: for\s+\w+\s+in[\s\S]{0,100}\+=\s*['\"]
+    rationale: Repeated string concatenation with += creates O(n²) copies; join() is O(n).
+
+  - id: perf-n-plus-1
+    description: Database queries inside loops indicate potential N+1 query patterns.
+    engine_type: regex
+    severity: MEDIUM
+    mode: warn
+    query: for\s+\w+\s+in[\s\S]{0,500}\b(\.get\(|\.filter\(|\.query|SELECT\s+)
+    rationale: N+1 query patterns severely degrade performance; use batch loading or eager fetching.

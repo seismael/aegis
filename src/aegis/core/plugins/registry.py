@@ -16,7 +16,7 @@ class PluginRegistry:
     """
     Dynamically loads custom analyzers and MCP tools
     from the workspace's .aegis/plugins/ directory.
-    Provides IoC for enterprise-specific governance rules.
+    Provides IoC for project-specific governance rules.
     """
 
     def __init__(self, workspace_root: str):
@@ -25,8 +25,12 @@ class PluginRegistry:
         self.custom_mcp_tools: list[Callable] = []
         self.auto_rules: list[Rule] = []
         self.loaded_plugins: list[str] = []
+        self._plugins_loaded = False
 
     def load_plugins(self) -> None:
+        if self._plugins_loaded:
+            return
+        self._plugins_loaded = True
         if not os.path.exists(self.plugin_dir):
             return
 

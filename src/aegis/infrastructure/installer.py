@@ -32,7 +32,7 @@ class AegisInstaller:
 
     def install_global_capability(self, target_tool: str | None = None) -> None:
         """Installs the Aegis capability natively across all detected AI tools."""
-        print("📦 Installing Aegis Universal Agentic Capability...")
+        print("📦 Installing Aegis Universal Capability...")
         to_install = self.adapters
         if target_tool:
             to_install = [

@@ -2,6 +2,7 @@ import os
 import re
 
 import structlog
+import yaml
 from mcp.server.fastmcp import FastMCP
 
 from aegis.core.container.app import Container
@@ -109,6 +110,11 @@ class AegisKernel:
         self.mcp.tool()(self.initialize_project_governance)
         self.mcp.tool()(self.capture_architectural_baseline)
         self.mcp.tool()(self.negotiate_architectural_evolution)
+        self.mcp.tool()(self.list_rule_packs)
+        self.mcp.tool()(self.install_rule_pack)
+        self.mcp.tool()(self.remove_rule_pack)
+        self.mcp.tool()(self.reset_rule_packs)
+        self.mcp.tool()(self.create_custom_pack)
 
     async def initialize_project_governance(self) -> str:
         """
@@ -168,10 +174,110 @@ class AegisKernel:
         )
         self._evolution_service.log_decision(decision)
 
-        return f"✅ Evolution decision for '{rule_id}' recorded: {action}."
+        return f"Evolution decision for '{rule_id}' recorded: {action}."
+
+    async def list_rule_packs(self) -> str:
+        """
+        Rule Pack Management: Lists available, installed, and custom rule packs.
+        Use --verbose via CLI for per-pack rule counts.
+        """
+        pm = self._rule_pack_manager
+        if pm is None:
+            return "ERROR: Rule pack manager unavailable."
+
+        installed = pm.list_installed()
+        available = pm.list_available()
+        custom = pm.list_custom()
+
+        lines = []
+        if available:
+            lines.append("## Available Rule Packs\n")
+            for name, meta in available.items():
+                status = "[installed]" if name in installed else "[available]"
+                lines.append(f"- **{name}** {status} — {meta.description}")
+            lines.append("")
+        if custom:
+            lines.append("## Custom (Unpackaged) Rules\n")
+            for f in custom:
+                lines.append(f"- {f}")
+            lines.append("")
+        lines.append(f"**Summary:** {len(installed)} installed, {len(available)} available, {len(custom)} custom")
+        return "\n".join(lines)
+
+    async def install_rule_pack(self, pack_name: str) -> str:
+        """
+        Rule Pack Management: Installs a rule pack from Aegis defaults.
+        Copies pack files into .aegis/rules/<pack>/ and updates manifest.
+        """
+        pm = self._rule_pack_manager
+        if pm is None:
+            return "ERROR: Rule pack manager unavailable."
+
+        try:
+            pm.install(pack_name)
+            return f"Installed '{pack_name}' rule pack successfully."
+        except ValueError as e:
+            return f"ERROR: {e}"
+
+    async def remove_rule_pack(self, pack_name: str) -> str:
+        """
+        Rule Pack Management: Removes an installed rule pack.
+        Deletes pack directory and removes manifest entry.
+        """
+        pm = self._rule_pack_manager
+        if pm is None:
+            return "ERROR: Rule pack manager unavailable."
+
+        try:
+            pm.remove(pack_name)
+            return f"Removed '{pack_name}' rule pack successfully."
+        except ValueError as e:
+            return f"ERROR: {e}"
+
+    async def reset_rule_packs(self) -> str:
+        """
+        Rule Pack Management: Removes all installed rule packs.
+        Preserves custom root-level YAML rule files.
+        """
+        pm = self._rule_pack_manager
+        if pm is None:
+            return "ERROR: Rule pack manager unavailable."
+
+        pm.reset()
+        return "All rule packs removed. Custom rules preserved."
+
+    async def create_custom_pack(self, pack_name: str, rules_yaml: str) -> str:
+        """
+        Rule Pack Management: Creates a custom rule pack from YAML rule definitions.
+        Provide rules as a YAML string (list of rule dicts).
+        """
+        pm = self._rule_pack_manager
+        if pm is None:
+            return "ERROR: Rule pack manager unavailable."
+
+        try:
+            data = yaml.safe_load(rules_yaml)
+            rules = data if isinstance(data, list) else data.get("rules", [])
+        except yaml.YAMLError as e:
+            return f"ERROR: Invalid YAML — {e}"
+
+        if not isinstance(rules, list):
+            return "ERROR: rules_yaml must contain a list of rule definitions."
+
+        try:
+            path = pm.create(pack_name, rules)
+            return f"Created custom pack '{pack_name}' at {path}."
+        except ValueError as e:
+            return f"ERROR: {e}"
+
+    @property
+    def _rule_pack_manager(self):
+        if self.container is not None:
+            return self.container.rule_pack_manager
+        return None
 
     def _register_prompts(self):
-        """Register reusable MCP prompts for agentic workflows."""
+        """Register reusable MCP prompts for development workflows."""
 
         @self.mcp.prompt(
             name="evaluate-architecture",
@@ -237,14 +343,17 @@ class AegisKernel:
 
             if os.path.isdir(rules_dir):
                 parts = []
-                for f in sorted(os.listdir(rules_dir)):
-                    if f.endswith((".yaml", ".yml")):
-                        fp = os.path.join(rules_dir, f)
+                for root, _dirs, files in os.walk(rules_dir):
+                    for f in sorted(files):
+                        if not f.endswith((".yaml", ".yml")) or f == "pack.yaml":
+                            continue
+                        fp = os.path.join(root, f)
+                        rel = os.path.relpath(fp, rules_dir)
                         try:
                             with open(fp, encoding="utf-8") as fh:
-                                parts.append(f"# --- {f} ---\n{fh.read()}")
+                                parts.append(f"# --- {rel} ---\n{fh.read()}")
                         except OSError as e:
-                            parts.append(f"# --- {f} ---\nERROR: {e}")
+                            parts.append(f"# --- {rel} ---\nERROR: {e}")
                 return (
                     "\n\n".join(parts) if parts else "WARN: rules/ directory is empty."
                 )
@@ -362,7 +471,7 @@ class AegisKernel:
             summary += f"- **Status:** {container_status}\n"
             summary += f"- **Workspace:** `{root}`\n"
             summary += f"- **Rules:** {len(rules)} loaded\n"
-            summary += f"- **Tools:** 6 built-in + {plugin_tools} plugin\n"
+            summary += f"- **Tools:** 11 built-in + {plugin_tools} plugin\n"
             summary += "- **Resources:** 4 governance artifacts\n"
             summary += "- **Prompts:** 4 workflow templates\n"
             summary += f"- **Violations:** {len(active)} active\n"
@@ -372,16 +481,34 @@ class AegisKernel:
             self.logger.error("Status check failed", error=str(e))
             return f"ERROR: status check failed — {str(e)}"
 
-    async def validate_architecture_compliance(self, staged_only: bool = False) -> str:
+    async def validate_architecture_compliance(
+        self,
+        staged_only: bool = False,
+        phase: str | None = None,
+        category: str | None = None,
+    ) -> str:
         """
         Validates code against the architectural matrix.
         Returns a scorecard of NEW violations for the agent to resolve.
+        Optionally filter by evaluation phase and/or rule category.
         """
         if self.container is None:
             return "ERROR: Kernel not fully initialized — container unavailable."
 
         root = self._workspace_root
         rules = self._load_rules()
+
+        if phase or category:
+            from aegis.domain.evaluation.service import EvaluationService
+            from aegis.domain.policy.models import EvaluationPhase, RuleCategory
+            phase_enum = EvaluationPhase(phase) if phase else None
+            cat_enum = RuleCategory(category) if category else None
+            rules = EvaluationService.filter_rules_by_phase(
+                rules,
+                phase=phase_enum,
+                category=cat_enum,
+                phase_mapping=self.container.category_phase_mapping,
+            )
         if not rules:
             return (
                 "ERROR: Aegis is not initialized"

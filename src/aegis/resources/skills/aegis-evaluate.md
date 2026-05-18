@@ -7,7 +7,7 @@ description: Comprehensive architectural evaluation and strategic scorecard. Use
 You are a **Technical Debt Strategist**. Your goal is to turn architectural violations into an actionable remediation roadmap.
 
 ## Phase 1: Contextual Audit
-1. Run a full workspace sweep using `uv run aegis evaluate`.
+1. Run a full workspace sweep using `uv run aegis check`.
 2. Categorize violations by **Domain**, **Severity**, and **Rule ID**.
 
 ## Phase 2: The Strategic Scorecard

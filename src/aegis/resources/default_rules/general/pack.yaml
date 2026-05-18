@@ -1,0 +1,4 @@
+name: general
+version: 1.0.0
+description: Catch-all meta-rules — binary artifacts, sensitive patterns, and repository conventions
+author: Aegis

@@ -1,0 +1,104 @@
+# Default Aegis Security Rule Pack
+# These rules enforce zero-tolerance security policies.
+# Security rules bypass the baseline (never grandfathered as tech debt).
+
+rules:
+  - id: sec-no-hardcoded-aws-keys
+    description: Hardcoded AWS credentials detected in source code.
+    engine_type: regex
+    severity: CRITICAL
+    mode: block
+    query: (?i)AKIA[0-9A-Z]{16}
+    rationale: Prevents credential leakage into source control. Use environment variables or IAM roles.
+
+  - id: sec-no-hardcoded-passwords
+    description: Potential hardcoded password assignment detected.
+    engine_type: regex
+    severity: HIGH
+    mode: block
+    query: (password|passwd|pwd)\s*[=:]\s*["\'][^"\']+["\']
+    rationale: Credentials must never be embedded in source code. Use a secrets manager or environment variables.
+
+  - id: sec-no-connection-strings
+    description: Database connection string with credentials in source code.
+    engine_type: regex
+    severity: CRITICAL
+    mode: block
+    query: (postgresql|mysql|mongodb)://[^@]+@
+    rationale: Connection strings with embedded credentials expose the database. Use connection pooling or vault secrets.
+
+  - id: sec-no-todo-security
+    description: Security-sensitive TODO/FIXME comments should be tracked externally.
+    engine_type: regex
+    severity: MEDIUM
+    mode: warn
+    query: (TODO|FIXME|XXX).*(security|vuln|secret|credential|auth|password|token)
+    rationale: Security debt recorded in code comments is invisible to tracking systems. File a ticket instead.
+
+  - id: sec-no-hardcoded-tokens
+    description: Hardcoded API tokens, JWTs, or bearer tokens in source code.
+    engine_type: regex
+    severity: CRITICAL
+    mode: block
+    query: (?i)(api[_-]?key|token|bearer|jwt|secret)\s*[=:]\s*["\'][A-Za-z0-9_\-\.]{16,}["\']
+    rationale: Tokens found in source can be extracted from history. Use a secrets manager at runtime.
+
+  - id: sec-no-eval
+    description: Use of eval, exec, or os.system introduces code injection risk.
+    engine_type: regex
+    severity: HIGH
+    mode: block
+    query: \b(eval|exec|compile)\s*\(
+    rationale: Dynamic code execution bypasses all static analysis and enables arbitrary code injection.
+
+  - id: sec-no-sql-concatenation
+    description: SQL query built via string concatenation enables injection attacks.
+    engine_type: regex
+    severity: HIGH
+    mode: block
+    query: (execute|query|cursor)\s*\(\s*["\'][^"\']*\+\s*.*["\']
+    rationale: Parameterized queries prevent SQL injection. Never concatenate user input into SQL strings.
+
+  - id: sec-csrf-protection
+    description: POST/PUT/DELETE endpoints should include CSRF protection in web frameworks.
+    engine_type: regex
+    severity: HIGH
+    mode: block
+    applies_to:
+      - "**/views/**"
+      - "**/controllers/**"
+      - "**/routes/**"
+    query: '@(app|route)\.(post|put|delete)'
+    rationale: Missing CSRF protection enables cross-site request forgery on state-changing endpoints.
+
+  - id: sec-insecure-deserialization
+    description: pickle.load or yaml.load without SafeLoader enables arbitrary code execution.
+    engine_type: regex
+    severity: HIGH
+    mode: block
+    query: \b(pickle\.loads|pickle\.load|yaml\.load\s*\((?![^)]*SafeLoader)|shelve\.open)\b
+    rationale: Insecure deserialization can trigger arbitrary code execution during object reconstruction.
+
+  - id: sec-path-traversal
+    description: User input used in file path construction without sanitization enables directory traversal.
+    engine_type: regex
+    severity: HIGH
+    mode: block
+    query: open\s*\(\s*.*(?:request|input|params|args|query).*[+f]
+    rationale: Unvalidated file paths allow attackers to read arbitrary files outside the intended directory.
+
+  - id: sec-jwt-validation
+    description: JWT decoding should use algorithm-aware verification, not raw decode without validation.
+    engine_type: regex
+    severity: HIGH
+    mode: block
+    query: jwt\.decode\s*\([^)]*(?<!verify)
+    rationale: JWT decode without verification accepts forged tokens using algorithm confusion attacks.
+
+  - id: sec-no-subprocess-shell
+    description: subprocess calls should avoid shell=True to prevent command injection.
+    engine_type: regex
+    severity: HIGH
+    mode: block
+    query: subprocess\.\w+\(.*shell\s*=\s*True
+    rationale: shell=True delegates argument parsing to the shell, enabling injection via crafted arguments.

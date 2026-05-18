@@ -75,8 +75,10 @@ class PolicyParser:
 
     def parse_directory(self, rules_dir: str) -> list[Rule]:
         """
-        Scans a directory of .yaml rule packs and merges them into a single rule list.
-        Each file's stem determines the default category if not explicitly set.
+        Scans a directory of .yaml rule packs (recursively) and merges them into
+        a single rule list.  Rules inside a subdirectory get their default category
+        from the parent directory name; rules at the root level get it from the
+        filename stem.
         """
         if not os.path.isdir(rules_dir):
             logger.info(
@@ -88,7 +90,10 @@ class PolicyParser:
         all_rules: list[Rule] = []
         target_dir = Path(rules_dir)
 
-        for yaml_file in sorted(target_dir.glob("*.*y*ml")):
+        for yaml_file in sorted(target_dir.rglob("*.*y*ml")):
+            if yaml_file.name == "pack.yaml":
+                continue
+
             try:
                 with open(yaml_file, encoding="utf-8") as f:
                     data = yaml.safe_load(f)
@@ -96,9 +101,15 @@ class PolicyParser:
                         continue
 
                     for rule_dict in data["rules"]:
-                        # Infer category from filename if not explicitly set
                         if "category" not in rule_dict:
-                            rule_dict["category"] = yaml_file.stem
+                            parent = yaml_file.parent
+                            # If file is inside a subdirectory of rules_dir, use
+                            # the subdirectory name  (e.g.  architecture/rules.yaml
+                            # → category: architecture).  Otherwise use the stem.
+                            if parent != target_dir:
+                                rule_dict["category"] = parent.name
+                            else:
+                                rule_dict["category"] = yaml_file.stem
 
                         try:
                             all_rules.append(Rule(**rule_dict))
