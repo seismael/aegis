@@ -46,7 +46,9 @@ class TestRulePackManager:
     def test_list_custom_detects_root_files(self, tmp_path):
         rules_dir = tmp_path / ".aegis" / "rules"
         rules_dir.mkdir(parents=True)
-        (rules_dir / "my-custom.yaml").write_text("rules:\n  - id: test\n", encoding="utf-8")
+        (rules_dir / "my-custom.yaml").write_text(
+            "rules:\n  - id: test\n", encoding="utf-8"
+        )
         mgr = RulePackManager(str(rules_dir))
         custom = mgr.list_custom()
         assert "my-custom.yaml" in custom
@@ -63,7 +65,9 @@ class TestRulePackManager:
         rules_dir = tmp_path / ".aegis" / "rules"
         assert (rules_dir / "architecture").is_dir()
         assert (rules_dir / "architecture" / "rules.yaml").is_file()
-        assert not (rules_dir / "architecture" / "pack.yaml").is_file()  # metadata skipped
+        assert not (
+            rules_dir / "architecture" / "pack.yaml"
+        ).is_file()  # metadata skipped
 
     def test_install_updates_manifest(self, tmp_path):
         mgr = self._manager(tmp_path)
@@ -175,7 +179,14 @@ class TestRulePackManager:
 
     def test_create_custom_pack(self, tmp_path):
         mgr = self._manager(tmp_path)
-        rules = [{"id": "my-rule", "description": "test", "engine_type": "regex", "query": "test"}]
+        rules = [
+            {
+                "id": "my-rule",
+                "description": "test",
+                "engine_type": "regex",
+                "query": "test",
+            }
+        ]
         path = mgr.create("my-pack", rules)
         assert os.path.isdir(path)
         rules_file = os.path.join(path, "rules.yaml")
@@ -211,7 +222,7 @@ class TestRulePackManager:
 
     def test_install_defaults_idempotent(self, tmp_path):
         mgr = self._manager(tmp_path)
-        first = mgr.install_defaults()
+        mgr.install_defaults()
         second = mgr.install_defaults()
         # Second call should install nothing new
         assert len(second) == 0
@@ -260,7 +271,9 @@ class TestRulePackManager:
         """Root-level custom files coexist with installed pack directories."""
         rules_dir = tmp_path / ".aegis" / "rules"
         rules_dir.mkdir(parents=True)
-        (rules_dir / "legacy.yaml").write_text("rules:\n  - id: legacy\n", encoding="utf-8")
+        (rules_dir / "legacy.yaml").write_text(
+            "rules:\n  - id: legacy\n", encoding="utf-8"
+        )
         mgr = RulePackManager(str(rules_dir))
         mgr.install("architecture")
         custom = mgr.list_custom()

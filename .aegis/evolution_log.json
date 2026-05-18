@@ -20,6 +20,13 @@
       "rationale": "False positive in test data - testing regex patterns against password strings",
       "timestamp": "2026-05-18T16:00:54.456303",
       "metadata": {}
+    },
+    {
+      "rule_id": "sec-no-eval",
+      "action": "suppress",
+      "rationale": "Test E2E flow",
+      "timestamp": "2026-05-18T16:30:33.429527",
+      "metadata": {}
     }
   ]
 }

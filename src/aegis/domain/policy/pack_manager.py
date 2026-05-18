@@ -260,7 +260,10 @@ class RulePackManager:
 
         manifest = self._load_manifest()
         if pack_name in manifest.installed_packs:
-            raise ValueError(f"Pack '{pack_name}' already exists. Remove it first or use a different name.")
+            raise ValueError(
+                f"Pack '{pack_name}' already exists. "
+                "Remove it first or use a different name."
+            )
 
         self._ensure_rules_dir()
         pack_dir = os.path.join(self.rules_dir, pack_name)
@@ -268,7 +271,11 @@ class RulePackManager:
 
         rules_path = os.path.join(pack_dir, _RULES_FILE)
         with open(rules_path, "w", encoding="utf-8") as f:
-            f.write(yaml.dump({"rules": rules}, default_flow_style=False, allow_unicode=True))
+            f.write(
+                yaml.dump(
+                    {"rules": rules}, default_flow_style=False, allow_unicode=True
+                )
+            )
 
         copied_files = [f"{pack_name}/{_RULES_FILE}"]
 
@@ -317,7 +324,9 @@ class RulePackManager:
                 self.install(name)
                 installed.append(name)
             except Exception as exc:
-                logger.error("Failed to install default pack", pack=name, error=str(exc))
+                logger.error(
+                    "Failed to install default pack", pack=name, error=str(exc)
+                )
 
         return installed
 
@@ -369,7 +378,10 @@ class RulePackManager:
         return None
 
     def _has_local_changes(self, pack_name: str) -> bool:
-        """Check whether any file in a pack directory differs from the shipped version."""
+        """
+        Check whether any file in a pack directory
+        differs from the shipped version.
+        """
         pack_dir = os.path.join(self.rules_dir, pack_name)
         if not os.path.isdir(pack_dir):
             return False

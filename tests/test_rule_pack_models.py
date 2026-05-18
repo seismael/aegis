@@ -28,7 +28,9 @@ class TestRulePackMeta:
 
 class TestInstalledPack:
     def test_minimal_installed(self):
-        p = InstalledPack(name="arch", version="1.0.0", install_time="2025-01-01T00:00:00")
+        p = InstalledPack(
+            name="arch", version="1.0.0", install_time="2025-01-01T00:00:00"
+        )
         assert p.custom_overrides == []
         assert p.files == []
 
