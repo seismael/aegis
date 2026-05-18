@@ -13,8 +13,9 @@ logger = structlog.get_logger()
 
 class PluginRegistry:
     """
-    Dynamically loads custom analyzers and MCP tools from the workspace's .aegis/plugins/ directory.
-    Provides Inversion of Control (IoC) for enterprise-specific governance rules.
+    Dynamically loads custom analyzers and MCP tools
+    from the workspace's .aegis/plugins/ directory.
+    Provides IoC for enterprise-specific governance rules.
     """
 
     def __init__(self, workspace_root: str):

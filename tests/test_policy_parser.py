@@ -1,7 +1,8 @@
-import yaml
 from unittest.mock import MagicMock, patch
 
-from aegis.core.models.governance import EngineType, Severity
+import yaml
+
+from aegis.core.models.governance import EngineType, RuleCategory, Severity
 from aegis.domain.policy.parser import PolicyParser
 
 
@@ -281,3 +282,90 @@ class TestPolicyParser:
 
         assert len(rules) == 1
         assert rules[0].id == "org-rule"
+
+
+class TestPolicyParserDirectory:
+    """Test suite for PolicyParser.parse_directory()."""
+
+    def test_empty_dir_returns_empty(self, tmp_path):
+        parser = PolicyParser()
+        rules = parser.parse_directory(str(tmp_path / "nonexistent"))
+        assert rules == []
+
+    def test_empty_yaml_dir_returns_empty(self, tmp_path):
+        (tmp_path / "rules").mkdir()
+        parser = PolicyParser()
+        rules = parser.parse_directory(str(tmp_path / "rules"))
+        assert rules == []
+
+    def test_single_pack_parsed(self, tmp_path):
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        (rules_dir / "architecture.yaml").write_text(
+            yaml.dump(
+                {"rules": [{"id": "layer-rule", "description": "Layer isolation"}]}
+            ),
+            encoding="utf-8",
+        )
+        parser = PolicyParser()
+        rules = parser.parse_directory(str(rules_dir))
+        assert len(rules) == 1
+        assert rules[0].id == "layer-rule"
+        assert rules[0].category == RuleCategory.ARCHITECTURE
+
+    def test_multiple_packs_aggregate(self, tmp_path):
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        (rules_dir / "architecture.yaml").write_text(
+            yaml.dump({"rules": [{"id": "arch-1", "description": "Arch rule"}]}),
+            encoding="utf-8",
+        )
+        (rules_dir / "security.yaml").write_text(
+            yaml.dump({"rules": [{"id": "sec-1", "description": "Sec rule"}]}),
+            encoding="utf-8",
+        )
+        parser = PolicyParser()
+        rules = parser.parse_directory(str(rules_dir))
+        assert len(rules) == 2
+        assert {r.id for r in rules} == {"arch-1", "sec-1"}
+
+    def test_explicit_category_overrides_filename(self, tmp_path):
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        (rules_dir / "style.yaml").write_text(
+            yaml.dump(
+                {
+                    "rules": [
+                        {
+                            "id": "sec-rule",
+                            "description": "Security rule",
+                            "category": "security",
+                        }
+                    ]
+                }
+            ),
+            encoding="utf-8",
+        )
+        parser = PolicyParser()
+        rules = parser.parse_directory(str(rules_dir))
+        assert len(rules) == 1
+        assert rules[0].category == RuleCategory.SECURITY
+
+    def test_skips_invalid_rules(self, tmp_path):
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        (rules_dir / "architecture.yaml").write_text(
+            yaml.dump(
+                {
+                    "rules": [
+                        {"id": "valid", "description": "Good rule"},
+                        {"id": "invalid", "description": 12345},
+                    ]
+                }
+            ),
+            encoding="utf-8",
+        )
+        parser = PolicyParser()
+        rules = parser.parse_directory(str(rules_dir))
+        assert len(rules) == 1
+        assert rules[0].id == "valid"

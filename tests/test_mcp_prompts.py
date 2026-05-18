@@ -10,7 +10,6 @@ def kernel():
     k = AegisKernel()
     mock_container = MagicMock()
     mock_container.workspace_root = "/fake/project"
-    mock_container.policy_parser.parse_rules.return_value = []
     k.container = mock_container
     return k
 

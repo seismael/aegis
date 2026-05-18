@@ -1,4 +1,10 @@
-from aegis.core.models.governance import EnforcementMode, EngineType, Rule, Severity
+from aegis.core.models.governance import (
+    EnforcementMode,
+    EngineType,
+    Rule,
+    RuleCategory,
+    Severity,
+)
 
 
 class TestRuleModel:
@@ -57,3 +63,23 @@ class TestRuleModel:
         assert rule.engine_type == EngineType.TREE_SITTER
         assert rule.query == "(module) @m"
         assert rule.language == "py"
+
+    def test_category_defaults_to_architecture(self):
+        rule = Rule(id="test", description="desc")
+        assert rule.category == RuleCategory.ARCHITECTURE
+
+    def test_category_security(self):
+        rule = Rule(id="test", description="desc", category=RuleCategory.SECURITY)
+        assert rule.category == RuleCategory.SECURITY
+
+    def test_category_serialization_roundtrip(self):
+        rule = Rule(id="r1", description="d", category=RuleCategory.SECURITY)
+        data = rule.model_dump()
+        restored = Rule(**data)
+        assert restored.category == RuleCategory.SECURITY
+
+    def test_category_from_yaml_string(self):
+        rule = Rule.model_validate(
+            {"id": "r1", "description": "d", "category": "security"}
+        )
+        assert rule.category == RuleCategory.SECURITY

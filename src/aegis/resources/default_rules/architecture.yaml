@@ -1,0 +1,21 @@
+# Default Aegis Architecture Rule Pack
+# These rules enforce structural and layered architecture invariants.
+
+rules:
+  - id: arch-no-print
+    description: Print statements should not be used in production code.
+    category: architecture
+    engine_type: regex
+    severity: MEDIUM
+    mode: warn
+    query: (?<!#.*)\bprint\s*\(
+    rationale: Use proper logging instead of print statements for production observability.
+
+  - id: arch-no-todo
+    description: TODO comments indicate incomplete work.
+    category: architecture
+    engine_type: regex
+    severity: LOW
+    mode: report
+    query: \bTODO\b
+    rationale: Incomplete work should be tracked in your issue tracker, not in code comments.

@@ -98,7 +98,7 @@ class EvaluationService:
     def _normalize_violation_paths(
         violations: list[ArchitecturalViolation], root_dir: str
     ) -> None:
-        """Normalize absolute violation paths to relative for consistent baseline matching."""
+        """Normalize absolute paths to relative for consistent baseline matching."""
         for v in violations:
             if os.path.isabs(v.file):
                 try:

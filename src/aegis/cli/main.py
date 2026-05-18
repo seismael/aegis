@@ -1,10 +1,9 @@
 import json
 import logging
 import os
+import shutil
 from collections import Counter
-from typing import Optional, List
 
-import structlog
 import typer
 from rich.console import Console
 from rich.prompt import Confirm, Prompt
@@ -38,25 +37,30 @@ class AegisCLI:
         self.app.command()(self.serve)
         self.app.command()(self.self_check)
 
-    def install(self, tool: Optional[str] = typer.Argument(None, help="Specific tool to install into (e.g. claude, aider)")):
-        """Globally installs Aegis MCP configurations and AI Skills natively into agent tools."""
+    def install(
+        self,
+        tool: str | None = typer.Argument(
+            None, help="Specific tool to install into (e.g. claude, aider)"
+        ),
+    ):
+        """Globally installs Aegis MCP configs and AI Skills into agent tools."""
         from aegis.infrastructure.installer import AegisInstaller
 
         self.console.print(
-            f"[bold blue]Executing Aegis Installation for {tool or 'all tools'}...[/bold blue]"
+            "[bold blue]Executing Aegis Installation for"
+            f" {tool or 'all tools'}...[/bold blue]"
         )
         try:
             installer = AegisInstaller()
             installer.install_global_capability(target_tool=tool)
         except Exception as e:
             self.console.print(f"[bold red]Installation failed:[/bold red] {str(e)}")
-            raise typer.Exit(code=1)
-
+            raise typer.Exit(code=1) from e
 
     def init(self):
         """
         Initializes Aegis governance for the CURRENT project.
-        Sets up the .aegis/ directory and provides base configuration.
+        Sets up the .aegis/ directory with modular rule packs and base configuration.
         """
         aegis_dir = os.path.join(self.container.workspace_root, ".aegis")
         if not os.path.exists(aegis_dir):
@@ -69,9 +73,34 @@ class AegisCLI:
             with open(config_path, "w", encoding="utf-8") as f:
                 f.write("enforcement: warn\n")
 
+        # 2. Set up modular rules/ directory
+        rules_dir = os.path.join(aegis_dir, "rules")
+
+        if not os.path.exists(rules_dir):
+            os.makedirs(rules_dir)
+            # Copy default rule packs from package resources
+            try:
+                import importlib.resources
+
+                for pack in ("architecture.yaml", "security.yaml"):
+                    src = importlib.resources.files(
+                        "aegis.resources.default_rules"
+                    ).joinpath(pack)
+                    if src.is_file():
+                        with importlib.resources.as_file(src) as sf:
+                            shutil.copy2(str(sf), str(rules_dir))
+                self.console.print(
+                    "[green]Created default rule packs in .aegis/rules/[/green]"
+                )
+            except Exception as e:
+                self.console.print(
+                    f"[yellow]Warning: could not copy default rules — {e}[/yellow]"
+                )
+
         self.console.print("\n[bold green]Project Governance Initialized![/bold green]")
         self.console.print(
-            "Optional: Run `aegis setup-hooks` to enable local Git pre-commit enforcement."
+            "Optional: Run `aegis setup-hooks`"
+            " to enable local Git pre-commit enforcement."
         )
         self.console.print(
             "Run `/aegis-init` in your AI chat to begin architectural discovery."
@@ -90,15 +119,17 @@ class AegisCLI:
         ),
     ):
         """Performs a gated compliance check. Non-zero exit on blocking violations."""
-        rules_path = os.path.join(self.container.workspace_root, ".aegis", "rules.yaml")
-        if not os.path.exists(rules_path):
+        all_rules = self.container.load_rules()
+        if not all_rules:
             self.console.print(
-                "[red]Error: .aegis/rules.yaml not found. Run 'aegis init' first.[/red]"
+                "[red]Error: No rules found in"
+                " .aegis/rules/ or .aegis/rules.yaml."
+                " Run 'aegis init' first.[/red]"
             )
             raise typer.Exit(code=1)
 
-        all_rules = self.container.policy_parser.parse_rules(rules_path)
         rules = [r for r in all_rules if r.id == rule] if rule else all_rules
+        rule_map = {r.id: r for r in rules}
 
         if staged:
             violations = self.container.evaluation_service.evaluate_changes(
@@ -110,7 +141,9 @@ class AegisCLI:
             )
 
         active = [
-            v for v in violations if not self.container.baseline_manager.is_exempt(v)
+            v
+            for v in violations
+            if not self.container.baseline_manager.is_exempt(v, rule_map.get(v.rule_id))
         ]
 
         if not active:
@@ -118,7 +151,6 @@ class AegisCLI:
             return
 
         # Blocking logic
-        rule_map = {r.id: r for r in rules}
         blocking_modes = {EnforcementMode.BLOCK}
         if strict:
             blocking_modes.add(EnforcementMode.WARN)
@@ -142,7 +174,8 @@ class AegisCLI:
 
         if blocking:
             self.console.print(
-                f"\n[bold red]Blocked: {len(blocking)} architectural violations detected.[/bold red]"
+                "\n[bold red]Blocked:"
+                f" {len(blocking)} architectural violations detected.[/bold red]"
             )
             raise typer.Exit(code=1)
 
@@ -159,12 +192,14 @@ class AegisCLI:
             self.console.print("[yellow]Baseline cleared.[/yellow]")
             return
 
-        rules_path = os.path.join(self.container.workspace_root, ".aegis", "rules.yaml")
-        if not os.path.exists(rules_path):
-            self.console.print("[red]Error: .aegis/rules.yaml not found.[/red]")
+        rules = self.container.load_rules()
+        if not rules:
+            self.console.print(
+                "[red]Error: No rules found in"
+                " .aegis/rules/ or .aegis/rules.yaml.[/red]"
+            )
             return
 
-        rules = self.container.policy_parser.parse_rules(rules_path)
         violations = self.container.evaluation_service.evaluate_workspace(
             self.container.workspace_root, rules
         )
@@ -175,8 +210,7 @@ class AegisCLI:
 
     def status(self, json_output: bool = typer.Option(False, "--json")):
         """Provides a summary of the current governance state."""
-        rules_path = os.path.join(self.container.workspace_root, ".aegis", "rules.yaml")
-        rules = self.container.policy_parser.parse_rules(rules_path)
+        rules = self.container.load_rules()
         baseline = self.container.baseline_manager.load_baseline_raw()
 
         # Engine distribution
@@ -185,11 +219,16 @@ class AegisCLI:
         # Active violations (run evaluation, subtract baseline)
         active_violations = []
         if rules:
+            rule_map = {r.id: r for r in rules}
             violations = self.container.evaluation_service.evaluate_workspace(
                 self.container.workspace_root, rules
             )
             active_violations = [
-                v for v in violations if not self.container.baseline_manager.is_exempt(v)
+                v
+                for v in violations
+                if not self.container.baseline_manager.is_exempt(
+                    v, rule_map.get(v.rule_id)
+                )
             ]
 
         stats = {
@@ -228,32 +267,43 @@ class AegisCLI:
 
     def apply(
         self,
-        rule: str | None = typer.Option(None, "--rule", help="Specific rule to remediate"),
-        output: str | None = typer.Option(None, "--output", help="Write remediation prompt to file"),
+        rule: str | None = typer.Option(
+            None, "--rule", help="Specific rule to remediate"
+        ),
+        output: str | None = typer.Option(
+            None, "--output", help="Write remediation prompt to file"
+        ),
     ):
         """Displays remediation prompts for active violations."""
-        self.console.print("[bold blue]Aegis Architectural Remediation Audit[/bold blue]")
+        self.console.print(
+            "[bold blue]Aegis Architectural Remediation Audit[/bold blue]"
+        )
 
-        rules_path = os.path.join(self.container.workspace_root, ".aegis", "rules.yaml")
-        if not os.path.exists(rules_path):
-            self.console.print("[red]Error: .aegis/rules.yaml not found.[/red]")
+        all_rules = self.container.load_rules()
+        if not all_rules:
+            self.console.print(
+                "[red]Error: No rules found in"
+                " .aegis/rules/ or .aegis/rules.yaml.[/red]"
+            )
             return
 
-        all_rules = self.container.policy_parser.parse_rules(rules_path)
         rules = [r for r in all_rules if r.id == rule] if rule else all_rules
+        rule_map = {r.id: r for r in rules}
 
         violations = self.container.evaluation_service.evaluate_workspace(
             self.container.workspace_root, rules
         )
         active = [
-            v for v in violations if not self.container.baseline_manager.is_exempt(v)
+            v
+            for v in violations
+            if not self.container.baseline_manager.is_exempt(v, rule_map.get(v.rule_id))
         ]
 
         if not active:
-            self.console.print("[green]No active violations found for remediation.[/green]")
+            self.console.print(
+                "[green]No active violations found for remediation.[/green]"
+            )
             return
-
-        rule_map = {r.id: r for r in rules}
         prompt = self.container.remediation_synthesizer.generate_remediation(
             active, rule_map
         )
@@ -265,16 +315,22 @@ class AegisCLI:
         else:
             self.console.print(prompt)
 
-    def evolve(self, rule_id: str = typer.Argument(..., help="The ID of the rule to evolve")):
+    def evolve(
+        self, rule_id: str = typer.Argument(..., help="The ID of the rule to evolve")
+    ):
         """Consensus recording flow for rule modifications."""
-        self.console.print(f"[bold blue]Aegis Architectural Evolution: {rule_id}[/bold blue]")
+        self.console.print(
+            f"[bold blue]Aegis Architectural Evolution: {rule_id}[/bold blue]"
+        )
 
-        rules_path = os.path.join(self.container.workspace_root, ".aegis", "rules.yaml")
-        if not os.path.exists(rules_path):
-            self.console.print("[red]Error: .aegis/rules.yaml not found.[/red]")
+        rules = self.container.load_rules()
+        if not rules:
+            self.console.print(
+                "[red]Error: No rules found in"
+                " .aegis/rules/ or .aegis/rules.yaml.[/red]"
+            )
             return
 
-        rules = self.container.policy_parser.parse_rules(rules_path)
         rule = next((r for r in rules if r.id == rule_id), None)
 
         if not rule:
@@ -295,7 +351,8 @@ class AegisCLI:
 
         if action == "suppress":
             self.console.print(
-                "[yellow]Capturing current violations for this rule into baseline...[/yellow]"
+                "[yellow]Capturing current violations"
+                " for this rule into baseline...[/yellow]"
             )
             violations = self.container.evaluation_service.evaluate_workspace(
                 self.container.workspace_root, [rule]
@@ -325,11 +382,11 @@ class AegisCLI:
             "# Aegis Pre-Commit Enforcement (Example)\n"
             "# This hook ensures architectural compliance before every commit.\n"
             "\n"
-            "echo \"🛡️  Aegis: Validating architectural compliance...\"\n"
+            'echo "🛡️  Aegis: Validating architectural compliance..."\n'
             "aegis check --staged\n"
             "\n"
             "if [ $? -ne 0 ]; then\n"
-            "  echo \"❌  Architectural drift detected. Commit blocked.\"\n"
+            '  echo "❌  Architectural drift detected. Commit blocked."\n'
             "  exit 1\n"
             "fi\n"
         )
@@ -347,7 +404,8 @@ class AegisCLI:
             os.chmod(hook_path, 0o755)
 
         self.console.print(
-            "[bold green]✅ Optional Git pre-commit hook wired successfully.[/bold green]"
+            "[bold green]✅ Optional Git pre-commit hook"
+            " wired successfully.[/bold green]"
         )
 
     def serve(
@@ -389,7 +447,6 @@ class AegisCLI:
 
     @staticmethod
     def entry_point():
-        import logging
 
         # Basic logging config
         logging.basicConfig(

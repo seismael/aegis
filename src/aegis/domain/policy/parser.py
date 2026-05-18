@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import httpx
 import structlog
@@ -12,7 +13,7 @@ logger = structlog.get_logger()
 class PolicyParser:
     """
     Structured parser for architectural governance rules.
-    Loads and validates rules from .aegis/rules.yaml, supporting remote inheritance.
+    Loads and validates rules from .aegis/rules/ directory with remote inheritance.
     """
 
     def parse_rules(self, rules_path: str) -> list[Rule]:
@@ -71,3 +72,47 @@ class PolicyParser:
                 continue
 
         return rules
+
+    def parse_directory(self, rules_dir: str) -> list[Rule]:
+        """
+        Scans a directory of .yaml rule packs and merges them into a single rule list.
+        Each file's stem determines the default category if not explicitly set.
+        """
+        if not os.path.isdir(rules_dir):
+            logger.info(
+                "Rules directory not found, falling back to single file",
+                directory=rules_dir,
+            )
+            return []
+
+        all_rules: list[Rule] = []
+        target_dir = Path(rules_dir)
+
+        for yaml_file in sorted(target_dir.glob("*.*y*ml")):
+            try:
+                with open(yaml_file, encoding="utf-8") as f:
+                    data = yaml.safe_load(f)
+                    if not data or "rules" not in data:
+                        continue
+
+                    for rule_dict in data["rules"]:
+                        # Infer category from filename if not explicitly set
+                        if "category" not in rule_dict:
+                            rule_dict["category"] = yaml_file.stem
+
+                        try:
+                            all_rules.append(Rule(**rule_dict))
+                        except Exception as e:
+                            logger.warning(
+                                "Skipping invalid rule in pack",
+                                file=yaml_file.name,
+                                rule_id=rule_dict.get("id"),
+                                error=str(e),
+                            )
+            except Exception as e:
+                logger.error(
+                    "Failed to parse rule pack", file=yaml_file.name, error=str(e)
+                )
+
+        logger.info("Loaded governance rules from directory", total=len(all_rules))
+        return all_rules

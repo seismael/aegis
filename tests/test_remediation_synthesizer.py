@@ -1,4 +1,4 @@
-from aegis.core.models.governance import EnforcementMode, Rule, Severity
+from aegis.core.models.governance import EnforcementMode, Rule, RuleCategory, Severity
 from aegis.domain.enforcement.remediation import RemediationPromptSynthesizer
 from aegis.domain.evaluation.ports import ArchitecturalViolation
 
@@ -92,7 +92,9 @@ class TestRemediationPromptSynthesizer:
         f = tmp_path / "main.py"
         f.write_text("line1\nline2\nline3\nline4\nline5\n", encoding="utf-8")
         rule = Rule(
-            id="r1", description="test", severity=Severity.HIGH,
+            id="r1",
+            description="test",
+            severity=Severity.HIGH,
             mode=EnforcementMode.BLOCK,
         )
         violations = [self._make_violation(str(f), 3, "r1", "Bad code")]
@@ -100,16 +102,16 @@ class TestRemediationPromptSynthesizer:
         assert "Code Context" in result
         assert "line3" in result
 
-    def test_code_context_omitted_for_missing_file(self, tmp_path):
+    def test_code_context_omitted_for_missing_file(self):
         """Violations with non-existent files get no code context."""
         synth = RemediationPromptSynthesizer()
         rule = Rule(
-            id="r1", description="test", severity=Severity.HIGH,
+            id="r1",
+            description="test",
+            severity=Severity.HIGH,
             mode=EnforcementMode.BLOCK,
         )
-        violations = [
-            self._make_violation("/nonexistent/path.py", 3, "r1", "Bad")
-        ]
+        violations = [self._make_violation("/nonexistent/path.py", 3, "r1", "Bad")]
         result = synth.generate_remediation(violations, {"r1": rule})
         assert "Code Context" not in result
 
@@ -117,7 +119,8 @@ class TestRemediationPromptSynthesizer:
         """_fetch_code_context returns empty string for missing file."""
         synth = RemediationPromptSynthesizer()
         result = synth._fetch_code_context(
-            str(tmp_path / "missing.py"), 1,
+            str(tmp_path / "missing.py"),
+            1,
         )
         assert result == ""
 
@@ -136,9 +139,7 @@ class TestRemediationPromptSynthesizer:
     def test_fetch_code_context_first_line(self, tmp_path):
         """_fetch_code_context handles violation on line 1 without negative indexing."""
         f = tmp_path / "test.py"
-        f.write_text(
-            "first\nsecond\nthird\nfourth\nfifth\n", encoding="utf-8"
-        )
+        f.write_text("first\nsecond\nthird\nfourth\nfifth\n", encoding="utf-8")
         synth = RemediationPromptSynthesizer()
         result = synth._fetch_code_context(str(f), 1)
         assert ">    1 | first" in result
@@ -146,9 +147,7 @@ class TestRemediationPromptSynthesizer:
     def test_fetch_code_context_last_line(self, tmp_path):
         """_fetch_code_context handles violation on last line without exceeding."""
         f = tmp_path / "test.py"
-        f.write_text(
-            "line1\nline2\nline3\n", encoding="utf-8"
-        )
+        f.write_text("line1\nline2\nline3\n", encoding="utf-8")
         synth = RemediationPromptSynthesizer()
         result = synth._fetch_code_context(str(f), 3)
         assert ">    3 | line3" in result
@@ -162,12 +161,12 @@ class TestRemediationPromptSynthesizer:
             encoding="utf-8",
         )
         rule = Rule(
-            id="no-print", description="No prints",
-            severity=Severity.HIGH, mode=EnforcementMode.BLOCK,
+            id="no-print",
+            description="No prints",
+            severity=Severity.HIGH,
+            mode=EnforcementMode.BLOCK,
         )
-        violations = [
-            self._make_violation(str(f), 4, "no-print", "Used print")
-        ]
+        violations = [self._make_violation(str(f), 4, "no-print", "Used print")]
         result = synth.generate_remediation(violations, {"no-print": rule})
         assert "Code Context" in result
         assert "print('evil')" in result
@@ -184,3 +183,63 @@ class TestRemediationPromptSynthesizer:
         violations = [self._make_violation("domain/main.py", 3, "r1", "Infra import")]
         result = synth.generate_remediation(violations, {"r1": rule})
         assert "Architectural Rationale" not in result
+
+    def test_security_violation_gets_critical_tag(self):
+        synth = RemediationPromptSynthesizer()
+        rule = Rule(
+            id="sec-1",
+            description="No hardcoded secrets",
+            severity=Severity.CRITICAL,
+            mode=EnforcementMode.BLOCK,
+            category=RuleCategory.SECURITY,
+        )
+        violations = [
+            self._make_violation("config.py", 5, "sec-1", "Hardcoded AWS key")
+        ]
+        result = synth.generate_remediation(violations, {"sec-1": rule})
+        assert "CRITICAL SECURITY VULNERABILITY" in result
+        assert "secure coding practices" in result
+
+    def test_architecture_violation_no_security_tag(self):
+        synth = RemediationPromptSynthesizer()
+        rule = Rule(
+            id="arch-1",
+            description="Layer isolation",
+            severity=Severity.HIGH,
+            mode=EnforcementMode.BLOCK,
+            category=RuleCategory.ARCHITECTURE,
+        )
+        violations = [
+            self._make_violation("domain/main.py", 10, "arch-1", "Infra import")
+        ]
+        result = synth.generate_remediation(violations, {"arch-1": rule})
+        assert "CRITICAL SECURITY VULNERABILITY" not in result
+        assert "Violation in" in result
+
+    def test_mixed_security_and_architecture_violations(self):
+        synth = RemediationPromptSynthesizer()
+        rules_map = {
+            "sec-1": Rule(
+                id="sec-1",
+                description="Secret check",
+                severity=Severity.CRITICAL,
+                mode=EnforcementMode.BLOCK,
+                category=RuleCategory.SECURITY,
+            ),
+            "arch-1": Rule(
+                id="arch-1",
+                description="Layer isolation",
+                severity=Severity.HIGH,
+                mode=EnforcementMode.BLOCK,
+                category=RuleCategory.ARCHITECTURE,
+            ),
+        }
+        violations = [
+            self._make_violation("config.py", 5, "sec-1", "Hardcoded key"),
+            self._make_violation("domain/main.py", 10, "arch-1", "Infra import"),
+        ]
+        result = synth.generate_remediation(violations, rules_map)
+        assert "CRITICAL SECURITY VULNERABILITY" in result
+        assert "Violation in" in result
+        # Security violation should appear first
+        assert result.index("CRITICAL SECURITY") < result.rindex("Violation in")

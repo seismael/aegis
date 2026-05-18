@@ -4,8 +4,8 @@ version = "0.1.0"
 description = "Enterprise-grade agentic architectural governance engine. Enforces structural invariants, OOD, and Hexagonal boundaries via hunk-aware AST analysis and AI-driven feedback loops."
 readme = "README.md"
 requires-python = ">=3.11"
-license = "GPL-3.0-only"
-authors = [{ name = "Aegis Team", email = "hello@aegis-governance.org" }]
+license = "Apache-2.0"
+authors = [{ name = "Aegis Governance Team", email = "hello@aegis-governance.org" }]
 keywords = [
     "architecture-governance",
     "agentic-workflows",
@@ -15,12 +15,11 @@ keywords = [
     "clean-architecture",
     "hexagonal-architecture",
     "refactoring-assistant",
-    "copyleft",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Topic :: Software Development :: Libraries :: Application Frameworks",

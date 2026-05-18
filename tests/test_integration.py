@@ -1,8 +1,6 @@
-"""Integration-level tests spanning container, discovery, CLI flags, and full pipeline."""
+"""Integration tests: container, discovery, CLI flags, and full pipeline."""
 
 import json
-import os
-import subprocess
 
 import pytest
 from typer.testing import CliRunner
@@ -11,8 +9,8 @@ from aegis.cli.main import AegisCLI
 from aegis.core.container.app import Container
 from aegis.core.models.governance import EnforcementMode, Rule, Severity
 
-
 # ─── Container / DI composition ─────────────────────────────────────────────
+
 
 class TestContainerComposition:
     """Cycle 6: DI container creation and project discovery."""
@@ -64,6 +62,7 @@ class TestContainerComposition:
 
 # ─── CLI flag combinations ──────────────────────────────────────────────────
 
+
 class TestCLIFlagCombinations:
     """Cycle 5: CLI check flag interactions."""
 
@@ -71,9 +70,10 @@ class TestCLIFlagCombinations:
 
     def _mock_container(self):
         from unittest.mock import MagicMock
+
         c = MagicMock()
         c.workspace_root = "/fake/project"
-        c.policy_parser.parse_rules.return_value = []
+        c.load_rules.return_value = []
         c.evaluation_service.evaluate_workspace.return_value = []
         c.evaluation_service.evaluate_changes.return_value = []
         c.baseline_manager.load_baseline_raw.return_value = []
@@ -93,15 +93,18 @@ class TestCLIFlagCombinations:
     def test_check_strict_turns_warn_into_block(self, tmp_path):
         """--strict flag makes WARN-mode violations block (exit 1)."""
         from unittest.mock import MagicMock
+
         from aegis.domain.evaluation.ports import ArchitecturalViolation
 
         container = MagicMock()
         container.workspace_root = str(tmp_path)
-        container.policy_parser.parse_rules.return_value = [
+        container.load_rules.return_value = [
             Rule(id="r1", description="test", mode=EnforcementMode.WARN)
         ]
         container.evaluation_service.evaluate_workspace.return_value = [
-            ArchitecturalViolation(file="x.py", line=1, rule_id="r1", description="test")
+            ArchitecturalViolation(
+                file="x.py", line=1, rule_id="r1", description="test"
+            )
         ]
         container.baseline_manager.is_exempt.return_value = False
         container.loaded_plugins = []
@@ -117,11 +120,10 @@ class TestCLIFlagCombinations:
     def test_check_rule_filter_only_matching_rule(self, tmp_path):
         """--rule flag filters to a single rule."""
         from unittest.mock import MagicMock
-        from aegis.domain.evaluation.ports import ArchitecturalViolation
 
         container = MagicMock()
         container.workspace_root = str(tmp_path)
-        container.policy_parser.parse_rules.return_value = [
+        container.load_rules.return_value = [
             Rule(id="r1", description="test", mode=EnforcementMode.BLOCK),
             Rule(id="r2", description="test", mode=EnforcementMode.BLOCK),
         ]
@@ -141,6 +143,7 @@ class TestCLIFlagCombinations:
 
 # ─── MCP server error handling ─────────────────────────────────────────────
 
+
 class TestMCPErrorHandling:
     """Cycle 4: MCP tool error recovery."""
 
@@ -148,33 +151,39 @@ class TestMCPErrorHandling:
     async def test_validate_compliance_no_container(self):
         """validate_architecture_compliance returns error when container is None."""
         from aegis.kernel.server import AegisKernel
+
         k = AegisKernel()
         k.container = None
         result = await k.validate_architecture_compliance()
-        assert "ERROR" in result and "container" in result
+        assert "ERROR" in result
+        assert "container" in result
 
     @pytest.mark.asyncio
     async def test_apply_remediation_no_container(self):
         """apply_architectural_remediation returns error when container is None."""
         from aegis.kernel.server import AegisKernel
+
         k = AegisKernel()
         k.container = None
         result = await k.apply_architectural_remediation()
-        assert "ERROR" in result and "container" in result
+        assert "ERROR" in result
+        assert "container" in result
 
     @pytest.mark.asyncio
     async def test_get_rule_rationale_no_container(self):
-        """get_rule_rationale returns error when container is None."""
+        """get_rule_rationale warns when rule not found (container=None fallback)."""
         from aegis.kernel.server import AegisKernel
+
         k = AegisKernel()
         k.container = None
         result = await k.get_rule_rationale("r1")
-        assert "ERROR" in result
+        assert "not found" in result.lower()
 
     @pytest.mark.asyncio
     async def test_server_status_degraded(self):
         """server_status reports degraded when container is None."""
         from aegis.kernel.server import AegisKernel
+
         k = AegisKernel()
         k.container = None
         result = await k.server_status()
@@ -184,7 +193,9 @@ class TestMCPErrorHandling:
     async def test_get_dependency_graph_no_modules(self):
         """get_dependency_graph warns when no Python modules found."""
         from unittest.mock import MagicMock
+
         from aegis.kernel.server import AegisKernel
+
         k = AegisKernel()
         mock_container = MagicMock()
         mock_container.workspace_root = "/empty/dir"
@@ -192,10 +203,12 @@ class TestMCPErrorHandling:
         mock_container.graph_analyzer.build_import_graph.return_value = ({}, {})
         k.container = mock_container
         result = await k.get_dependency_graph("main")
-        assert "WARN" in result and "no Python modules" in result
+        assert "WARN" in result
+        assert "no Python modules" in result
 
 
 # ─── Rule model deserialization ────────────────────────────────────────────
+
 
 class TestRuleModelEdgeCases:
     """Cycle 8: Rule model deserialization edge cases."""
@@ -240,36 +253,43 @@ class TestRuleModelEdgeCases:
 
     def test_rule_unknown_enum_fallback(self):
         """Unknown enum values raise validation error (fail fast)."""
-        with pytest.raises(Exception):
-            Rule.model_validate({
-                "id": "r1", "description": "test", "severity": "INVALID"
-            })
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError):
+            Rule.model_validate(
+                {"id": "r1", "description": "test", "severity": "INVALID"}
+            )
 
     def test_rule_missing_id_raises(self):
         """Rule without id field raises validation error."""
-        with pytest.raises(Exception):
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError, match="id"):
             Rule.model_validate({"description": "test"})
 
     def test_rule_missing_description_raises(self):
         """Rule without description raises validation error."""
-        with pytest.raises(Exception):
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError, match="description"):
             Rule.model_validate({"id": "r1"})
 
 
 # ─── Full pipeline E2E ─────────────────────────────────────────────────────
+
 
 class TestFullPipeline:
     """Cycle 10: End-to-end pipeline with temp workspace."""
 
     def test_full_pipeline_evaluate_and_baseline(self, tmp_path):
         """Full cycle: create rules -> evaluate -> baseline -> re-evaluate exempt."""
-        # Setup workspace
         aegis_dir = tmp_path / ".aegis"
-        aegis_dir.mkdir()
-        rules_file = aegis_dir / "rules.yaml"
-        rules_file.write_text(
-            'rules:\n  - id: no-todo\n    description: No TODOs\n'
-            '    query: TODO\n    engine_type: regex\n    severity: HIGH\n    mode: block\n',
+        rules_dir = aegis_dir / "rules"
+        rules_dir.mkdir(parents=True)
+        (rules_dir / "architecture.yaml").write_text(
+            "rules:\n  - id: no-todo\n    description: No TODOs\n"
+            "    query: TODO\n"
+            "    engine_type: regex\n    severity: HIGH\n    mode: block\n",
             encoding="utf-8",
         )
         src_file = tmp_path / "main.py"
@@ -278,7 +298,7 @@ class TestFullPipeline:
         container = Container(workspace_root=str(tmp_path))
 
         # Step 1: Evaluate
-        rules = container.policy_parser.parse_rules(str(rules_file))
+        rules = container.load_rules()
         violations = container.evaluation_service.evaluate_workspace(
             str(tmp_path), rules
         )
@@ -294,18 +314,16 @@ class TestFullPipeline:
         violations2 = container.evaluation_service.evaluate_workspace(
             str(tmp_path), rules
         )
-        active = [
-            v for v in violations2
-            if not container.baseline_manager.is_exempt(v)
-        ]
+        active = [v for v in violations2 if not container.baseline_manager.is_exempt(v)]
         assert len(active) == 0
 
     def test_full_pipeline_cli_check(self, tmp_path):
         """CLI check --json works end-to-end against real workspace."""
         aegis_dir = tmp_path / ".aegis"
-        aegis_dir.mkdir()
-        (aegis_dir / "rules.yaml").write_text(
-            'rules:\n  - id: no-todo\n    description: No TODOs\n    query: TODO\n',
+        rules_dir = aegis_dir / "rules"
+        rules_dir.mkdir(parents=True)
+        (rules_dir / "architecture.yaml").write_text(
+            "rules:\n  - id: no-todo\n    description: No TODOs\n    query: TODO\n",
             encoding="utf-8",
         )
         (tmp_path / "app.py").write_text("# TODO: fix\n", encoding="utf-8")
@@ -326,10 +344,12 @@ class TestFullPipeline:
     def test_pipeline_apply_then_baseline(self, tmp_path):
         """Apply detects violations, baseline suppresses them."""
         aegis_dir = tmp_path / ".aegis"
-        aegis_dir.mkdir()
-        (aegis_dir / "rules.yaml").write_text(
-            'rules:\n  - id: no-todo\n    description: No TODOs\n'
-            '    query: TODO\n    engine_type: regex\n    severity: HIGH\n    mode: block\n',
+        rules_dir = aegis_dir / "rules"
+        rules_dir.mkdir(parents=True)
+        (rules_dir / "architecture.yaml").write_text(
+            "rules:\n  - id: no-todo\n    description: No TODOs\n"
+            "    query: TODO\n"
+            "    engine_type: regex\n    severity: HIGH\n    mode: block\n",
             encoding="utf-8",
         )
         (tmp_path / "app.py").write_text(
@@ -338,9 +358,7 @@ class TestFullPipeline:
         )
 
         container = Container(workspace_root=str(tmp_path))
-        rules = container.policy_parser.parse_rules(
-            str(aegis_dir / "rules.yaml")
-        )
+        rules = container.load_rules()
         violations = container.evaluation_service.evaluate_workspace(
             str(tmp_path), rules
         )
@@ -352,5 +370,7 @@ class TestFullPipeline:
         violations2 = container2.evaluation_service.evaluate_workspace(
             str(tmp_path), rules
         )
-        active = [v for v in violations2 if not container2.baseline_manager.is_exempt(v)]
+        active = [
+            v for v in violations2 if not container2.baseline_manager.is_exempt(v)
+        ]
         assert len(active) == 0

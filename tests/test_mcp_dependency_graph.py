@@ -26,7 +26,6 @@ class TestMCPDependencyGraph:
         # Replace the real container with a mock
         mock_container = MagicMock()
         mock_container.workspace_root = str(tmp_path)
-        mock_container.policy_parser.parse_rules.return_value = []
         mock_container.graph_analyzer = GraphAnalyzer()
         kernel.container = mock_container
 
@@ -39,7 +38,6 @@ class TestMCPDependencyGraph:
         kernel = AegisKernel()
         mock_container = MagicMock()
         mock_container.workspace_root = str(tmp_path)
-        mock_container.policy_parser.parse_rules.return_value = []
         mock_container.graph_analyzer = GraphAnalyzer()
         kernel.container = mock_container
 

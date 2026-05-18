@@ -1,36 +1,38 @@
-import os
 import json
+
 from aegis.infrastructure.adapters.base import ToolAdapter, logger
+
 
 class GenericMCPAdapter(ToolAdapter):
     """
     Fallback adapter for any tool following the standard MCP manifest pattern.
-    Ensures that Aegis is discoverable by generic agentic ecosystems (including Gemini toolchains).
+    Ensures Aegis is discoverable by generic agentic ecosystems.
     """
+
     @property
     def name(self) -> str:
         return "Generic MCP"
 
     def is_present(self) -> bool:
-        return True # Always available as a fallback
+        return True  # Always available as a fallback
 
     def install(self) -> bool:
         # Standard MCP discovery file in project root
         manifest_path = self.target_dir / "mcp.json"
-        
+
         manifest = {
             "mcpServers": {
                 "aegis": {
                     "command": "uv",
                     "args": ["run", "aegis-kernel", "--transport", "stdio"],
-                    "description": "Aegis Architectural Governance Engine"
+                    "description": "Aegis Architectural Governance Engine",
                 }
             }
         }
 
         try:
             if manifest_path.exists():
-                with open(manifest_path, "r", encoding="utf-8") as f:
+                with open(manifest_path, encoding="utf-8") as f:
                     data = json.load(f)
                 if "aegis" in data.get("mcpServers", {}):
                     return True

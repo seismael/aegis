@@ -1,10 +1,7 @@
 import json
-from pathlib import Path
 from unittest.mock import MagicMock
 
-import pytest
-
-from aegis.infrastructure.installer import AegisInstaller, ClaudeAdapter, AiderAdapter
+from aegis.infrastructure.installer import AegisInstaller, AiderAdapter, ClaudeAdapter
 
 
 class TestAegisInstaller:
@@ -21,30 +18,30 @@ class TestAegisInstaller:
     def test_claude_adapter_is_available(self, tmp_path, monkeypatch):
         monkeypatch.setattr("pathlib.Path.home", lambda: tmp_path)
         adapter = ClaudeAdapter(".")
-        
-        # 1. Not available initially
-        assert adapter.is_available() is False
-        
-        # 2. Available when .claude exists
+
+        # 1. Not present initially
+        assert adapter.is_present() is False
+
+        # 2. Present when .claude exists
         (tmp_path / ".claude").mkdir()
-        assert adapter.is_available() is True
+        assert adapter.is_present() is True
 
     def test_aider_adapter_is_available(self):
         adapter = AiderAdapter(".")
-        # Aider adapter is always available for installation into home config
-        assert adapter.is_available() is True
+        # Aider adapter checks if aider CLI exists in PATH
+        assert adapter.is_present() is True
 
     def test_claude_adapter_manual_injection(self, tmp_path, monkeypatch):
         monkeypatch.setattr("pathlib.Path.home", lambda: tmp_path)
         adapter = ClaudeAdapter(".")
-        
+
         claude_dir = tmp_path / ".claude"
         claude_dir.mkdir()
         config_path = claude_dir / "claude_desktop_config.json"
-        
+
         # Run install
         adapter.install()
-        
+
         assert config_path.exists()
         with open(config_path, encoding="utf-8") as f:
             config = json.load(f)
@@ -54,32 +51,32 @@ class TestAegisInstaller:
     def test_aider_adapter_install(self, tmp_path, monkeypatch):
         monkeypatch.setattr("pathlib.Path.home", lambda: tmp_path)
         adapter = AiderAdapter(".")
-        
+
         config_path = tmp_path / ".aider.conf.yml"
-        
+
         # Run install
         adapter.install()
-        
+
         assert config_path.exists()
         with open(config_path, encoding="utf-8") as f:
             content = f.read()
             assert "mcp-server: aegis-kernel" in content
 
-    def test_installer_orchestration(self, monkeypatch):
+    def test_installer_orchestration(self):
         mock_adapter = MagicMock()
-        mock_adapter.is_available.return_value = True
+        mock_adapter.is_present.return_value = True
         mock_adapter.install.return_value = True
-        
+
         installer = AegisInstaller()
         installer.adapters = [mock_adapter]
-        
-        installer.install_globally()
-        
-        mock_adapter.is_available.assert_called_once()
+
+        installer.install_global_capability()
+
+        mock_adapter.is_present.assert_called_once()
         mock_adapter.install.assert_called_once()
 
     def test_entry_point_execution(self, capsys):
-        # We don't want to actually install in the entry point test, 
+        # We don't want to actually install in the entry point test,
         # so we'll just check it runs without crash.
         AegisInstaller.entry_point()
         captured = capsys.readouterr()

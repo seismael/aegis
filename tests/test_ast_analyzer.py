@@ -1,4 +1,4 @@
-from aegis.core.models.governance import EnforcementMode, Rule, Severity
+from aegis.core.models.governance import Rule, Severity
 from aegis.infrastructure.ast_analyzer import TreeSitterAnalyzer
 
 
@@ -31,7 +31,7 @@ class TestTreeSitterAnalyzer:
         rules = [
             Rule(
                 id="no-console-log",
-                query='(call_expression function: (member_expression object: (identifier) @obj property: (property_identifier) @prop) (#eq? @obj "console") (#eq? @prop "log")) @violation',
+                query='(call_expression function: (member_expression object: (identifier) @obj property: (property_identifier) @prop) (#eq? @obj "console") (#eq? @prop "log")) @violation',  # noqa: E501
                 description="No console.log allowed.",
                 severity=Severity.MEDIUM,
                 language="ts",
@@ -49,7 +49,10 @@ class TestTreeSitterAnalyzer:
             Rule(
                 id="require-docstring",
                 candidates_query="(class_definition) @class",
-                check_query="(class_definition body: (block (expression_statement (string)))) @class",
+                check_query=(
+                    "(class_definition body:"
+                    " (block (expression_statement (string)))) @class"
+                ),
                 description="Classes must have docstrings.",
                 severity=Severity.LOW,
                 language="py",
@@ -86,14 +89,24 @@ class TestTreeSitterAnalyzer:
     def test_unsupported_extension_returns_empty(self):
         """Analyzer returns empty for unsupported file extensions."""
         analyzer = TreeSitterAnalyzer()
-        rule = Rule(id="r1", query="(function_definition) @fn", description="test", language="py")
+        rule = Rule(
+            id="r1",
+            query="(function_definition) @fn",
+            description="test",
+            language="py",
+        )
         result = analyzer.analyze_file("file.xyz", "content", [rule])
         assert result == []
 
     def test_no_rules_matching_language(self):
         """No violations when rules target different language."""
         analyzer = TreeSitterAnalyzer()
-        rule = Rule(id="r1", query="(function_definition) @fn", description="test", language="rs")
+        rule = Rule(
+            id="r1",
+            query="(function_definition) @fn",
+            description="test",
+            language="rs",
+        )
         result = analyzer.analyze_file("file.py", "x = 1", [rule])
         assert result == []
 
@@ -106,7 +119,12 @@ class TestTreeSitterAnalyzer:
     def test_empty_file(self):
         """Empty content produces no violations."""
         analyzer = TreeSitterAnalyzer()
-        rule = Rule(id="r1", query="(function_definition) @fn", description="test", language="py")
+        rule = Rule(
+            id="r1",
+            query="(function_definition) @fn",
+            description="test",
+            language="py",
+        )
         result = analyzer.analyze_file("empty.py", "", [rule])
         assert result == []
 
@@ -115,7 +133,12 @@ class TestTreeSitterAnalyzer:
     def test_invalid_query_does_not_crash(self):
         """Syntax error in query string is caught, no crash."""
         analyzer = TreeSitterAnalyzer()
-        rule = Rule(id="r1", query="(this is not valid syntax", description="test", language="py")
+        rule = Rule(
+            id="r1",
+            query="(this is not valid syntax",
+            description="test",
+            language="py",
+        )
         result = analyzer.analyze_file("test.py", "x = 1", [rule])
         assert result == []
 
@@ -123,12 +146,17 @@ class TestTreeSitterAnalyzer:
         """One broken query doesn't prevent other rules from matching."""
         analyzer = TreeSitterAnalyzer()
         rules = [
-            Rule(id="bad", query="(not valid syntax", description="test", language="py"),
-            Rule(id="good", query="(function_definition) @fn", description="test", language="py"),
+            Rule(
+                id="bad", query="(not valid syntax", description="test", language="py"
+            ),
+            Rule(
+                id="good",
+                query="(function_definition) @fn",
+                description="test",
+                language="py",
+            ),
         ]
-        result = analyzer.analyze_file(
-            "test.py", "def foo():\n    pass\n", rules
-        )
+        result = analyzer.analyze_file("test.py", "def foo():\n    pass\n", rules)
         assert len(result) == 1
         assert result[0].rule_id == "good"
 
@@ -137,7 +165,12 @@ class TestTreeSitterAnalyzer:
     def test_multiple_matches(self):
         """Multiple matching nodes in a single file."""
         analyzer = TreeSitterAnalyzer()
-        rule = Rule(id="r1", query="(function_definition) @fn", description="test", language="py")
+        rule = Rule(
+            id="r1",
+            query="(function_definition) @fn",
+            description="test",
+            language="py",
+        )
         result = analyzer.analyze_file(
             "test.py",
             "def a():\n    pass\n\ndef b():\n    pass\n",
@@ -149,8 +182,18 @@ class TestTreeSitterAnalyzer:
         """Multiple rules each produce their own violations."""
         analyzer = TreeSitterAnalyzer()
         rules = [
-            Rule(id="no-func", query="(function_definition) @fn", description="test", language="py"),
-            Rule(id="no-class", query="(class_definition) @cls", description="test", language="py"),
+            Rule(
+                id="no-func",
+                query="(function_definition) @fn",
+                description="test",
+                language="py",
+            ),
+            Rule(
+                id="no-class",
+                query="(class_definition) @cls",
+                description="test",
+                language="py",
+            ),
         ]
         result = analyzer.analyze_file(
             "test.py",
@@ -165,7 +208,12 @@ class TestTreeSitterAnalyzer:
     def test_unicode_content(self):
         """File with unicode characters is handled without encoding errors."""
         analyzer = TreeSitterAnalyzer()
-        rule = Rule(id="r1", query="(function_definition) @fn", description="test", language="py")
+        rule = Rule(
+            id="r1",
+            query="(function_definition) @fn",
+            description="test",
+            language="py",
+        )
         result = analyzer.analyze_file(
             "test.py",
             "# -*- coding: utf-8 -*-\ndef fete():\n    pass\n",

@@ -4,7 +4,7 @@ from aegis.domain.evaluation.scoping import ScopeFilter
 
 
 class TestViolationScopeFiltering:
-    """Test suite for ScopeFilter.filter_violations — rule scoping (applies_to / excludes)."""
+    """Test suite for ScopeFilter.filter_violations — rule scoping."""
 
     def _rule(self, rid, applies_to=None, excludes=None):
         return Rule(
@@ -58,7 +58,7 @@ class TestViolationScopeFiltering:
         assert len(result) == 1
 
     def test_applies_to_and_excludes_combined(self):
-        """Both applies_to and excludes applied: must match applies_to AND not match excludes."""
+        """applies_to AND excludes both applied: must match one, not the other."""
         v_cli = self._violation("src/cli/main.py", "r1")
         v_core = self._violation("src/core/main.py", "r1")
         r = self._rule("r1", applies_to=["src/**"], excludes=["src/cli/**"])

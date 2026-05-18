@@ -1,14 +1,17 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
+
 import structlog
 
 logger = structlog.get_logger()
+
 
 class ToolAdapter(ABC):
     """
     Abstract base for AI tool-specific integration.
     Handles native plugin registration and configuration.
     """
+
     def __init__(self, target_dir: str):
         self.target_dir = Path(target_dir)
         self.home = Path.home()

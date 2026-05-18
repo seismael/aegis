@@ -1,10 +1,8 @@
-import os
-
 import pytest
 
+from aegis.core.models.governance import Rule
 from aegis.core.plugins import CustomAnalyzerInterface
 from aegis.core.plugins.registry import PluginRegistry
-from aegis.core.models.governance import Rule
 from aegis.domain.evaluation.ports import RuleAnalyzerInterface
 
 

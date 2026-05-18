@@ -53,6 +53,13 @@ class Container:
         # Remediation
         self.remediation_synthesizer = RemediationPromptSynthesizer()
 
+    def load_rules(self) -> list:
+        """Loads rules from the .aegis/rules/ directory."""
+        rules_dir = os.path.join(self.workspace_root, ".aegis", "rules")
+        if os.path.isdir(rules_dir):
+            return self.policy_parser.parse_directory(rules_dir)
+        return []
+
     @property
     def custom_mcp_tools(self) -> list[Callable]:
         return list(self.plugin_registry.custom_mcp_tools)

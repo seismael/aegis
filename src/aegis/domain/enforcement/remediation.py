@@ -31,7 +31,19 @@ class RemediationPromptSynthesizer(RemediationProviderInterface):
 
         for v in violations:
             rule: Rule | None = rules_map.get(v.rule_id)
-            payload += f"### Violation in `{v.file}` (Line {v.line})\n"
+            is_security = rule is not None and rule.category.value == "security"
+
+            if is_security:
+                payload += (
+                    f"### [CRITICAL SECURITY VULNERABILITY] in `{v.file}`"
+                    f" (Line {v.line})\n"
+                )
+                payload += (
+                    "**DIRECTIVE: Prioritize secure coding practices"
+                    " over performance or brevity.**\n"
+                )
+            else:
+                payload += f"### Violation in `{v.file}` (Line {v.line})\n"
             payload += f"- **Rule ID:** `{v.rule_id}` [{v.severity}]\n"
             payload += f"- **Description:** {v.description}\n"
             payload += "- **Enforcement Mode:** "

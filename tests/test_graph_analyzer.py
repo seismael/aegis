@@ -1,5 +1,3 @@
-import os
-
 from aegis.core.models.governance import EnforcementMode, EngineType, Rule, Severity
 from aegis.infrastructure.graph_analyzer import GraphAnalyzer
 
@@ -162,7 +160,9 @@ class TestGraphAnalyzer:
 
     def test_non_python_files_ignored(self, tmp_path):
         """Non-.py files are not included in the graph."""
-        (tmp_path / "main.py").write_text("from utils import helper\n", encoding="utf-8")
+        (tmp_path / "main.py").write_text(
+            "from utils import helper\n", encoding="utf-8"
+        )
         (tmp_path / "utils.py").write_text("def helper(): pass\n", encoding="utf-8")
         (tmp_path / "data.json").write_text("{}", encoding="utf-8")
         (tmp_path / "script.sh").write_text("echo hi", encoding="utf-8")
@@ -177,7 +177,9 @@ class TestGraphAnalyzer:
         (tmp_path / "broken.py").write_text(
             "this is not valid python @@@", encoding="utf-8"
         )
-        (tmp_path / "good.py").write_text("from utils import helper\n", encoding="utf-8")
+        (tmp_path / "good.py").write_text(
+            "from utils import helper\n", encoding="utf-8"
+        )
         (tmp_path / "utils.py").write_text("def helper(): pass\n", encoding="utf-8")
         analyzer = GraphAnalyzer()
         # Should not crash; good.py still analyzed
@@ -219,7 +221,7 @@ class TestGraphAnalyzer:
         assert "pkg.__init__" not in adjacency
 
     def test_disallowed_import_no_metadata(self, tmp_path):
-        """Disallowed import rule without source/target metadata returns no violations."""
+        """Disallowed import rule without source/target metadata returns no results."""
         (tmp_path / "a.py").write_text("import b\n", encoding="utf-8")
         (tmp_path / "b.py").write_text("x = 1\n", encoding="utf-8")
         analyzer = GraphAnalyzer()

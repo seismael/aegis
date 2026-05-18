@@ -1,3 +1,4 @@
+from aegis.core.models.governance import Rule, RuleCategory
 from aegis.domain.evaluation.baseline import BaselineManager
 from aegis.domain.evaluation.ports import ArchitecturalViolation
 
@@ -208,3 +209,35 @@ class TestBaselineManager:
         bm.add_to_baseline(v1)
         bm.add_to_baseline(v2)
         assert len(bm.load_baseline_raw()) == 1
+
+    def test_security_rule_never_exempt_even_when_baselined(self, tmp_path):
+        bm = BaselineManager(str(tmp_path))
+        v = self._violation("src/main.py", 10, "sec-rule")
+        bm.add_to_baseline(v)
+        rule = Rule(
+            id="sec-rule", description="secret check", category=RuleCategory.SECURITY
+        )
+        assert not bm.is_exempt(v, rule=rule)
+
+    def test_security_rule_no_baseline_still_not_exempt(self, tmp_path):
+        bm = BaselineManager(str(tmp_path))
+        v = self._violation("src/main.py", 10, "sec-rule")
+        rule = Rule(
+            id="sec-rule", description="secret check", category=RuleCategory.SECURITY
+        )
+        assert not bm.is_exempt(v, rule=rule)
+
+    def test_architecture_rule_still_exempt_with_baseline(self, tmp_path):
+        bm = BaselineManager(str(tmp_path))
+        v = self._violation("src/main.py", 10, "arch-rule")
+        bm.add_to_baseline(v)
+        rule = Rule(
+            id="arch-rule", description="arch check", category=RuleCategory.ARCHITECTURE
+        )
+        assert bm.is_exempt(v, rule=rule)
+
+    def test_is_exempt_no_rule_backward_compat(self, tmp_path):
+        bm = BaselineManager(str(tmp_path))
+        v = self._violation("src/main.py", 10, "r1")
+        bm.add_to_baseline(v)
+        assert bm.is_exempt(v)

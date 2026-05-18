@@ -1,8 +1,6 @@
 import os
 import subprocess
 
-import pytest
-
 from aegis.infrastructure.git_provider import GitDiffProvider, GitDiffResult
 
 
@@ -55,22 +53,13 @@ class TestGitDiffResult:
 
     def test_parse_hunks_single_addition(self):
         """Single added line returns the correct line number."""
-        diff = (
-            "@@ -0,0 +5 @@\n"
-            "+added_line\n"
-        )
+        diff = "@@ -0,0 +5 @@\n+added_line\n"
         result = GitDiffResult([], repo_path=".")
         assert result._parse_hunks(diff) == {5}
 
     def test_parse_hunks_multiple_additions(self):
         """Multiple added lines in one hunk."""
-        diff = (
-            "@@ -10,3 +10,3 @@\n"
-            " context\n"
-            "+new_line_1\n"
-            "+new_line_2\n"
-            " context\n"
-        )
+        diff = "@@ -10,3 +10,3 @@\n context\n+new_line_1\n+new_line_2\n context\n"
         result = GitDiffResult([], repo_path=".")
         assert result._parse_hunks(diff) == {11, 12}
 
@@ -91,21 +80,13 @@ class TestGitDiffResult:
 
     def test_parse_hunks_context_lines_only(self):
         """Hunks with only context lines produce no additions."""
-        diff = (
-            "@@ -5,2 +5,2 @@\n"
-            " context_a\n"
-            " context_b\n"
-        )
+        diff = "@@ -5,2 +5,2 @@\n context_a\n context_b\n"
         result = GitDiffResult([], repo_path=".")
         assert result._parse_hunks(diff) == set()
 
     def test_parse_hunks_removal_only(self):
         """Hunks with only removed lines produce no additions."""
-        diff = (
-            "@@ -10,3 +9,0 @@\n"
-            "-deleted_line_1\n"
-            "-deleted_line_2\n"
-        )
+        diff = "@@ -10,3 +9,0 @@\n-deleted_line_1\n-deleted_line_2\n"
         result = GitDiffResult([], repo_path=".")
         assert result._parse_hunks(diff) == set()
 
@@ -113,9 +94,10 @@ class TestGitDiffResult:
         """Binary file diff (diff.diff is None) produces no lines."""
         result = _make_result_with_files(tmp_path, ["binary.png"])
         assert result.changed_files
-        assert result.get_modified_lines(
-            os.path.join(str(tmp_path), "binary.png")
-        ) == set()
+        assert (
+            result.get_modified_lines(os.path.join(str(tmp_path), "binary.png"))
+            == set()
+        )
 
 
 class TestGitDiffProvider:
@@ -136,15 +118,24 @@ class TestGitDiffProvider:
 
     def test_staged_file_detected(self, tmp_path):
         """Provider detects a staged file."""
-        repo = _git_init(tmp_path)
+        _git_init(tmp_path)
         test_file = tmp_path / "readme.md"
         test_file.write_text("# Hello\n", encoding="utf-8")
-        subprocess.run(["git", "add", "readme.md"], cwd=tmp_path, check=True, capture_output=True)
+        subprocess.run(
+            ["git", "add", "readme.md"], cwd=tmp_path, check=True, capture_output=True
+        )
         # Need at least one commit for diff to work
-        subprocess.run(["git", "commit", "-m", "init"], cwd=tmp_path, check=True, capture_output=True)
+        subprocess.run(
+            ["git", "commit", "-m", "init"],
+            cwd=tmp_path,
+            check=True,
+            capture_output=True,
+        )
         # Now stage a change
         test_file.write_text("# Hello\n\nNew content\n", encoding="utf-8")
-        subprocess.run(["git", "add", "readme.md"], cwd=tmp_path, check=True, capture_output=True)
+        subprocess.run(
+            ["git", "add", "readme.md"], cwd=tmp_path, check=True, capture_output=True
+        )
 
         provider = GitDiffProvider(str(tmp_path))
         result = provider.get_staged_changes()
@@ -155,12 +146,23 @@ class TestGitDiffProvider:
         _git_init(tmp_path)
         test_file = tmp_path / "main.py"
         test_file.write_text("line1\nline2\nline3\nline4\nline5\n", encoding="utf-8")
-        subprocess.run(["git", "add", "main.py"], cwd=tmp_path, check=True, capture_output=True)
-        subprocess.run(["git", "commit", "-m", "init"], cwd=tmp_path, check=True, capture_output=True)
+        subprocess.run(
+            ["git", "add", "main.py"], cwd=tmp_path, check=True, capture_output=True
+        )
+        subprocess.run(
+            ["git", "commit", "-m", "init"],
+            cwd=tmp_path,
+            check=True,
+            capture_output=True,
+        )
 
         # Modify line 3
-        test_file.write_text("line1\nline2\nmodified_line3\nline4\nline5\n", encoding="utf-8")
-        subprocess.run(["git", "add", "main.py"], cwd=tmp_path, check=True, capture_output=True)
+        test_file.write_text(
+            "line1\nline2\nmodified_line3\nline4\nline5\n", encoding="utf-8"
+        )
+        subprocess.run(
+            ["git", "add", "main.py"], cwd=tmp_path, check=True, capture_output=True
+        )
 
         provider = GitDiffProvider(str(tmp_path))
         result = provider.get_staged_changes()
@@ -174,13 +176,21 @@ class TestGitDiffProvider:
 
         # First commit
         (tmp_path / "v1.txt").write_text("version 1\n", encoding="utf-8")
-        subprocess.run(["git", "add", "."], cwd=tmp_path, check=True, capture_output=True)
-        subprocess.run(["git", "commit", "-m", "v1"], cwd=tmp_path, check=True, capture_output=True)
+        subprocess.run(
+            ["git", "add", "."], cwd=tmp_path, check=True, capture_output=True
+        )
+        subprocess.run(
+            ["git", "commit", "-m", "v1"], cwd=tmp_path, check=True, capture_output=True
+        )
 
         # Second commit
         (tmp_path / "v2.txt").write_text("version 2\n", encoding="utf-8")
-        subprocess.run(["git", "add", "."], cwd=tmp_path, check=True, capture_output=True)
-        subprocess.run(["git", "commit", "-m", "v2"], cwd=tmp_path, check=True, capture_output=True)
+        subprocess.run(
+            ["git", "add", "."], cwd=tmp_path, check=True, capture_output=True
+        )
+        subprocess.run(
+            ["git", "commit", "-m", "v2"], cwd=tmp_path, check=True, capture_output=True
+        )
 
         provider = GitDiffProvider(str(tmp_path))
         result = provider.get_changes_since_baseline("HEAD~1")
@@ -212,10 +222,14 @@ def _git_init(path):
     subprocess.run(["git", "init"], cwd=path, check=True, capture_output=True)
     subprocess.run(
         ["git", "config", "user.email", "test@test.com"],
-        cwd=path, check=True, capture_output=True,
+        cwd=path,
+        check=True,
+        capture_output=True,
     )
     subprocess.run(
         ["git", "config", "user.name", "Test User"],
-        cwd=path, check=True, capture_output=True,
+        cwd=path,
+        check=True,
+        capture_output=True,
     )
     return path

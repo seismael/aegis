@@ -63,6 +63,12 @@ class AegisKernel:
             return self.container.workspace_root
         return os.getcwd()
 
+    def _load_rules(self) -> list:
+        """Load rules from the container."""
+        if self.container is not None:
+            return self.container.load_rules()
+        return []
+
     @property
     def _policy_parser(self):
         if self.container is not None:
@@ -106,23 +112,43 @@ class AegisKernel:
 
     async def initialize_project_governance(self) -> str:
         """
-        Project-Level Capability: Bootstraps Aegis governance for the current repository.
-        Creates .aegis/ directory and initial configuration.
+        Project-Level Capability: Bootstraps Aegis governance for the current repo.
+        Creates .aegis/ directory, rules/ dir with default packs, and configuration.
         """
         if self.container is None:
             return "ERROR: Kernel not initialized."
-            
+
+        import importlib.resources
+        import shutil
+
         root = self._workspace_root
         aegis_dir = os.path.join(root, ".aegis")
+        rules_dir = os.path.join(aegis_dir, "rules")
         if not os.path.exists(aegis_dir):
             os.makedirs(aegis_dir)
-            
+
         config_path = os.path.join(aegis_dir, "config.yaml")
         if not os.path.exists(config_path):
             with open(config_path, "w", encoding="utf-8") as f:
                 f.write("enforcement: warn\n")
-        
-        return f"✅ Aegis governance initialized at {aegis_dir}. You can now run `/aegis-init` to define rules."
+
+        if not os.path.exists(rules_dir):
+            os.makedirs(rules_dir)
+            try:
+                for pack in ("architecture.yaml", "security.yaml"):
+                    src = importlib.resources.files(
+                        "aegis.resources.default_rules"
+                    ).joinpath(pack)
+                    if src.is_file():
+                        with importlib.resources.as_file(src) as sf:
+                            shutil.copy2(str(sf), str(rules_dir))
+            except Exception:
+                pass  # Non-fatal; user can add rules manually
+
+        return (
+            f"✅ Aegis governance initialized at {aegis_dir}."
+            f" Rules in {rules_dir}/. Use `/aegis-init` to customize."
+        )
 
     async def capture_architectural_baseline(self) -> str:
         """
@@ -133,17 +159,23 @@ class AegisKernel:
             return "ERROR: Kernel not initialized."
 
         root = self._workspace_root
-        rules_path = os.path.join(root, ".aegis", "rules.yaml")
-        if not os.path.exists(rules_path):
-            return "ERROR: Project not initialized. Call `initialize_project_governance` first."
-
-        rules = self._policy_parser.parse_rules(rules_path)
+        rules = self._load_rules()
+        if not rules:
+            return (
+                "ERROR: Project not initialized."
+                " Call `initialize_project_governance` first."
+            )
         violations = self._evaluation_service.evaluate_workspace(root, rules)
         self._baseline_manager.save_baseline(violations)
-        
-        return f"✅ Successfully baselined {len(violations)} violations as legacy technical debt."
 
-    async def negotiate_architectural_evolution(self, rule_id: str, action: str, rationale: str) -> str:
+        return (
+            f"✅ Successfully baselined {len(violations)}"
+            " violations as legacy technical debt."
+        )
+
+    async def negotiate_architectural_evolution(
+        self, rule_id: str, action: str, rationale: str
+    ) -> str:
         """
         Project-Level Capability: Records a consensus decision to evolve a rule.
         Valid actions: 'suppress', 'relax_rule', 'refactor_required'.
@@ -152,9 +184,12 @@ class AegisKernel:
             return "ERROR: Kernel not initialized."
 
         from aegis.core.models.evolution import EvolutionDecision
-        decision = EvolutionDecision(rule_id=rule_id, action=action, rationale=rationale)
+
+        decision = EvolutionDecision(
+            rule_id=rule_id, action=action, rationale=rationale
+        )
         self._evolution_service.log_decision(decision)
-        
+
         return f"✅ Evolution decision for '{rule_id}' recorded: {action}."
 
     def _register_prompts(self):
@@ -162,7 +197,7 @@ class AegisKernel:
 
         @self.mcp.prompt(
             name="evaluate-architecture",
-            description="Run a full architecture compliance evaluation on the workspace",
+            description="Run full architecture compliance evaluation on the workspace",
         )
         def evaluate_architecture_prompt() -> str:
             return (
@@ -215,20 +250,33 @@ class AegisKernel:
         """Register static governance artifacts as MCP resources."""
 
         @self.mcp.resource(
-            "aegis://rules", description="Architectural governance rules (rules.yaml)"
+            "aegis://rules",
+            description="Architectural governance rules (rules/ dir or rules.yaml)",
         )
         async def get_rules_resource() -> str:
-            path = os.path.join(self._workspace_root, ".aegis", "rules.yaml")
-            if not os.path.exists(path):
-                return "ERROR: rules.yaml not found."
-            try:
-                with open(path, encoding="utf-8") as f:
-                    return f.read()
-            except OSError as e:
-                self.logger.error(
-                    "Failed to read rules resource", path=path, error=str(e)
+            rules_dir = os.path.join(self._workspace_root, ".aegis", "rules")
+            rules_file = os.path.join(self._workspace_root, ".aegis", "rules.yaml")
+
+            if os.path.isdir(rules_dir):
+                parts = []
+                for f in sorted(os.listdir(rules_dir)):
+                    if f.endswith((".yaml", ".yml")):
+                        fp = os.path.join(rules_dir, f)
+                        try:
+                            with open(fp, encoding="utf-8") as fh:
+                                parts.append(f"# --- {f} ---\n{fh.read()}")
+                        except OSError as e:
+                            parts.append(f"# --- {f} ---\nERROR: {e}")
+                return (
+                    "\n\n".join(parts) if parts else "WARN: rules/ directory is empty."
                 )
-                return f"ERROR: reading rules.yaml — {e}"
+            if os.path.exists(rules_file):
+                try:
+                    with open(rules_file, encoding="utf-8") as f:
+                        return f.read()
+                except OSError as e:
+                    return f"ERROR: reading rules.yaml — {e}"
+            return "ERROR: No rules found. Run `aegis init` to create governance rules."
 
         @self.mcp.resource(
             "aegis://baseline", description="Architectural debt ledger (baseline.json)"
@@ -253,7 +301,10 @@ class AegisKernel:
         async def get_evolution_resource() -> str:
             path = os.path.join(self._workspace_root, ".aegis", "evolution_log.json")
             if not os.path.exists(path):
-                return "WARN: evolution_log.json not found — no evolution history recorded."
+                return (
+                    "WARN: evolution_log.json not found"
+                    " — no evolution history recorded."
+                )
             try:
                 with open(path, encoding="utf-8") as f:
                     return f.read()
@@ -315,19 +366,17 @@ class AegisKernel:
         """
         try:
             root = self._workspace_root
-            rules_path = os.path.join(root, ".aegis", "rules.yaml")
-
-            rules = []
+            rules = self._load_rules()
             active = []
             plugin_count = 0
             plugin_tools = 0
-
-            if self._policy_parser and os.path.exists(rules_path):
-                rules = self._policy_parser.parse_rules(rules_path)
             if self._evaluation_service and self._baseline_manager:
+                rules_map = {r.id: r for r in rules}
                 violations = self._evaluation_service.evaluate_workspace(root, rules)
                 active = [
-                    v for v in violations if not self._baseline_manager.is_exempt(v)
+                    v
+                    for v in violations
+                    if not self._baseline_manager.is_exempt(v, rules_map.get(v.rule_id))
                 ]
             if self.container is not None:
                 plugin_tools = len(self.container.custom_mcp_tools)
@@ -358,21 +407,31 @@ class AegisKernel:
             return "ERROR: Kernel not fully initialized — container unavailable."
 
         root = self._workspace_root
-        rules_path = os.path.join(root, ".aegis", "rules.yaml")
-        if not os.path.exists(rules_path):
-            return "ERROR: Aegis is not initialized — run `/aegis-init` to establish governance."
+        rules = self._load_rules()
+        if not rules:
+            return (
+                "ERROR: Aegis is not initialized"
+                " — run `/aegis-init` to establish governance."
+            )
 
-        rules = self._policy_parser.parse_rules(rules_path)
+        rules_map = {r.id: r for r in rules}
 
         if staged_only:
             violations = self._evaluation_service.evaluate_changes(rules, root_dir=root)
         else:
             violations = self._evaluation_service.evaluate_workspace(root, rules)
 
-        active = [v for v in violations if not self._baseline_manager.is_exempt(v)]
+        active = [
+            v
+            for v in violations
+            if not self._baseline_manager.is_exempt(v, rules_map.get(v.rule_id))
+        ]
 
         if not active:
-            return "PASS: Architecture compliance check passed. No new violations detected."
+            return (
+                "PASS: Architecture compliance check passed."
+                " No new violations detected."
+            )
 
         report = "FAIL: ARCHITECTURAL DRIFT DETECTED\n"
         report += "The following NEW violations must be resolved before proceeding:\n\n"
@@ -395,12 +454,15 @@ class AegisKernel:
             return "ERROR: Kernel not fully initialized — container unavailable."
 
         root = self._workspace_root
-        rules_path = os.path.join(root, ".aegis", "rules.yaml")
-        rules = self._policy_parser.parse_rules(rules_path)
+        rules = self._load_rules()
         rules_map = {r.id: r for r in rules}
 
         violations = self._evaluation_service.evaluate_workspace(root, rules)
-        active = [v for v in violations if not self._baseline_manager.is_exempt(v)]
+        active = [
+            v
+            for v in violations
+            if not self._baseline_manager.is_exempt(v, rules_map.get(v.rule_id))
+        ]
 
         if not active:
             return "PASS: Architecture is compliant. No remediation needed."
@@ -421,12 +483,7 @@ class AegisKernel:
         if not re.match(r"^[a-zA-Z0-9_-]+$", rule_id):
             return f"ERROR: rule_id '{rule_id}' contains invalid characters."
 
-        if self._policy_parser is None:
-            return "ERROR: Policy parser unavailable — container not initialized."
-
-        root = self._workspace_root
-        rules_path = os.path.join(root, ".aegis", "rules.yaml")
-        all_rules = self._policy_parser.parse_rules(rules_path)
+        all_rules = self._load_rules()
         rule = next((r for r in all_rules if r.id == rule_id), None)
 
         if not rule:

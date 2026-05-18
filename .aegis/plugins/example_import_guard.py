@@ -11,7 +11,7 @@ import os
 import re
 from collections.abc import Callable
 
-from aegis.core.models.governance import Rule, Severity, EnforcementMode
+from aegis.core.models.governance import Rule
 from aegis.core.plugins import CustomAnalyzerInterface
 from aegis.domain.evaluation.ports import ArchitecturalViolation
 
@@ -39,7 +39,9 @@ class ImportBoundaryGuard(CustomAnalyzerInterface):
 
             for i, line in enumerate(content.splitlines(), 1):
                 stripped = line.strip()
-                if not stripped.startswith("import ") and not stripped.startswith("from "):
+                if not stripped.startswith("import ") and not stripped.startswith(
+                    "from "
+                ):
                     continue
                 for target in target_patterns:
                     if re.search(target, stripped):

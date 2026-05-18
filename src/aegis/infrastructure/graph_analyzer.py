@@ -25,16 +25,10 @@ class GraphAnalyzer(GraphAnalyzerInterface):
                 continue
 
             if rule.query == "disallowed_import":
-                violations.extend(
-                    self._check_disallowed_imports(
-                        adjacency, file_imports, rule, root_dir
-                    )
-                )
+                violations.extend(self._check_disallowed_imports(file_imports, rule))
             elif rule.query == "circular_dependency":
                 violations.extend(
-                    self._check_circular_dependencies(
-                        adjacency, file_imports, rule, root_dir
-                    )
+                    self._check_circular_dependencies(adjacency, file_imports, rule)
                 )
 
         return violations
@@ -95,10 +89,8 @@ class GraphAnalyzer(GraphAnalyzerInterface):
 
     def _check_disallowed_imports(
         self,
-        adjacency: dict[str, set[str]],
         file_imports: dict[str, list[tuple[int, str]]],
         rule: Rule,
-        root_dir: str,
     ) -> list[ArchitecturalViolation]:
         """
         Flags imports from metadata.source namespace into metadata.target namespace.
@@ -136,7 +128,6 @@ class GraphAnalyzer(GraphAnalyzerInterface):
         adjacency: dict[str, set[str]],
         file_imports: dict[str, list[tuple[int, str]]],
         rule: Rule,
-        root_dir: str,
     ) -> list[ArchitecturalViolation]:
         """
         Detects circular dependencies using DFS with a recursion stack.
@@ -168,7 +159,7 @@ class GraphAnalyzer(GraphAnalyzerInterface):
                                             rule_id=rule.id,
                                             description=(
                                                 f"{rule.description}: "
-                                                f"circular dependency {node} -> {neighbor}"
+                                                f"circular: {node} -> {neighbor}"
                                             ),
                                             severity=rule.severity.value,
                                         )

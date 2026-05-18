@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -15,9 +15,8 @@ def kernel():
     mock_container = MagicMock()
     mock_container.workspace_root = "/fake/project"
 
-    # Mock policy parser
-    mock_parser = MagicMock()
-    mock_container.policy_parser = mock_parser
+    # Default: no rules loaded (tests override per-test)
+    mock_container.load_rules.return_value = []
 
     # Mock evaluation service
     mock_eval = MagicMock()
@@ -41,21 +40,19 @@ class TestMCPTools:
     """
 
     @pytest.mark.asyncio
-    @patch("aegis.kernel.server.os.path.exists", return_value=True)
-    async def test_validate_compliance_clean(self, _mock_exists, kernel):
+    async def test_validate_compliance_clean(self, kernel):
+        kernel.container.load_rules.return_value = [Rule(id="r1", description="desc")]
         kernel.container.evaluation_service.evaluate_workspace.return_value = []
         kernel.container.baseline_manager.is_exempt.return_value = False
-        kernel.container.policy_parser.parse_rules.return_value = []
 
         result = await kernel.validate_architecture_compliance(staged_only=False)
         assert "No new violations" in result
 
     @pytest.mark.asyncio
-    @patch("aegis.kernel.server.os.path.exists", return_value=True)
-    async def test_validate_compliance_with_violations(self, _mock_exists, kernel):
+    async def test_validate_compliance_with_violations(self, kernel):
         from aegis.domain.evaluation.ports import ArchitecturalViolation
 
-        kernel.container.policy_parser.parse_rules.return_value = [
+        kernel.container.load_rules.return_value = [
             Rule(
                 id="r1",
                 description="desc",
@@ -76,7 +73,7 @@ class TestMCPTools:
 
     @pytest.mark.asyncio
     async def test_apply_remediation_no_violations(self, kernel):
-        kernel.container.policy_parser.parse_rules.return_value = []
+        kernel.container.load_rules.return_value = []
         kernel.container.evaluation_service.evaluate_workspace.return_value = []
         kernel.container.baseline_manager.is_exempt.return_value = False
 
@@ -93,7 +90,7 @@ class TestMCPTools:
             severity=Severity.HIGH,
             mode=EnforcementMode.BLOCK,
         )
-        kernel.container.policy_parser.parse_rules.return_value = [rule]
+        kernel.container.load_rules.return_value = [rule]
         kernel.container.evaluation_service.evaluate_workspace.return_value = [
             ArchitecturalViolation(
                 file="src/main.py", line=5, rule_id="r1", description="violation"
@@ -114,7 +111,7 @@ class TestMCPTools:
             mode=EnforcementMode.BLOCK,
             rationale="Keep architecture clean.",
         )
-        kernel.container.policy_parser.parse_rules.return_value = [rule]
+        kernel.container.load_rules.return_value = [rule]
         kernel.container.evolution_service.load_log.return_value = MagicMock(
             decisions=[
                 EvolutionDecision(
@@ -132,7 +129,7 @@ class TestMCPTools:
 
     @pytest.mark.asyncio
     async def test_get_rule_rationale_not_found(self, kernel):
-        kernel.container.policy_parser.parse_rules.return_value = []
+        kernel.container.load_rules.return_value = []
 
         result = await kernel.get_rule_rationale("nonexistent")
         assert "not found" in result.lower()
@@ -168,10 +165,9 @@ class TestMCPTools:
         assert "not a valid module" in result
 
     @pytest.mark.asyncio
-    @patch("aegis.kernel.server.os.path.exists", return_value=True)
-    async def test_validate_compliance_staged(self, _mock_exists, kernel):
-        """validate_architecture_compliance with staged_only=True calls evaluate_changes."""
-        kernel.container.policy_parser.parse_rules.return_value = []
+    async def test_validate_compliance_staged(self, kernel):
+        """validate_architecture_compliance staged_only=True uses evaluate_changes."""
+        kernel.container.load_rules.return_value = [Rule(id="r1", description="desc")]
         kernel.container.evaluation_service.evaluate_changes.return_value = []
         kernel.container.baseline_manager.is_exempt.return_value = False
 
@@ -180,10 +176,9 @@ class TestMCPTools:
         kernel.container.evaluation_service.evaluate_changes.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch("aegis.kernel.server.os.path.exists", return_value=True)
-    async def test_validate_compliance_full_scan(self, _mock_exists, kernel):
-        """validate_architecture_compliance with staged_only=False calls evaluate_workspace."""
-        kernel.container.policy_parser.parse_rules.return_value = []
+    async def test_validate_compliance_full_scan(self, kernel):
+        """validate_architecture_compliance full scan uses evaluate_workspace."""
+        kernel.container.load_rules.return_value = [Rule(id="r1", description="desc")]
         kernel.container.evaluation_service.evaluate_workspace.return_value = []
         kernel.container.baseline_manager.is_exempt.return_value = False
 
@@ -192,16 +187,16 @@ class TestMCPTools:
         kernel.container.evaluation_service.evaluate_workspace.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch("aegis.kernel.server.os.path.exists", return_value=False)
-    async def test_validate_compliance_no_rules_yaml(self, _mock_exists, kernel):
-        """validate_architecture_compliance returns error when rules.yaml missing."""
-        result = await kernel.validate_architecture_compliance()
-        assert "not initialized" in result
-        kernel.container.policy_parser.parse_rules.return_value = []
+    async def test_validate_compliance_no_rules(self, kernel):
+        """validate_architecture_compliance returns error when no rules loaded."""
+        kernel.container.load_rules.return_value = []
         kernel.container.evaluation_service.evaluate_workspace.return_value = []
         kernel.container.baseline_manager.is_exempt.return_value = False
         kernel.container.custom_mcp_tools = []
         kernel.container.loaded_plugins = []
+
+        result = await kernel.validate_architecture_compliance()
+        assert "not initialized" in result
 
         result = await kernel.server_status()
         assert "Aegis Kernel Status" in result

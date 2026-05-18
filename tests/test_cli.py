@@ -17,7 +17,7 @@ class TestAegisCLI:
     def _mock_container(self):
         c = MagicMock()
         c.workspace_root = "/fake/project"
-        c.policy_parser.parse_rules.return_value = []
+        c.load_rules.return_value = []
         c.evaluation_service.evaluate_workspace.return_value = []
         c.evaluation_service.evaluate_changes.return_value = []
         c.baseline_manager.load_baseline_raw.return_value = []
@@ -41,7 +41,7 @@ class TestAegisCLI:
         assert "active_violations" in data
 
     def test_status_with_baseline(self):
-        """status does not crash when baseline has entries (regression: dict vs attrs)."""
+        """status does not crash when baseline has entries (dict vs attrs)."""
         container = self._mock_container()
         container.baseline_manager.load_baseline_raw.return_value = [
             {"file": "src/main.py", "line": 10, "rule_id": "r1"}
@@ -53,7 +53,7 @@ class TestAegisCLI:
     def test_status_engine_counts(self):
         """status reflects engine distribution."""
         container = self._mock_container()
-        container.policy_parser.parse_rules.return_value = [
+        container.load_rules.return_value = [
             Rule(id="r1", description="ts", engine_type=EngineType.TREE_SITTER),
             Rule(id="r2", description="graph", engine_type=EngineType.GRAPH),
         ]
@@ -67,9 +67,7 @@ class TestAegisCLI:
     def test_status_with_active_violations(self):
         """status reports active (non-baseline-exempt) violations."""
         container = self._mock_container()
-        container.policy_parser.parse_rules.return_value = [
-            Rule(id="r1", description="test")
-        ]
+        container.load_rules.return_value = [Rule(id="r1", description="test")]
         container.evaluation_service.evaluate_workspace.return_value = [
             ArchitecturalViolation(file="x.py", line=1, rule_id="r1", description="bad")
         ]
@@ -82,9 +80,7 @@ class TestAegisCLI:
     def test_status_baseline_exempt_not_counted(self):
         """Baseline-exempt violations excluded from active count."""
         container = self._mock_container()
-        container.policy_parser.parse_rules.return_value = [
-            Rule(id="r1", description="test")
-        ]
+        container.load_rules.return_value = [Rule(id="r1", description="test")]
         container.evaluation_service.evaluate_workspace.return_value = [
             ArchitecturalViolation(file="x.py", line=1, rule_id="r1", description="bad")
         ]
@@ -112,7 +108,7 @@ class TestAegisCLI:
         with open(rules_file, "w", encoding="utf-8") as f:
             f.write("rules: []")
         container.workspace_root = str(tmp_path)
-        container.policy_parser.parse_rules.return_value = []
+        container.load_rules.return_value = [Rule(id="r1", description="test")]
         cli = self._cli(container)
         result = runner.invoke(cli.app, ["apply"])
         assert "No active violations" in result.stdout
@@ -126,9 +122,7 @@ class TestAegisCLI:
         with open(rules_file, "w", encoding="utf-8") as f:
             f.write('rules: [{"id": "r1", "description": "test"}]')
         container.workspace_root = str(tmp_path)
-        container.policy_parser.parse_rules.return_value = [
-            Rule(id="r1", description="test")
-        ]
+        container.load_rules.return_value = [Rule(id="r1", description="test")]
         container.evaluation_service.evaluate_workspace.return_value = [
             ArchitecturalViolation(
                 file="src/main.py", line=5, rule_id="r1", description="violation"
@@ -148,9 +142,7 @@ class TestAegisCLI:
         with open(rules_file, "w", encoding="utf-8") as f:
             f.write('rules: [{"id": "r1", "description": "test"}]')
         container.workspace_root = str(tmp_path)
-        container.policy_parser.parse_rules.return_value = [
-            Rule(id="r1", description="test")
-        ]
+        container.load_rules.return_value = [Rule(id="r1", description="test")]
         container.evaluation_service.evaluate_workspace.return_value = [
             ArchitecturalViolation(
                 file="src/main.py", line=5, rule_id="r1", description="violation"
@@ -173,9 +165,7 @@ class TestAegisCLI:
         with open(rules_file, "w", encoding="utf-8") as f:
             f.write('rules: [{"id": "r1", "description": "test"}]')
         container.workspace_root = str(tmp_path)
-        container.policy_parser.parse_rules.return_value = [
-            Rule(id="r1", description="test")
-        ]
+        container.load_rules.return_value = [Rule(id="r1", description="test")]
         cli = self._cli(container)
         result = runner.invoke(
             cli.app,
@@ -194,6 +184,7 @@ class TestAegisCLI:
         with open(rules_file, "w", encoding="utf-8") as f:
             f.write("rules: []")
         container.workspace_root = str(tmp_path)
+        container.load_rules.return_value = [Rule(id="r1", description="test")]
         cli = self._cli(container)
         result = runner.invoke(cli.app, ["evolve", "nonexistent"])
         assert "not found" in result.stdout
@@ -230,7 +221,7 @@ class TestAegisCLI:
         cli = self._cli(container)
         result = runner.invoke(cli.app, ["check"])
         assert result.exit_code == 1
-        assert "rules.yaml not found" in result.stdout
+        assert "No rules found" in result.stdout
 
     def test_check_compliant(self, tmp_path):
         """check prints compliant when no violations."""
@@ -241,6 +232,7 @@ class TestAegisCLI:
         with open(rules_file, "w", encoding="utf-8") as f:
             f.write("rules: []")
         container.workspace_root = str(tmp_path)
+        container.load_rules.return_value = [Rule(id="r1", description="test")]
         cli = self._cli(container)
         result = runner.invoke(cli.app, ["check"])
         assert result.exit_code == 0
@@ -254,10 +246,12 @@ class TestAegisCLI:
         rules_file = os.path.join(rules_dir, "rules.yaml")
         with open(rules_file, "w", encoding="utf-8") as f:
             f.write(
-                'rules: [{"id": "r1", "description": "test", "severity": "HIGH", "mode": "block"}]'
+                "rules: ["
+                '{"id": "r1", "description": "test",'
+                ' "severity": "HIGH", "mode": "block"}]'
             )
         container.workspace_root = str(tmp_path)
-        container.policy_parser.parse_rules.return_value = [
+        container.load_rules.return_value = [
             Rule(
                 id="r1",
                 description="test",
@@ -284,7 +278,7 @@ class TestAegisCLI:
         with open(rules_file, "w", encoding="utf-8") as f:
             f.write("rules: []")
         container.workspace_root = str(tmp_path)
-        container.policy_parser.parse_rules.return_value = []
+        container.load_rules.return_value = [Rule(id="r1", description="test")]
         container.evaluation_service.evaluate_workspace.return_value = [
             ArchitecturalViolation(
                 file="src/main.py", line=1, rule_id="nonexistent", description="test"

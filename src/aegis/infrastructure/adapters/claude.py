@@ -1,16 +1,19 @@
-import os
+import importlib.resources
 import json
+import os
 import shutil
 import subprocess
-import importlib.resources
 from pathlib import Path
+
 from aegis.infrastructure.adapters.base import ToolAdapter, logger
+
 
 class ClaudeAdapter(ToolAdapter):
     """
     Native adapter for Anthropic Claude (Desktop and CLI).
     Prioritizes official CLI-based installation where available.
     """
+
     @property
     def name(self) -> str:
         return "Claude"
@@ -27,7 +30,7 @@ class ClaudeAdapter(ToolAdapter):
         if self._try_native_mcp_add():
             self._deploy_skills()
             return True
-            
+
         # 2. Fallback to raw config mutation (Robust Default)
         self._manual_config_injection()
         self._deploy_skills()
@@ -39,10 +42,19 @@ class ClaudeAdapter(ToolAdapter):
             # Command: claude mcp add [name] [command] [args...]
             # This is the 'Native Plugin' installation method for Claude Code
             result = subprocess.run(
-                ["claude", "mcp", "add", "aegis", "aegis-kernel", "--", "--transport", "stdio"], 
-                capture_output=True, 
+                [
+                    "claude",
+                    "mcp",
+                    "add",
+                    "aegis",
+                    "aegis-kernel",
+                    "--",
+                    "--transport",
+                    "stdio",
+                ],
+                capture_output=True,
                 text=True,
-                check=False
+                check=False,
             )
             return result.returncode == 0
         except FileNotFoundError:
@@ -52,11 +64,11 @@ class ClaudeAdapter(ToolAdapter):
         """Fallback: Directly mutate the Claude Desktop configuration JSON."""
         config_path = self.home / ".claude" / "claude_desktop_config.json"
         config_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         config = {"mcpServers": {}}
         if config_path.exists():
             try:
-                with open(config_path, "r", encoding="utf-8") as f:
+                with open(config_path, encoding="utf-8") as f:
                     config = json.load(f)
             except json.JSONDecodeError:
                 pass
@@ -66,7 +78,7 @@ class ClaudeAdapter(ToolAdapter):
 
         config["mcpServers"]["aegis"] = {
             "command": "aegis-kernel",
-            "args": ["--transport", "stdio"]
+            "args": ["--transport", "stdio"],
         }
 
         with open(config_path, "w", encoding="utf-8") as f:
@@ -76,7 +88,7 @@ class ClaudeAdapter(ToolAdapter):
         """Deploys AI instruction skills to Claude's native skills directory."""
         skills_dest = self.home / ".claude" / "skills"
         skills_dest.mkdir(parents=True, exist_ok=True)
-        
+
         try:
             traversable = importlib.resources.files("aegis.resources.skills")
             for item in traversable.iterdir():

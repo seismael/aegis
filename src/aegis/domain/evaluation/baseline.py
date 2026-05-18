@@ -3,6 +3,7 @@ import os
 
 from pydantic import BaseModel
 
+from aegis.core.models.governance import Rule, RuleCategory
 from aegis.domain.evaluation.ports import ArchitecturalViolation
 
 
@@ -50,7 +51,17 @@ class BaselineManager:
             with open(self.path, "w", encoding="utf-8") as f:
                 json.dump(baseline, f, indent=2)
 
-    def is_exempt(self, violation: ArchitecturalViolation) -> bool:
+    def is_exempt(
+        self, violation: ArchitecturalViolation, rule: Rule | None = None
+    ) -> bool:
+        """
+        Evaluates if a violation is grandfathered into the technical debt ledger.
+        SECURITY rules strictly bypass the baseline and are never exempt.
+        """
+        # Zero-tolerance: security violations never exempt
+        if rule is not None and rule.category == RuleCategory.SECURITY:
+            return False
+
         if not os.path.exists(self.path):
             return False
 
@@ -64,25 +75,22 @@ class BaselineManager:
     def _match(self, baseline_entry: dict, violation: ArchitecturalViolation) -> bool:
         """
         Determines if a violation matches a baseline entry.
-        Prioritizes signature-based matching to resist line drift.
-        Falls back to file/line/rule matching for legacy entries.
-        Defensively handles malformed or partial entries with .get().
+        Uses structural signature matching when available;
+        falls back to file/line/rule for violations without signatures.
         """
         rid = baseline_entry.get("rule_id")
+        sig = baseline_entry.get("signature") or None
 
-        # 1. Signature match (Strongest)
-        sig = baseline_entry.get("signature")
-        if sig and violation.signature:
-            if sig == violation.signature and rid == violation.rule_id:
-                return True
+        if sig:
+            if not violation.signature:
+                return False
+            return sig == violation.signature and rid == violation.rule_id
 
-        # 2. File/Line/Rule fallback (Legacy)
-        bf = baseline_entry.get("file")
-        bl = baseline_entry.get("line")
-        if bf == violation.file and rid == violation.rule_id and bl == violation.line:
-            return True
-
-        return False
+        return (
+            baseline_entry.get("file") == violation.file
+            and rid == violation.rule_id
+            and baseline_entry.get("line") == violation.line
+        )
 
     def load_baseline_raw(self) -> list[dict]:
         if not os.path.exists(self.path):
@@ -94,7 +102,7 @@ class BaselineManager:
                 return []
 
     def prune_stale(self, active_rule_ids: set) -> int:
-        """Remove baseline entries for rules that no longer exist. Returns count removed."""
+        """Remove baseline entries for rules that no longer exist."""
         if not os.path.exists(self.path):
             return 0
         with open(self.path, encoding="utf-8") as f:

@@ -24,8 +24,17 @@ class EnforcementMode(StrEnum):
     FIX = "fix"
 
 
+class RuleCategory(StrEnum):
+    """Policy taxonomy. Determines enforcement priority and baseline eligibility."""
+
+    ARCHITECTURE = "architecture"
+    SECURITY = "security"
+    TESTING = "testing"
+    STYLE = "style"
+
+
 class EngineType(StrEnum):
-    """Analysis engine routing discriminant. Determines which analyzer processes the rule."""
+    """Engine routing discriminant. Determines which analyzer processes a rule."""
 
     TREE_SITTER = "tree-sitter"
     GRAPH = "graph"
@@ -41,6 +50,9 @@ class Rule(BaseModel):
     description: str
     severity: Severity = Severity.HIGH
     mode: EnforcementMode = EnforcementMode.BLOCK
+
+    # Policy taxonomy (backward-compat default: architecture)
+    category: RuleCategory = RuleCategory.ARCHITECTURE
 
     # Evaluation engine type (default: tree-sitter for backward compat)
     engine_type: EngineType = EngineType.TREE_SITTER

@@ -1,47 +1,40 @@
-# Aegis Target Specification
+# Aegis: Technical Target Specification
 
-## L0: Universal Installer
-Aegis provides a global installation layer that binds into the developer's AI toolchain:
-- `uv run aegis install` — Registers the Aegis MCP server into `~/.claude/claude_desktop_config.json` and `~/.aider.conf.yml`, and deploys agentic skills to `~/.claude/skills/`.
-- The installer is idempotent and operates independently of any project repository.
-- After installation, `/aegis-*` commands are available natively in any Claude Code session.
+## Layer 0: The Universal Bootstrapper
+Aegis provides a global installation layer that binds into the developer's agentic toolchain.
+- **Universal Command**: `uv run aegis install`
+- **Action**: Registers the Aegis MCP server into global configurations (e.g., `claude_desktop_config.json`, `.aider.conf.yml`) and deploys agentic skills to native skill directories.
+- **Invariant**: The installer is idempotent and project-agnostic.
 
-## L1: The Aegis Governance Engine
-Aegis is a localized microkernel for the **Negotiation** and **Enforcement** of architectural invariants. Supports 3 evaluation engines: tree-sitter (AST), graph (cross-file dependency), and regex (pattern matching).
+## Layer 1: The Governance Microkernel
+The Aegis Kernel is the engine of **Architectural Enforcement**. It supports three primary evaluation strategies:
+1.  **AST (Tree-sitter)**: Language-aware structural analysis.
+2.  **Graph**: Cross-file dependency and coupling analysis.
+3.  **Regex**: High-speed pattern matching for simple invariants.
 
-## L2: Domain Decomposition (Execution Engine)
-- **Policy Domain**: Structured YAML-to-Rule parsing. Supports EngineType routing, per-rule excludes, and positive/negative rule queries.
-- **Evaluation Domain**: AST analysis, regex pattern analysis, cross-file dependency graph analysis. Multi-engine dispatch with `_filter_excluded` for per-rule path exclusion.
-- **Enforcement Domain**: Gating decisions, remediation prompt synthesis, and CI/CD integration.
-- **Evolution Domain**: Consensus logging (`evolution_log.json`), decision persistence, and architectural debt ledger (`baseline.json`).
+## Layer 2: Domain Architecture (Execution Engine)
+- **Policy Domain**: Orchestrates the YAML-to-Model transformation. Supports multi-engine routing and scope-aware filtering.
+- **Evaluation Domain**: Dispatches analysis to the specialized engines. Implements hunk-aware diffing to ensure performance.
+- **Enforcement Domain**: Decision engine for gating (allow/warn/block) and remediation synthesis.
+- **Evolution Domain**: Persistent ledger of consensus decisions (`evolution_log.json`) and technical debt (`baseline.json`).
 
-## L3: Authoring Layer (AI Skills)
-All architectural laws are discovered and codified via **AI Skills** located in `.claude/skills/`. This allows for natural language negotiation of perfection.
-- `aegis-init` — 3-state initialization protocol (Detection → Interview Loop → Compilation)
-- `aegis-rule-add` — Rule authoring with MCP auto-evaluation
-- `aegis-rule-modify` — Rule evolution with auditable rationale logging
-- `aegis-evaluate` — Scorecard rendering with baseline comparison
+## Layer 3: The Agentic Interface (MCP)
+The **Aegis Kernel** exposes its capabilities via the **Model Context Protocol (MCP)**, offering three tiers of integration:
 
-## L3.5: Agentic Operational Invariants
-See `AGENTS.md` for the agentic operational invariants — workflow conventions that AI agents must follow when working in this project.
+### 3.1 Tools (Actionable Commands)
+- `validate_architecture_compliance`: Executes a full-workspace or hunk-aware scan.
+- `apply_architectural_remediation`: Returns structured, RAG-optimized fix instructions.
+- `get_rule_rationale`: Fetches the human-provided "Why" behind a law.
+- `get_dependency_graph`: Visualizes module coupling and identifies leaks.
 
-## L3.6: MCP Server (AI Agent Integration)
-The `AegisKernel` runs as an MCP server with three capability layers:
-- **6 Tools**: `get_architecture_spec`, `validate_architecture_compliance`, `apply_architectural_remediation`, `get_rule_rationale`, `get_dependency_graph`, `server_status`
-- **4 Resources**: `aegis://rules`, `aegis://baseline`, `aegis://evolution`, `aegis://spec` (read-only governance artifacts)
-- **4 Prompts**: `evaluate-architecture`, `remediate-violations`, `explain-rule`, `inspect-dependency` (workflow templates)
+### 3.2 Resources (Governance Artifacts)
+- `aegis://rules`: The machine-readable rule matrix.
+- `aegis://baseline`: The technical debt ledger.
+- `aegis://evolution`: The auditable decision log.
 
-Supports three transports: `stdio` (default), `sse`, `streamable-http`.
+### 3.3 Prompts (Workflow Templates)
+- `evaluate-architecture`: A standard workflow for agents to verify compliance before submission.
+- `remediate-violations`: A guided workflow for fixing complex architectural drift.
 
-## L4: Active Rules
-See `.aegis/rules.yaml` for the machine-parseable source of truth.
-
-### Current Rules (6 total, 0 baselined debt)
-| ID | Engine | Severity | Mode | Scope |
-|---|---|---|---|---|
-| strict-ood | tree-sitter | HIGH | block | src/ except cli/ |
-| hexagonal-isolation | tree-sitter | HIGH | block | domain/ except container,kernel,tests |
-| no-circular-deps | graph | HIGH | block | all py |
-| required-docstrings | tree-sitter | MEDIUM | report | all py |
-| no-print-statements | regex | MEDIUM | warn | src/ except tests,cli,installer |
-| no-wildcard-imports | regex | MEDIUM | warn | all py |
+## Layer 4: Active Law Matrix
+Current active rules are defined in `.aegis/rules/*.yaml`. For the latest state of the project's self-governance, refer to the rule matrix via `aegis status`.

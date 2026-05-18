@@ -99,7 +99,7 @@ class TreeSitterAnalyzer(RuleAnalyzerInterface):
                                         file_path,
                                         node,
                                         rule,
-                                        desc=f"Compliance check failed: {rule.description}",
+                                        desc=f"Compliance failed: {rule.description}",
                                     )
                                 )
 

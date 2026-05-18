@@ -15,7 +15,7 @@ _LANG_EXT_MAP = {
 
 
 class RegexAnalyzer(RegexAnalyzerInterface):
-    """Regex-based pattern analyzer. Respects rule.language to only scan matching file extensions."""
+    """Regex-based pattern analyzer. Respects rule.language for matching file types."""
 
     def __init__(self):
         self._pattern_cache: dict[str, re.Pattern | None] = {}
