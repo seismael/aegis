@@ -1,0 +1,5 @@
+
+[[mcp_servers]]
+name = "aegis"
+command = "uv"
+args = ["run", "aegis-kernel", "--transport", "stdio"]
