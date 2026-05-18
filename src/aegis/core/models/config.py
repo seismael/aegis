@@ -10,7 +10,6 @@ class AegisConfig(BaseModel):
     phase_defaults: dict[str, list[str]] | None = Field(
         default=None,
         description=(
-            "Category-level phase overrides, "
-            "e.g. {'security': ['ci', 'nightly']}"
+            "Category-level phase overrides, e.g. {'security': ['ci', 'nightly']}"
         ),
     )

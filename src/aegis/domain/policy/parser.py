@@ -5,7 +5,7 @@ import httpx
 import structlog
 import yaml
 
-from aegis.domain.policy.models import Rule
+from aegis.domain.policy.models import Rule, RuleCategory
 
 logger = structlog.get_logger()
 
@@ -73,6 +73,62 @@ class PolicyParser:
 
         return rules
 
+    def _validate_pack_directories(self, rules_dir: Path) -> None:
+        """Warn about subdirectory names that don't match any RuleCategory value."""
+        valid = {m.value for m in RuleCategory}
+        bad_dirs: list[str] = []
+        for entry in sorted(rules_dir.iterdir()):
+            if not entry.is_dir() or entry.name in valid:
+                continue
+            # Only flag directories that actually contain rule files
+            if not any(f.suffix in (".yaml", ".yml") for f in entry.rglob("*")):
+                continue
+            # Check if any rule file in this dir relies on category inference
+            # (i.e., lacks an explicit 'category' field)
+            has_implicit = False
+            for yf in entry.rglob("*.*y*ml"):
+                if yf.name == "pack.yaml":
+                    continue
+                try:
+                    with open(yf, encoding="utf-8") as fh:
+                        yd = yaml.safe_load(fh)
+                        if yd and "rules" in yd:
+                            for r in yd["rules"]:
+                                if "category" not in r:
+                                    has_implicit = True
+                                    break
+                    if has_implicit:
+                        break
+                except Exception:
+                    continue
+            if has_implicit:
+                bad_dirs.append(entry.name)
+
+        if bad_dirs:
+            fix_hint = (
+                "Rename to match a valid category or"
+                " add 'category: <valid>' to each rule"
+            )
+            logger.warning(
+                "Rule pack directories with names that don't match any RuleCategory — "
+                "rules without explicit 'category' field won't parse",
+                directories=bad_dirs,
+                valid_categories=sorted(valid),
+                fix=fix_hint,
+            )
+
+    def _warn_duplicate_ids(self, rules: list[Rule]) -> None:
+        """Warn about duplicate rule IDs across loaded packs."""
+        seen: dict[str, list[str]] = {}
+        for r in rules:
+            seen.setdefault(r.id, []).append(r.description)
+        dupes = {k: v for k, v in seen.items() if len(v) > 1}
+        if dupes:
+            logger.warning(
+                "Duplicate rule IDs detected — only the last-loaded version wins",
+                duplicates={k: len(v) for k, v in dupes.items()},
+            )
+
     def parse_directory(self, rules_dir: str) -> list[Rule]:
         """
         Scans a directory of .yaml rule packs (recursively) and merges them into
@@ -89,6 +145,9 @@ class PolicyParser:
 
         all_rules: list[Rule] = []
         target_dir = Path(rules_dir)
+
+        # Validate directory names against RuleCategory enum
+        self._validate_pack_directories(target_dir)
 
         for yaml_file in sorted(target_dir.rglob("*.*y*ml")):
             if yaml_file.name == "pack.yaml":
@@ -124,6 +183,8 @@ class PolicyParser:
                 logger.error(
                     "Failed to parse rule pack", file=yaml_file.name, error=str(e)
                 )
+
+        self._warn_duplicate_ids(all_rules)
 
         logger.info("Loaded governance rules from directory", total=len(all_rules))
         return all_rules

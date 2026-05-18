@@ -467,3 +467,49 @@ class TestPolicyParserDirectory:
         rules = parser.parse_directory(str(rules_dir))
         assert len(rules) == 1
         assert rules[0].category == RuleCategory.SECURITY
+
+    def test_invalid_category_directory_skips_rules(self, tmp_path):
+        """Subdirectory name that isn't a valid RuleCategory → rules are skipped."""
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        bad_dir = rules_dir / "custom"
+        bad_dir.mkdir()
+        (bad_dir / "rules.yaml").write_text(
+            yaml.dump({"rules": [{"id": "r1", "description": "in custom dir"}]}),
+            encoding="utf-8",
+        )
+        arch_dir = rules_dir / "architecture"
+        arch_dir.mkdir()
+        (arch_dir / "rules.yaml").write_text(
+            yaml.dump({"rules": [{"id": "arch-1", "description": "Arch rule"}]}),
+            encoding="utf-8",
+        )
+        parser = PolicyParser()
+        rules = parser.parse_directory(str(rules_dir))
+        assert len(rules) == 1
+        assert rules[0].id == "arch-1"
+
+    def test_explicit_category_in_invalid_directory(self, tmp_path):
+        """Rules in invalid directory with explicit category still load."""
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        bad_dir = rules_dir / "custom"
+        bad_dir.mkdir()
+        (bad_dir / "rules.yaml").write_text(
+            yaml.dump(
+                {
+                    "rules": [
+                        {
+                            "id": "r1",
+                            "description": "rule with explicit category",
+                            "category": "architecture",
+                        }
+                    ]
+                }
+            ),
+            encoding="utf-8",
+        )
+        parser = PolicyParser()
+        rules = parser.parse_directory(str(rules_dir))
+        assert len(rules) == 1
+        assert rules[0].category == RuleCategory.ARCHITECTURE

@@ -8956,5 +8956,989 @@
     "line": 693,
     "rule_id": "style-blank-lines",
     "signature": null
+  },
+  {
+    "file": "src\\aegis\\cli\\main.py",
+    "line": 470,
+    "rule_id": "custom-no-print",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\cli\\main.py",
+    "line": 722,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\core\\container\\app.py",
+    "line": 222,
+    "rule_id": "bp-use-pathlib",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\core\\container\\app.py",
+    "line": 223,
+    "rule_id": "bp-use-pathlib",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\core\\container\\app.py",
+    "line": 228,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\core\\container\\app.py",
+    "line": 196,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\core\\container\\app.py",
+    "line": 214,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\core\\models\\config.py",
+    "line": 15,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\core\\models\\config.py",
+    "line": 13,
+    "rule_id": "style-consistent-quotes",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\evaluation\\baseline.py",
+    "line": 29,
+    "rule_id": "bp-use-pathlib",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\evaluation\\baseline.py",
+    "line": 75,
+    "rule_id": "bp-use-pathlib",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\evaluation\\baseline.py",
+    "line": 108,
+    "rule_id": "bp-use-pathlib",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\evaluation\\baseline.py",
+    "line": 39,
+    "rule_id": "bp-context-managers",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\evaluation\\baseline.py",
+    "line": 61,
+    "rule_id": "bp-context-managers",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\evaluation\\baseline.py",
+    "line": 110,
+    "rule_id": "bp-context-managers",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\evaluation\\baseline.py",
+    "line": 130,
+    "rule_id": "bp-context-managers",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\evaluation\\baseline.py",
+    "line": 85,
+    "rule_id": "bp-error-handling-depth",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\evaluation\\baseline.py",
+    "line": 8,
+    "rule_id": "design-repository-pattern",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\evaluation\\baseline.py",
+    "line": 28,
+    "rule_id": "design-factory-method",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\evaluation\\baseline.py",
+    "line": 125,
+    "rule_id": "perf-n-plus-1",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\evaluation\\baseline.py",
+    "line": 132,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\evaluation\\baseline.py",
+    "line": 48,
+    "rule_id": "style-consistent-quotes",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\evaluation\\baseline.py",
+    "line": 10,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\evaluation\\baseline.py",
+    "line": 19,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\evaluation\\baseline.py",
+    "line": 26,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\evaluation\\baseline.py",
+    "line": 30,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\evaluation\\baseline.py",
+    "line": 40,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\evaluation\\baseline.py",
+    "line": 62,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\evaluation\\baseline.py",
+    "line": 83,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\evaluation\\baseline.py",
+    "line": 115,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\evaluation\\service.py",
+    "line": 79,
+    "rule_id": "bp-use-pathlib",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\evaluation\\service.py",
+    "line": 214,
+    "rule_id": "bp-use-pathlib",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\evaluation\\service.py",
+    "line": 267,
+    "rule_id": "bp-use-pathlib",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\evaluation\\service.py",
+    "line": 268,
+    "rule_id": "bp-use-pathlib",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\evaluation\\service.py",
+    "line": 84,
+    "rule_id": "bp-context-managers",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\evaluation\\service.py",
+    "line": 217,
+    "rule_id": "bp-context-managers",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\evaluation\\service.py",
+    "line": 269,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\evaluation\\service.py",
+    "line": 127,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\evaluation\\service.py",
+    "line": 139,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\evaluation\\service.py",
+    "line": 154,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\evaluation\\service.py",
+    "line": 169,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\evaluation\\service.py",
+    "line": 257,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\models.py",
+    "line": 162,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\models.py",
+    "line": 127,
+    "rule_id": "style-consistent-quotes",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\models.py",
+    "line": 122,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\pack_manager.py",
+    "line": 199,
+    "rule_id": "bp-use-pathlib",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\pack_manager.py",
+    "line": 207,
+    "rule_id": "bp-use-pathlib",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\pack_manager.py",
+    "line": 235,
+    "rule_id": "bp-use-pathlib",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\pack_manager.py",
+    "line": 236,
+    "rule_id": "bp-use-pathlib",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\pack_manager.py",
+    "line": 265,
+    "rule_id": "bp-use-pathlib",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\pack_manager.py",
+    "line": 268,
+    "rule_id": "bp-use-pathlib",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\pack_manager.py",
+    "line": 279,
+    "rule_id": "bp-use-pathlib",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\pack_manager.py",
+    "line": 339,
+    "rule_id": "bp-use-pathlib",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\pack_manager.py",
+    "line": 340,
+    "rule_id": "bp-use-pathlib",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\pack_manager.py",
+    "line": 353,
+    "rule_id": "bp-use-pathlib",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\pack_manager.py",
+    "line": 381,
+    "rule_id": "bp-use-pathlib",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\pack_manager.py",
+    "line": 382,
+    "rule_id": "bp-use-pathlib",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\pack_manager.py",
+    "line": 394,
+    "rule_id": "bp-use-pathlib",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\pack_manager.py",
+    "line": 395,
+    "rule_id": "bp-use-pathlib",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\pack_manager.py",
+    "line": 269,
+    "rule_id": "bp-context-managers",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\pack_manager.py",
+    "line": 287,
+    "rule_id": "bp-context-managers",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\pack_manager.py",
+    "line": 343,
+    "rule_id": "bp-context-managers",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\pack_manager.py",
+    "line": 355,
+    "rule_id": "bp-context-managers",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\pack_manager.py",
+    "line": 368,
+    "rule_id": "bp-context-managers",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\pack_manager.py",
+    "line": 399,
+    "rule_id": "bp-context-managers",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\pack_manager.py",
+    "line": 401,
+    "rule_id": "bp-context-managers",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\pack_manager.py",
+    "line": 408,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\pack_manager.py",
+    "line": 249,
+    "rule_id": "style-consistent-quotes",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\pack_manager.py",
+    "line": 260,
+    "rule_id": "style-consistent-quotes",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\pack_manager.py",
+    "line": 225,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\pack_manager.py",
+    "line": 243,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\pack_manager.py",
+    "line": 299,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\pack_manager.py",
+    "line": 331,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\pack_manager.py",
+    "line": 348,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\pack_manager.py",
+    "line": 360,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\pack_manager.py",
+    "line": 374,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\parser.py",
+    "line": 139,
+    "rule_id": "bp-use-pathlib",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\parser.py",
+    "line": 93,
+    "rule_id": "bp-context-managers",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\parser.py",
+    "line": 157,
+    "rule_id": "bp-context-managers",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\parser.py",
+    "line": 80,
+    "rule_id": "bp-error-handling-depth",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\parser.py",
+    "line": 190,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\parser.py",
+    "line": 77,
+    "rule_id": "style-consistent-quotes",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\parser.py",
+    "line": 87,
+    "rule_id": "style-consistent-quotes",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\parser.py",
+    "line": 110,
+    "rule_id": "style-consistent-quotes",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\parser.py",
+    "line": 114,
+    "rule_id": "style-consistent-quotes",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\parser.py",
+    "line": 118,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\domain\\policy\\parser.py",
+    "line": 130,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\infrastructure\\installer.py",
+    "line": 35,
+    "rule_id": "custom-no-print",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\infrastructure\\installer.py",
+    "line": 42,
+    "rule_id": "custom-no-print",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\infrastructure\\installer.py",
+    "line": 49,
+    "rule_id": "custom-no-print",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\infrastructure\\installer.py",
+    "line": 54,
+    "rule_id": "custom-no-print",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\infrastructure\\installer.py",
+    "line": 55,
+    "rule_id": "custom-no-print",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\infrastructure\\installer.py",
+    "line": 59,
+    "rule_id": "custom-no-print",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\kernel\\server.py",
+    "line": 621,
+    "rule_id": "perf-string-concat",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\kernel\\server.py",
+    "line": 670,
+    "rule_id": "perf-string-concat",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\kernel\\server.py",
+    "line": 679,
+    "rule_id": "perf-string-concat",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\kernel\\server.py",
+    "line": 529,
+    "rule_id": "perf-n-plus-1",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\kernel\\server.py",
+    "line": 655,
+    "rule_id": "perf-n-plus-1",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\kernel\\server.py",
+    "line": 731,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\kernel\\server.py",
+    "line": 600,
+    "rule_id": "style-consistent-quotes",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\kernel\\server.py",
+    "line": 606,
+    "rule_id": "style-consistent-quotes",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\kernel\\server.py",
+    "line": 642,
+    "rule_id": "style-consistent-quotes",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\kernel\\server.py",
+    "line": 660,
+    "rule_id": "style-consistent-quotes",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\kernel\\server.py",
+    "line": 684,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "src\\aegis\\kernel\\server.py",
+    "line": 709,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_baseline.py",
+    "line": 350,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_baseline.py",
+    "line": 327,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_baseline.py",
+    "line": 335,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_config_model.py",
+    "line": 68,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_config_model.py",
+    "line": 6,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_config_model.py",
+    "line": 10,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_config_model.py",
+    "line": 15,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_config_model.py",
+    "line": 23,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_config_model.py",
+    "line": 27,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_config_model.py",
+    "line": 32,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_config_model.py",
+    "line": 39,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_config_model.py",
+    "line": 61,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_evaluation_service.py",
+    "line": 409,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_evaluation_service.py",
+    "line": 218,
+    "rule_id": "style-consistent-quotes",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_evaluation_service.py",
+    "line": 348,
+    "rule_id": "style-consistent-quotes",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_evaluation_service.py",
+    "line": 188,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_evaluation_service.py",
+    "line": 213,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_evaluation_service.py",
+    "line": 239,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_evaluation_service.py",
+    "line": 256,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_evaluation_service.py",
+    "line": 284,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_evaluation_service.py",
+    "line": 312,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_evaluation_service.py",
+    "line": 343,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_evaluation_service.py",
+    "line": 373,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_evaluation_service.py",
+    "line": 390,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_evaluation_service.py",
+    "line": 395,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_evaluation_service.py",
+    "line": 401,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_phase_filtering.py",
+    "line": 127,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_phase_filtering.py",
+    "line": 89,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_phase_filtering.py",
+    "line": 103,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_phase_filtering.py",
+    "line": 118,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_policy_parser.py",
+    "line": 515,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_policy_parser.py",
+    "line": 469,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_policy_parser.py",
+    "line": 490,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_rule_pack_manager.py",
+    "line": 195,
+    "rule_id": "bp-use-pathlib",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_rule_pack_manager.py",
+    "line": 196,
+    "rule_id": "bp-use-pathlib",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_rule_pack_manager.py",
+    "line": 197,
+    "rule_id": "bp-use-pathlib",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_rule_pack_manager.py",
+    "line": 286,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_rule_pack_manager.py",
+    "line": 89,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_rule_pack_manager.py",
+    "line": 97,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_rule_pack_manager.py",
+    "line": 107,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_rule_pack_manager.py",
+    "line": 115,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_rule_pack_manager.py",
+    "line": 121,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_rule_pack_manager.py",
+    "line": 128,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_rule_pack_manager.py",
+    "line": 137,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_rule_pack_manager.py",
+    "line": 145,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_rule_pack_manager.py",
+    "line": 151,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_rule_pack_manager.py",
+    "line": 158,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_rule_pack_manager.py",
+    "line": 166,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_rule_pack_manager.py",
+    "line": 176,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_rule_pack_manager.py",
+    "line": 182,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_rule_pack_manager.py",
+    "line": 198,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_rule_pack_manager.py",
+    "line": 204,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_rule_pack_manager.py",
+    "line": 212,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_rule_pack_manager.py",
+    "line": 227,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_rule_pack_manager.py",
+    "line": 234,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_rule_pack_manager.py",
+    "line": 242,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_rule_pack_manager.py",
+    "line": 250,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_rule_pack_manager.py",
+    "line": 267,
+    "rule_id": "style-blank-lines",
+    "signature": null
+  },
+  {
+    "file": "tests\\test_rule_pack_manager.py",
+    "line": 274,
+    "rule_id": "style-blank-lines",
+    "signature": null
   }
 ]

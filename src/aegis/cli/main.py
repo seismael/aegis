@@ -696,6 +696,7 @@ class AegisCLI:
         # Route structlog to stderr so --json output on stdout stays clean
         try:
             import structlog
+
             structlog.configure(
                 wrapper_class=structlog.stdlib.BoundLogger,
                 logger_factory=structlog.PrintLoggerFactory(sys.stderr),

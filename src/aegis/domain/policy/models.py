@@ -113,7 +113,6 @@ class CategoryPhaseMapping(BaseModel):
                 EvaluationPhase.CI,
                 EvaluationPhase.ON_DEMAND,
             ],
-
             RuleCategory.TOOLS: [
                 EvaluationPhase.CI,
                 EvaluationPhase.ON_DEMAND,

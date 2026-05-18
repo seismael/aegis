@@ -84,6 +84,7 @@ class TestRulePackManager:
     def test_install_unknown_pack_raises(self, tmp_path):
         mgr = self._manager(tmp_path)
         import pytest
+
         with pytest.raises(ValueError, match="Unknown rule pack"):
             mgr.install("nonexistent")
 
@@ -91,6 +92,7 @@ class TestRulePackManager:
         mgr = self._manager(tmp_path)
         mgr.install("architecture")
         import pytest
+
         with pytest.raises(ValueError, match="already installed"):
             mgr.install("architecture")
 
@@ -121,12 +123,14 @@ class TestRulePackManager:
     def test_remove_not_installed_raises(self, tmp_path):
         mgr = self._manager(tmp_path)
         import pytest
+
         with pytest.raises(ValueError, match="not installed"):
             mgr.remove("nonexistent")
 
     def test_remove_unknown_raises(self, tmp_path):
         mgr = self._manager(tmp_path)
         import pytest
+
         with pytest.raises(ValueError, match="not installed"):
             mgr.remove("nonexistent")
 
@@ -203,12 +207,14 @@ class TestRulePackManager:
         mgr = self._manager(tmp_path)
         mgr.create("dup-pack", [])
         import pytest
+
         with pytest.raises(ValueError, match="already exists"):
             mgr.create("dup-pack", [])
 
     def test_create_invalid_name_raises(self, tmp_path):
         mgr = self._manager(tmp_path)
         import pytest
+
         with pytest.raises(ValueError, match="Pack name"):
             mgr.create("../escape", [])
 

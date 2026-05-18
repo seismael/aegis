@@ -325,3 +325,26 @@ class TestBaselineManager:
         )
         v = self._violation("x.py", 1, "r1")
         assert not bm.is_exempt(v)
+
+    def test_add_to_baseline_many_entries(self, tmp_path):
+        """add_to_baseline handles entries without corruption."""
+        bm = BaselineManager(str(tmp_path))
+        for i in range(100):
+            bm.add_to_baseline(self._violation("f.py", i, f"r{i}"))
+        baseline = bm.load_baseline_raw()
+        assert len(baseline) == 100
+
+    def test_add_to_baseline_invalid_entry_does_not_corrupt(self, tmp_path):
+        """Baseline survives having non-dict entries mixed in."""
+        bm = BaselineManager(str(tmp_path))
+        import json
+
+        bm.add_to_baseline(self._violation("a.py", 1, "r1"))
+        raw = bm.load_baseline_raw()
+        raw.append("not a dict")
+        (tmp_path / "baseline.json").write_text(json.dumps(raw), encoding="utf-8")
+        # Re-load and verify _match skips non-dict entries gracefully
+        v = self._violation("a.py", 1, "r1")
+        assert bm.is_exempt(v)
+        v2 = self._violation("b.py", 2, "r2")
+        assert not bm.is_exempt(v2)

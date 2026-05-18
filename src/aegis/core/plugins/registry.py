@@ -72,7 +72,7 @@ class PluginRegistry:
                     self.custom_mcp_tools.extend(tools)
 
             self.loaded_plugins.append(module_name)
-            logger.info("Aegis plugin loaded", plugin=module_name)
+            logger.debug("Aegis plugin loaded", plugin=module_name)
 
         except Exception as e:
             logger.error("Failed to load plugin", plugin=filename, error=str(e))

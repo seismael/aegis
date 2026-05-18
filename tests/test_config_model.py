@@ -1,6 +1,5 @@
 """Tests for AegisConfig loading and merging."""
 
-
 import yaml
 
 from aegis.core.container.config_loader import load_aegis_config

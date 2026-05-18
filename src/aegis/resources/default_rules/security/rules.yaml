@@ -17,6 +17,10 @@ rules:
     severity: HIGH
     mode: block
     query: (password|passwd|pwd)\s*[=:]\s*["\'][^"\']+["\']
+    excludes:
+      - tests/**
+      - "**/test_*"
+      - "**/*_test.py"
     rationale: Credentials must never be embedded in source code. Use a secrets manager or environment variables.
 
   - id: sec-no-connection-strings

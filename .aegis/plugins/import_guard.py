@@ -27,8 +27,10 @@ class ImportBoundaryGuard(CustomAnalyzerInterface):
         rel_path = os.path.normpath(file_path)
 
         for rule in rules:
-            source_patterns = (rule.metadata or {}).get("source", [])
-            target_patterns = (rule.metadata or {}).get("target", [])
+            raw_src = (rule.metadata or {}).get("source", [])
+            raw_tgt = (rule.metadata or {}).get("target", [])
+            source_patterns = [raw_src] if isinstance(raw_src, str) else list(raw_src)
+            target_patterns = [raw_tgt] if isinstance(raw_tgt, str) else list(raw_tgt)
             if not source_patterns or not target_patterns:
                 continue
 

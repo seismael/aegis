@@ -57,6 +57,9 @@ class EvaluationService:
         and graph-level rules once across the workspace.
         """
         rules = self.filter_rules_by_phase(rules, phase, category, phase_mapping)
+        if not rules:
+            return []
+
         all_violations: list[ArchitecturalViolation] = []
 
         # Lifecycle hook: Start

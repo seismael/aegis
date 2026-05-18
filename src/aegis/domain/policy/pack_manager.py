@@ -178,11 +178,7 @@ class RulePackManager:
         available = self.list_available()
         updated: list[str] = []
 
-        targets = (
-            [pack_name]
-            if pack_name
-            else list(manifest.installed_packs.keys())
-        )
+        targets = [pack_name] if pack_name else list(manifest.installed_packs.keys())
 
         for name in targets:
             if name not in manifest.installed_packs:

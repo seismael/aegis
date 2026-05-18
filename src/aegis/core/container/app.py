@@ -74,6 +74,7 @@ class Container:
 
         self.policy_parser = PolicyParser()
         self._rule_pack_manager: RulePackManager | None = None
+        self._cached_rules: list | None = None
 
         # Evolution (may fail on permissions)
         self.evolution_service = self._try_init(
@@ -169,8 +170,11 @@ class Container:
     def load_rules(self) -> list:
         """
         Loads rules from the .aegis/rules/ directory
-        and auto-registered plugin rules.
+        and auto-registered plugin rules.  Cached for idempotency.
         """
+        if self._cached_rules is not None:
+            return self._cached_rules
+
         rules_dir = os.path.join(self.workspace_root, ".aegis", "rules")
         rules = []
         if os.path.isdir(rules_dir):
@@ -180,6 +184,7 @@ class Container:
         if self.plugin_registry:
             rules.extend(self.plugin_registry.auto_rules)
 
+        self._cached_rules = rules
         return rules
 
     @property
@@ -190,9 +195,7 @@ class Container:
             for cat_name, phases in self._aegis_config.phase_defaults.items():
                 try:
                     cat = RuleCategory(cat_name)
-                    base.category_defaults[cat] = [
-                        EvaluationPhase(p) for p in phases
-                    ]
+                    base.category_defaults[cat] = [EvaluationPhase(p) for p in phases]
                 except (ValueError, TypeError):
                     continue
         return base

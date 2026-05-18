@@ -130,8 +130,7 @@ class ClaudeAdapter(ToolAdapter):
             for item in traversable.iterdir():
                 if item.name.endswith(".md"):
                     dest = skills_dest / item.name
-                    with importlib.resources.as_file(item) as skill_file:
-                        shutil.copy2(str(skill_file), str(dest))
+                    shutil.copy2(str(item), str(dest))
         except Exception as e:
             logger.warning("Skill deployment failed", error=str(e))
 
@@ -145,7 +144,6 @@ class ClaudeAdapter(ToolAdapter):
             for item in traversable.iterdir():
                 if item.name.endswith(".md"):
                     dest = skills_dest / item.name
-                    if dest.exists():
-                        dest.unlink()
+                    dest.unlink(missing_ok=True)
         except Exception as e:
             logger.warning("Skill removal failed", error=str(e))

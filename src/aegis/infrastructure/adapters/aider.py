@@ -1,3 +1,5 @@
+import subprocess
+
 from aegis.infrastructure.adapters.base import ToolAdapter
 
 
@@ -13,8 +15,6 @@ class AiderAdapter(ToolAdapter):
 
     def is_present(self) -> bool:
         # Check if aider is in path
-        import subprocess
-
         try:
             subprocess.run(["aider", "--version"], capture_output=True)
             return True
@@ -25,16 +25,19 @@ class AiderAdapter(ToolAdapter):
         config_path = self.home / ".aider.conf.yml"
         directive = "\nmcp-server: aegis-kernel --transport stdio\n"
 
-        if config_path.exists():
-            with open(config_path, encoding="utf-8") as f:
-                content = f.read()
-            if "aegis-kernel" in content:
-                return True
+        try:
+            if config_path.exists():
+                with open(config_path, encoding="utf-8") as f:
+                    content = f.read()
+                if "aegis-kernel" in content:
+                    return True
 
-        with open(config_path, "a", encoding="utf-8") as f:
-            f.write(directive)
+            with open(config_path, "a", encoding="utf-8") as f:
+                f.write(directive)
 
-        return True
+            return True
+        except OSError:
+            return False
 
     def uninstall(self) -> bool:
         config_path = self.home / ".aider.conf.yml"

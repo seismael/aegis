@@ -504,6 +504,7 @@ class AegisKernel:
         if phase or category:
             from aegis.domain.evaluation.service import EvaluationService
             from aegis.domain.policy.models import EvaluationPhase, RuleCategory
+
             phase_enum = EvaluationPhase(phase) if phase else None
             cat_enum = RuleCategory(category) if category else None
             rules = EvaluationService.filter_rules_by_phase(

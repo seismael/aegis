@@ -1,10 +1,13 @@
 import json
 import os
 
+import structlog
 from pydantic import BaseModel
 
 from aegis.domain.evaluation.ports import ArchitecturalViolation
 from aegis.domain.policy.models import Rule, RuleCategory
+
+logger = structlog.get_logger()
 
 
 class BaselineViolation(BaseModel):
@@ -38,6 +41,13 @@ class BaselineManager:
 
     def add_to_baseline(self, violation: ArchitecturalViolation) -> None:
         baseline = self.load_baseline_raw()
+        if len(baseline) >= 50_000:
+            logger.warning(
+                "Baseline has grown unusually large",
+                size=len(baseline),
+                hint="Run 'aegis baseline --prune' to clean stale entries",
+            )
+
         new_entry = BaselineViolation(
             file=violation.file,
             line=violation.line,

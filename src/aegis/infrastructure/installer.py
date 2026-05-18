@@ -32,32 +32,32 @@ class AegisInstaller:
 
     def install_global_capability(self, target_tool: str | None = None) -> None:
         """Installs the Aegis capability natively across all detected AI tools."""
-        print("📦 Installing Aegis Universal Capability...")
+        print("Installing Aegis Universal Capability...")
         to_install = self.adapters
         if target_tool:
             to_install = [
                 a for a in self.adapters if target_tool.lower() in a.name.lower()
             ]
             if not to_install:
-                print(f"❌ Error: Tool '{target_tool}' not supported or not found.")
+                print(f"Error: Tool '{target_tool}' not supported or not found.")
                 return
 
         installed_count = 0
 
         for adapter in to_install:
             if adapter.is_present() or target_tool:
-                print(f"  ✓ Integrating with {adapter.name}...")
+                print(f"  - Integrating with {adapter.name}...")
                 if adapter.install():
                     installed_count += 1
 
         if installed_count > 0:
-            print("\n🛡️  Aegis Global Capability Setup Complete!")
+            print("\nAegis Global Capability Setup Complete!")
             print(
                 "Your AI agents now natively possess the 'Aegis Governance' capability."
             )
         else:
             print(
-                "\n⚠️  No AI tools detected."
+                "\nNo AI tools detected."
                 " Standard MCP manifest for manual registration."
             )
 

@@ -173,6 +173,20 @@ class TestEvaluationService:
         # analyzer should NOT have been called for files in ignored dirs
         analyzer.analyze_file.assert_not_called()
 
+    def test_evaluate_workspace_empty_rules_returns_early(self, tmp_path):
+        """No rules after phase/category filtering → immediate empty return."""
+        service = self._make_service()
+        p = tmp_path / "src"
+        p.mkdir()
+        (p / "main.py").write_text("x = 1", encoding="utf-8")
+
+        violations = service.evaluate_workspace(str(tmp_path), [])
+        assert violations == []
+        # No analyzers should have been invoked
+        service.tree_sitter_analyzer.analyze_file.assert_not_called()
+        service.graph_analyzer.analyze_graph.assert_not_called()
+        service.regex_analyzer.analyze_file.assert_not_called()
+
     def test_binary_file_does_not_crash(self, tmp_path):
         """Binary/unreadable files are skipped gracefully."""
         p = tmp_path / "src"

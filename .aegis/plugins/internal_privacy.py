@@ -57,7 +57,7 @@ class InternalPrivacyPlugin(CustomAnalyzerInterface):
                     continue
 
                 # Check if the private module is being imported
-                if re.search(fr"\b{private_module}\b", stripped):
+                if re.search(rf"\b{private_module}\b", stripped):
                     desc = (
                         f"Internal Privacy Violation: Module '{private_module}' "
                         f"is private. Importing it in '{rel_path}' is forbidden. "

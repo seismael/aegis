@@ -78,12 +78,8 @@ class TestFilterRulesByPhase:
 
     def test_combined_phase_and_category(self):
         rules = [
-            self._make_rule(
-                "r1", RuleCategory.STYLE, [EvaluationPhase.PRE_COMMIT]
-            ),
-            self._make_rule(
-                "r2", RuleCategory.STYLE, [EvaluationPhase.CI]
-            ),
+            self._make_rule("r1", RuleCategory.STYLE, [EvaluationPhase.PRE_COMMIT]),
+            self._make_rule("r2", RuleCategory.STYLE, [EvaluationPhase.CI]),
             self._make_rule("r3", RuleCategory.SECURITY, [EvaluationPhase.CI]),
         ]
         result = EvaluationService.filter_rules_by_phase(
@@ -109,9 +105,7 @@ class TestFilterRulesByPhase:
     def test_explicit_phases_override_category(self):
         """Rule with explicit phases uses them, not category defaults."""
         rules = [
-            self._make_rule(
-                "r1", RuleCategory.STYLE, [EvaluationPhase.NIGHTLY]
-            ),
+            self._make_rule("r1", RuleCategory.STYLE, [EvaluationPhase.NIGHTLY]),
         ]
         # STYLE defaults to PRE_COMMIT, but explicit phases say NIGHTLY
         result_pre = EvaluationService.filter_rules_by_phase(
@@ -129,7 +123,5 @@ class TestFilterRulesByPhase:
             self._make_rule("r1", RuleCategory.STYLE, phases=[]),
         ]
         for phase in EvaluationPhase:
-            result = EvaluationService.filter_rules_by_phase(
-                rules, phase=phase
-            )
+            result = EvaluationService.filter_rules_by_phase(rules, phase=phase)
             assert len(result) == 0, f"Should not match {phase}"
