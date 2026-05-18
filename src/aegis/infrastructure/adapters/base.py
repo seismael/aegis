@@ -21,6 +21,11 @@ class ToolAdapter(ABC):
     def name(self) -> str:
         pass
 
+    @property
+    def aliases(self) -> list[str]:
+        """Alternative names this adapter is known by (e.g. 'opencode' for OpenDevin)."""
+        return []
+
     @abstractmethod
     def is_present(self) -> bool:
         """Returns True if the tool is detected on the system."""

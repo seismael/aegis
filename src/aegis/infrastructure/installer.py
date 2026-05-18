@@ -36,7 +36,10 @@ class AegisInstaller:
         to_install = self.adapters
         if target_tool:
             to_install = [
-                a for a in self.adapters if target_tool.lower() in a.name.lower()
+                a
+                for a in self.adapters
+                if target_tool.lower() in a.name.lower()
+                or any(target_tool.lower() == alias.lower() for alias in a.aliases)
             ]
             if not to_install:
                 print(f"Error: Tool '{target_tool}' not supported or not found.")
@@ -57,8 +60,7 @@ class AegisInstaller:
             )
         else:
             print(
-                "\nNo AI tools detected."
-                " Standard MCP manifest for manual registration."
+                "\nNo AI tools detected. Standard MCP manifest for manual registration."
             )
 
     @staticmethod

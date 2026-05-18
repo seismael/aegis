@@ -13,6 +13,10 @@ class OpenDevinAdapter(ToolAdapter):
     def name(self) -> str:
         return "OpenDevin"
 
+    @property
+    def aliases(self) -> list[str]:
+        return ["opencode"]
+
     def is_present(self) -> bool:
         # Detect OpenDevin via environment or common config locations
         return (

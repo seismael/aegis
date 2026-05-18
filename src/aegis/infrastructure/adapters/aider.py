@@ -23,7 +23,6 @@ class AiderAdapter(ToolAdapter):
 
     def install(self) -> bool:
         config_path = self.home / ".aider.conf.yml"
-        directive = "\nmcp-server: aegis-kernel --transport stdio\n"
 
         try:
             if config_path.exists():
@@ -31,9 +30,13 @@ class AiderAdapter(ToolAdapter):
                     content = f.read()
                 if "aegis-kernel" in content:
                     return True
-
-            with open(config_path, "a", encoding="utf-8") as f:
-                f.write(directive)
+                # Append with leading newline to separate from existing content
+                with open(config_path, "a", encoding="utf-8") as f:
+                    f.write("\nmcp-server: aegis-kernel --transport stdio\n")
+            else:
+                config_path.write_text(
+                    "mcp-server: aegis-kernel --transport stdio\n", encoding="utf-8"
+                )
 
             return True
         except OSError:

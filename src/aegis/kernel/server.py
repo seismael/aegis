@@ -115,6 +115,94 @@ class AegisKernel:
         self.mcp.tool()(self.remove_rule_pack)
         self.mcp.tool()(self.reset_rule_packs)
         self.mcp.tool()(self.create_custom_pack)
+        self.mcp.tool()(self.get_relevant_rules)
+        self.mcp.tool()(self.propose_architectural_steering)
+
+    async def propose_architectural_steering(self, task_description: str) -> str:
+        """
+        Innovation: Generates a pre-emptive architectural 'Flight Plan' for a given task.
+        AI agents should call this at the START of a task to align with project goals.
+        """
+        if self.container is None:
+            return "ERROR: Kernel not initialized."
+
+        root = self._workspace_root
+        
+        # 1. Fetch relevant docs
+        spec = await self.get_architecture_spec()
+        
+        # 2. Identify potential modules based on description
+        # (Simple keyword matching for now, can be LLM-enhanced later)
+        keywords = ["domain", "service", "adapter", "api", "model", "cli"]
+        potential_paths = [kw for kw in keywords if kw in task_description.lower()]
+        
+        rules = self._load_rules()
+        relevant_rules = []
+        if potential_paths:
+            from aegis.domain.evaluation.scoping import ScopeFilter
+            for path in potential_paths:
+                relevant_rules.extend(ScopeFilter.filter_rules_for_file(path, rules))
+        
+        # De-duplicate rules
+        seen = set()
+        unique_rules = []
+        for r in relevant_rules:
+            if r.id not in seen:
+                unique_rules.append(r)
+                seen.add(r.id)
+
+        plan = "# Aegis Architectural Flight Plan\n\n"
+        plan += f"**Task:** {task_description}\n\n"
+        plan += "## 🛡️ Critical Invariants to Respect\n"
+        if unique_rules:
+            for r in unique_rules:
+                plan += f"- **{r.id}**: {r.description}\n"
+        else:
+            plan += "- No high-specific structural rules detected for this task context.\n"
+        
+        plan += "\n## 🏛️ Project Guidelines\n"
+        if "WARN: SPEC.md not found" not in spec:
+             # Extract first 5 lines of spec as guidance
+             lines = spec.splitlines()[:10]
+             plan += "> " + "\n> ".join(lines) + "\n"
+        else:
+            plan += "- Follow standard hexagonal/OOD principles established in the codebase.\n"
+
+        plan += "\n## 🚀 Execution Directive\n"
+        plan += "1. Ensure all new logic is encapsulated in appropriate layers.\n"
+        plan += "2. Run `validate_architecture_compliance --staged-only` frequently.\n"
+        plan += "3. If in doubt, query `get_rule_rationale` for existing laws."
+
+        return plan
+
+    async def get_relevant_rules(self, path: str) -> str:
+        """
+        Steering-First Capability: Returns all architectural laws applicable to a given path.
+        AI agents should call this BEFORE editing a file to ensure they respect project invariants.
+        """
+        if self.container is None:
+            return "ERROR: Kernel not initialized."
+
+        all_rules = self._load_rules()
+        if not all_rules:
+            return "No rules found. Architecture is unconstrained."
+
+        from aegis.domain.evaluation.scoping import ScopeFilter
+
+        relevant = ScopeFilter.filter_rules_for_file(path, all_rules)
+
+        if not relevant:
+            return f"No specific structural laws found for path: {path}."
+
+        report = f"## Active Laws for `{path}`\n\n"
+        for r in relevant:
+            report += f"### {r.id} ({r.severity})\n"
+            report += f"- **Description:** {r.description}\n"
+            if r.rationale:
+                report += f"- **Rationale:** {r.rationale}\n"
+            report += "\n"
+
+        return report
 
     async def initialize_project_governance(self) -> str:
         """
@@ -281,6 +369,19 @@ class AegisKernel:
 
     def _register_prompts(self):
         """Register reusable MCP prompts for development workflows."""
+
+        @self.mcp.prompt(
+            name="start-new-task",
+            description="Initialize a new task with proactive architectural steering",
+        )
+        def start_new_task_prompt(description: str) -> str:
+            return (
+                f"I am starting the following task: {description}. "
+                "Call `propose_architectural_steering` with this description "
+                "to generate an Architectural Flight Plan. Then read the "
+                "`aegis://rules` resource to align your implementation strategy "
+                "with the project's structural invariants."
+            )
 
         @self.mcp.prompt(
             name="evaluate-architecture",

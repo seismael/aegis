@@ -19,11 +19,19 @@ class ClaudeAdapter(ToolAdapter):
         return "Claude"
 
     def is_present(self) -> bool:
+        # Check for existing Claude directories
         claude_paths = [
             self.home / ".claude",
             Path(os.environ.get("APPDATA", "")) / "Claude",
         ]
-        return any(p.exists() for p in claude_paths)
+        if any(p.exists() for p in claude_paths):
+            return True
+        # Also check for claude CLI on PATH (Claude Code)
+        try:
+            subprocess.run(["claude", "--version"], capture_output=True, check=False)
+            return True
+        except FileNotFoundError:
+            return False
 
     def install(self) -> bool:
         # 1. Try native 'claude' CLI registration (The Preferred Native Method)

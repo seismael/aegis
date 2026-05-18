@@ -160,22 +160,17 @@ class TestClaudeAdapter:
         monkeypatch.setattr("pathlib.Path.home", lambda: tmp_path)
         adapter = ClaudeAdapter(".")
 
-        # Create a source file that as_file will return
+        # Real source file for the traversable to return
         src_dir = tmp_path / "skill_src"
         src_dir.mkdir()
         src_file = src_dir / "aegis-evaluate.md"
         src_file.write_text("# evaluate skill", encoding="utf-8")
 
-        mock_item = MagicMock()
-        mock_item.name = "aegis-evaluate.md"
-        mock_item.endswith.side_effect = lambda s: s == ".md"
-
         mock_traversable = MagicMock()
-        mock_traversable.iterdir.return_value = [mock_item]
+        mock_traversable.iterdir.return_value = [src_file]
 
         with patch("importlib.resources.files", return_value=mock_traversable):
-            with patch("importlib.resources.as_file", return_value=src_file):
-                adapter._deploy_skills()
+            adapter._deploy_skills()
 
         dest = tmp_path / ".claude" / "skills" / "aegis-evaluate.md"
         assert dest.exists()
