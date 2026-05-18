@@ -120,29 +120,28 @@ class AegisKernel:
 
     async def propose_architectural_steering(self, task_description: str) -> str:
         """
-        Innovation: Generates a pre-emptive architectural 'Flight Plan' for a given task.
-        AI agents should call this at the START of a task to align with project goals.
+        Generates a pre-emptive architectural flight plan for a given task.
+        AI agents call this at START of a task to align with project goals.
         """
         if self.container is None:
             return "ERROR: Kernel not initialized."
 
-        root = self._workspace_root
-        
         # 1. Fetch relevant docs
         spec = await self.get_architecture_spec()
-        
+
         # 2. Identify potential modules based on description
         # (Simple keyword matching for now, can be LLM-enhanced later)
         keywords = ["domain", "service", "adapter", "api", "model", "cli"]
         potential_paths = [kw for kw in keywords if kw in task_description.lower()]
-        
+
         rules = self._load_rules()
         relevant_rules = []
         if potential_paths:
             from aegis.domain.evaluation.scoping import ScopeFilter
+
             for path in potential_paths:
                 relevant_rules.extend(ScopeFilter.filter_rules_for_file(path, rules))
-        
+
         # De-duplicate rules
         seen = set()
         unique_rules = []
@@ -158,15 +157,18 @@ class AegisKernel:
             for r in unique_rules:
                 plan += f"- **{r.id}**: {r.description}\n"
         else:
-            plan += "- No high-specific structural rules detected for this task context.\n"
-        
+            plan += "- No high-specific structural rules detected.\n"
+
         plan += "\n## 🏛️ Project Guidelines\n"
         if "WARN: SPEC.md not found" not in spec:
-             # Extract first 5 lines of spec as guidance
-             lines = spec.splitlines()[:10]
-             plan += "> " + "\n> ".join(lines) + "\n"
+            # Extract first 5 lines of spec as guidance
+            lines = spec.splitlines()[:10]
+            plan += "> " + "\n> ".join(lines) + "\n"
         else:
-            plan += "- Follow standard hexagonal/OOD principles established in the codebase.\n"
+            plan += (
+                "- Follow standard hexagonal/OOD"
+                " principles established in the codebase.\n"
+            )
 
         plan += "\n## 🚀 Execution Directive\n"
         plan += "1. Ensure all new logic is encapsulated in appropriate layers.\n"
@@ -177,8 +179,8 @@ class AegisKernel:
 
     async def get_relevant_rules(self, path: str) -> str:
         """
-        Steering-First Capability: Returns all architectural laws applicable to a given path.
-        AI agents should call this BEFORE editing a file to ensure they respect project invariants.
+        Returns all architectural laws applicable to a given path.
+        AI agents call this BEFORE editing a file to respect project invariants.
         """
         if self.container is None:
             return "ERROR: Kernel not initialized."
