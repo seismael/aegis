@@ -59,7 +59,7 @@ class GovernanceService:
         rules_dir = os.path.join(aegis_dir, "rules")
         if not os.path.exists(rules_dir):
             os.makedirs(rules_dir)
-            for pack in ("architecture.yaml", "security.yaml"):
+            for pack in ("architecture.yaml", "security.yaml", "cloud_isolation.yaml"):
                 src = importlib.resources.files(
                     "aegis.resources.default_rules"
                 ).joinpath(pack)
