@@ -34,9 +34,13 @@ class GovernanceService:
         ]
 
     def capture_baseline(self, rules: list[Rule], root_dir: str) -> int:
-        """Evaluate and persist current violations as the technical debt baseline."""
+        """Evaluate and persist current violations as the technical debt baseline.
+
+        Merges with existing baseline to avoid wiping entries for other rules.
+        """
         violations = self._evaluation_service.evaluate_workspace(root_dir, rules)
-        self._baseline_manager.save_baseline(violations)
+        for v in violations:
+            self._baseline_manager.add_to_baseline(v)
         return len(violations)
 
     @staticmethod

@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import sys
 from collections import Counter
 
 import typer
@@ -691,6 +692,16 @@ class AegisCLI:
 
     @staticmethod
     def entry_point():
+
+        # Route structlog to stderr so --json output on stdout stays clean
+        try:
+            import structlog
+            structlog.configure(
+                wrapper_class=structlog.stdlib.BoundLogger,
+                logger_factory=structlog.PrintLoggerFactory(sys.stderr),
+            )
+        except ImportError:
+            pass
 
         # Basic logging config
         logging.basicConfig(

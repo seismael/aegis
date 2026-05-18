@@ -62,7 +62,7 @@ class TestGovernanceService:
         count = svc.capture_baseline([Rule(id="r1", description="x")], "/root")
 
         assert count == 2
-        baseline_mock.save_baseline.assert_called_once()
+        assert baseline_mock.add_to_baseline.call_count == 2
 
     def test_capture_baseline_zero_violations(self):
         eval_mock = MagicMock(spec=EvaluationService)
@@ -72,7 +72,7 @@ class TestGovernanceService:
         svc = self._make_service(eval_mock, baseline_mock)
         count = svc.capture_baseline([Rule(id="r1", description="x")], "/root")
         assert count == 0
-        baseline_mock.save_baseline.assert_called_once_with([])
+        baseline_mock.add_to_baseline.assert_not_called()
 
     def test_init_project_structure_creates_dirs_and_config(self, tmp_path):
         aegis_dir = GovernanceService.init_project_structure(str(tmp_path))
