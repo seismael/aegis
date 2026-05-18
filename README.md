@@ -1,8 +1,6 @@
-# Aegis: Universal Agentic Governance Engine
+# Aegis: Universal AI Agentic Governance Protocol
 
-**Aegis** is an enterprise-grade architectural governance engine designed for the age of autonomous AI agents. It installs as a **native extension** into your AI coding ecosystem (Claude, Aider, OpenDevin, etc.), transforming architecture from static documentation into **active execution gates**.
-
-Aegis solves **architectural drift** by introducing a stateless, high-performance feedback loop that enforces structural integrity at the moment of code creation.
+**Aegis** is the definitive governance layer for autonomous AI coding. It enforces architectural compliance and prevents structural drift in **agentic workflows** via native agent integration (Claude, Aider, OpenDevin, Gemini) and real-time AST enforcement.
 
 ---
 
