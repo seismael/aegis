@@ -48,7 +48,7 @@ rules:
     engine_type: regex
     severity: HIGH
     mode: block
-    query: \b(eval|exec|compile)\s*\(
+    query: (?<!re\.)\b(?:eval|exec|compile)\s*\(
     rationale: Dynamic code execution bypasses all static analysis and enables arbitrary code injection.
 
   - id: sec-no-sql-concatenation

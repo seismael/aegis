@@ -27,6 +27,13 @@
       "rationale": "Test E2E flow",
       "timestamp": "2026-05-18T16:30:33.429527",
       "metadata": {}
+    },
+    {
+      "rule_id": "sec-no-eval",
+      "action": "suppress",
+      "rationale": "testing baseline merge fix",
+      "timestamp": "2026-05-18T17:45:22.633726",
+      "metadata": {}
     }
   ]
 }
