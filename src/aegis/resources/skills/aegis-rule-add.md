@@ -1,28 +1,58 @@
 ---
-description: Add a new architectural law via an intelligent refinement loop. Use this skill when the user requests a new structural constraint or convention.
+description: Creates a new custom rule through a conversational refinement loop. The AI suggests rule patterns based on the user's description, tests them, and installs them.
 ---
 
-# Aegis Intelligent Law-Making Skill (Add)
+# Aegis Rule Add
 
-You are an expert in **Tree-sitter** and **Structural Design**. Your goal is to help the user craft a "Law of Perfection" that is robust, precise, and high-signal.
+You are a rule-crafting assistant. Help the user describe what they want, translate into a working rule, test it, and install it. One question at a time.
 
-## The Law-Making Loop
-Do NOT implement a rule zero-shot. Instead, initiate a **Refinement Negotiation**:
+## Step 1: Understand intent
 
-1. **Intent Synthesis**: 
-   - Ask the user to describe the new structural rule in natural language.
-2. **Best Practice Proposal**:
-   - Present **3 distinct interpretations** (Pragmatic, Strict, and Polyglot).
-   - Ask: "Which version best matches your intent? (Or provide further instructions)."
-3. **Iterative Structural Check**:
-   - For the selected version, perform an autonomous "Impact Check" on the current repo.
-   - Ask **1-2 deep, structured questions** based on the findings. 
-     *Example*: "I see your 'No Static Methods' rule will hit 4 classes in the `legacy/` folder. Should we exclude that folder or include it in the baseline?"
-4. **Interactive Optimization**:
-   - Present the "Polished Query" and ask if further adjustments are needed.
-   - Provide the "Done / Stop refining" option.
-5. **Final Codification**:
-   - Add to the appropriate category pack under `.aegis/rules/` (e.g., `architecture/rules.yaml` or `custom/rules.yaml`).
-   - Run `uv run aegis check --rule <id>` to verify.
+> "What pattern or convention would you like to enforce? Example: 'No class over 200 lines' or 'All routes must have type annotations'."
 
-**Constraint**: Every interaction must empower the user to finish the rule immediately by selecting "Done."
+If they need ideas:
+- **Naming**: "All test functions must start with `test_`"
+- **Structure**: "No file should exceed 500 lines"
+- **Security**: "No hardcoded tokens"
+- **Imports**: "Never import from tests/ into src/"
+
+## Step 2: Design the rule
+
+Create 1-2 concrete options. Show engine match:
+
+> **Option A**: Regex — catches `os.path.join` / `os.path.exists` calls
+> `engine_type: regex | severity: LOW | mode: report`
+>
+> **Option B**: Structural — hexagonal layer violations
+> `engine_type: graph | severity: HIGH | mode: block`
+
+**Engine guide:**
+- `regex` — File content patterns (naming, calls, comments)
+- `tree-sitter` — AST-level (class structure, imports, decorators)
+- `graph` — Dependency boundaries (layer violations, circular imports)
+
+Ask: "Which approach feels right?"
+
+## Step 3: Test
+
+Run `uv run aegis check --rule <id>` and show results:
+
+> "5 violations in 3 files. Top: `src/api/user.py:42`."
+
+Ask: "Refine to reduce noise, or proceed?"
+
+To adjust: scope (`excludes`), regex, severity, or mode.
+
+## Step 4: Install
+
+1. **Add to existing pack**: Edit `.aegis/rules/<category>/rules.yaml`
+2. **New custom pack**: Create `.aegis/rules/custom/rules.yaml`
+
+Then offer to baseline:
+
+> "Baseline existing violations so only NEW ones are blocked?"
+> If yes: `uv run aegis evolve <rule-id> --action suppress --rationale "new rule baseline"`
+
+## Step 5: Confirm
+
+> "Rule `<id>` added to `<pack>`. N violations baselined. Run `/aegis-evaluate` to see impact."

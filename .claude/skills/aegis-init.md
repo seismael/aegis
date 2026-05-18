@@ -1,35 +1,41 @@
 ---
-description: Initializes the Aegis Architectural Governance Protocol. Use this when the user runs /aegis-init to establish or reset project governance.
+description: Initializes Aegis governance for a project. Guides the user through tech-stack detection, rule-pack selection, and initial baseline.
 ---
 
-# Aegis Initialization Protocol
+# Aegis Init
 
-You are the Aegis Principal Architect. Your objective is to interview the user to establish strict architectural invariants, update `SPEC.md`, `OPERATIONS.md`, and compile the machine-readable `.aegis/rules/` directory for the MCP engine.
+Guide the user through a lightweight setup. One question at a time, use `aegis` CLI to drive real changes.
 
-**CRITICAL DIRECTIVE:** You must operate strictly within the following states. Do not jump to compilation until the user explicitly states they are satisfied.
+## Step 1: Check existing state
 
-### [STATE 1: DETECTION]
-1. Check if `.aegis/rules/` exists.
-2. If YES: Abort and reply: *"Aegis is already initialized. Please use `/aegis-rule-add` or `/aegis-rule-modify` to modify governance."*
-3. If NO: Scan the repository root (`pyproject.toml`, `package.json`, etc.) to infer the tech stack. Present a brief summary of what you found, and immediately transition to STATE 2.
+Run `uv run aegis status --json 2>nul` and check if `.aegis/rules/` exists.
 
-### [STATE 2: THE INTERVIEW LOOP]
-You will ask the user ONE question at a time. Wait for their answer before asking the next. Use the following taxonomy of questions to build the governance profile:
+- **Already initialized** → "Aegis is already set up. Use `/aegis-evaluate` or `/aegis-rule-add` to refine governance."
+- **Not initialized** → Run `uv run aegis init`. Then proceed.
 
-- **Question 1 (Descriptive):** *"To begin, please describe the core business purpose and overarching architecture of this project (e.g., 'A public-facing FastAPI gateway connected to a Postgres database')."*
-- **Question 2 (Selector):** *"Which structural paradigm should I strictly enforce across the codebase?"*
-  - [A] Strict Object-Oriented Design (OOD) — Interfaces and Dependency Injection.
-  - [B] Functional Programming — Pure functions, immutable state.
-  - [C] Procedural / Scripting — Loose modules.
-- **Question 3 (Boolean):** *"Should I mandate Test-Driven Development (TDD) by enforcing that a test file must exist before a feature file can be committed? (Yes/No)"*
-- **Question 4+ (Dynamic Loop):** Based on previous answers, generate highly specific follow-up questions (e.g., caching layers, external API boundaries, or security constraints).
+## Step 2: Tech-stack suggestion
 
-*At the end of every question from Question 4 onwards, ask:* **"Should we establish more rules, or are you ready to compile the governance protocol?"**
+Scan the repo for `pyproject.toml`, `package.json`, `Cargo.toml`, `go.mod`, `Dockerfile`, `.github/workflows/`. Present a compact summary and recommend 2-4 packs:
 
-### [STATE 3: COMPILATION]
-Once the user is satisfied, you must orchestrate the workspace updates:
-1. **Update `SPEC.md`:** Write the structural boundaries and layer topologies.
-2. **Update `OPERATIONS.md`:** Write the operational invariants (e.g., "Run `pytest` before committing").
-3. **Generate `.aegis/rules/` rules:** Translate the consensus into category-organized rule files under `.aegis/rules/`. Include the `engine_type` field on each rule.
-4. **Run `uv run aegis baseline`** to grandfather any existing violations.
-5. Conclude by instructing the user they can now operate under Aegis protection.
+> "I see a **Python** project with **Docker** and **GitHub Actions**. Recommended packs:"
+> - `python-best-practices` — Python idioms
+> - `security` — zero-tolerance security rules
+> - `testing` — test conventions
+> - `dependencies` — supply-chain hygiene
+
+Ask: "Shall I install these, pick different ones, or skip?"
+
+If user agrees, run `uv run aegis rules install <pack>` for each. To customize, list all packs via `uv run aegis rules list`.
+
+## Step 3: Baseline
+
+After packs installed:
+
+> "I'll scan the workspace and baseline existing violations so only NEW violations are flagged."
+
+Run `uv run aegis baseline`. Show the result:
+> "Captured N violations as accepted technical debt. N rules active across M packs."
+
+## Step 4: Wrap up
+
+> "Aegis is set up. Run `/aegis-evaluate` for a compliance scorecard, or `/aegis-rule-add` to create custom rules."

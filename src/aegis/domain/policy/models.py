@@ -35,7 +35,10 @@ class EnforcementMode(StrEnum):
 
 
 class RuleCategory(StrEnum):
-    """Policy taxonomy. Determines enforcement priority, baseline eligibility, and phase defaults."""
+    """
+    Policy taxonomy. Determines enforcement priority,
+    baseline eligibility, and phase defaults.
+    """
 
     ARCHITECTURE = "architecture"
     SECURITY = "security"
@@ -69,17 +72,52 @@ class CategoryPhaseMapping(BaseModel):
     category_defaults: dict[RuleCategory, list[EvaluationPhase]] = Field(
         default_factory=lambda: {
             RuleCategory.STYLE: [EvaluationPhase.PRE_COMMIT],
-            RuleCategory.BEST_PRACTICES: [EvaluationPhase.PRE_COMMIT, EvaluationPhase.CI],
-            RuleCategory.DOCUMENTATION: [EvaluationPhase.PRE_COMMIT, EvaluationPhase.CI],
-            RuleCategory.ARCHITECTURE: [EvaluationPhase.PRE_PUSH, EvaluationPhase.CI],
-            RuleCategory.STRUCTURE: [EvaluationPhase.PRE_PUSH, EvaluationPhase.CI],
-            RuleCategory.TESTING: [EvaluationPhase.PRE_COMMIT, EvaluationPhase.CI],
-            RuleCategory.SECURITY: [EvaluationPhase.CI, EvaluationPhase.NIGHTLY, EvaluationPhase.ON_DEMAND],
-            RuleCategory.DESIGN: [EvaluationPhase.CI, EvaluationPhase.ON_DEMAND],
-            RuleCategory.TOOLS: [EvaluationPhase.CI],
-            RuleCategory.PERFORMANCE: [EvaluationPhase.CI, EvaluationPhase.NIGHTLY],
-            RuleCategory.DEPENDENCIES: [EvaluationPhase.NIGHTLY, EvaluationPhase.CI],
-            RuleCategory.INFRASTRUCTURE: [EvaluationPhase.CI, EvaluationPhase.ON_DEMAND],
+            RuleCategory.BEST_PRACTICES: [
+                EvaluationPhase.PRE_COMMIT,
+                EvaluationPhase.CI,
+            ],
+            RuleCategory.DOCUMENTATION: [
+                EvaluationPhase.PRE_COMMIT,
+                EvaluationPhase.CI,
+            ],
+            RuleCategory.ARCHITECTURE: [
+                EvaluationPhase.PRE_PUSH,
+                EvaluationPhase.CI,
+            ],
+            RuleCategory.STRUCTURE: [
+                EvaluationPhase.PRE_PUSH,
+                EvaluationPhase.CI,
+            ],
+            RuleCategory.TESTING: [
+                EvaluationPhase.PRE_COMMIT,
+                EvaluationPhase.CI,
+            ],
+            RuleCategory.SECURITY: [
+                EvaluationPhase.CI,
+                EvaluationPhase.NIGHTLY,
+                EvaluationPhase.ON_DEMAND,
+            ],
+            RuleCategory.DESIGN: [
+                EvaluationPhase.CI,
+                EvaluationPhase.ON_DEMAND,
+            ],
+            RuleCategory.PERFORMANCE: [
+                EvaluationPhase.CI,
+                EvaluationPhase.NIGHTLY,
+            ],
+            RuleCategory.DEPENDENCIES: [
+                EvaluationPhase.NIGHTLY,
+                EvaluationPhase.CI,
+            ],
+            RuleCategory.INFRASTRUCTURE: [
+                EvaluationPhase.CI,
+                EvaluationPhase.ON_DEMAND,
+            ],
+
+            RuleCategory.TOOLS: [
+                EvaluationPhase.CI,
+                EvaluationPhase.ON_DEMAND,
+            ],
             RuleCategory.GENERAL: [EvaluationPhase.ON_DEMAND],
         }
     )

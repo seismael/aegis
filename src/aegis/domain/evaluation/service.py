@@ -159,7 +159,9 @@ class EvaluationService:
             if r.phases is not None:
                 return phase in r.phases
             # Fall back to category default mapping
-            return phase in mapping.category_defaults.get(r.category, [EvaluationPhase.ON_DEMAND])
+            return phase in mapping.category_defaults.get(
+                r.category, [EvaluationPhase.ON_DEMAND]
+            )
 
         return [r for r in rules if _matches(r)]
 

@@ -528,7 +528,16 @@ class AegisCLI:
             self.console.print(prompt)
 
     def evolve(
-        self, rule_id: str = typer.Argument(..., help="The ID of the rule to evolve")
+        self,
+        rule_id: str = typer.Argument(..., help="The ID of the rule to evolve"),
+        action: str | None = typer.Option(
+            None,
+            "--action",
+            help="Non-interactive mode: suppress, relax_rule, or refactor_required",
+        ),
+        rationale: str | None = typer.Option(
+            None, "--rationale", help="Decision rationale (required with --action)"
+        ),
     ):
         """Consensus recording flow for rule modifications."""
         self.console.print(
@@ -546,12 +555,32 @@ class AegisCLI:
             self.console.print(f"[red]Error: Rule '{rule_id}' not found.[/red]")
             return
 
-        action = Prompt.ask(
-            "Consensus Action?",
-            choices=["suppress", "relax_rule", "refactor_required"],
-            default="suppress",
-        )
-        rationale = Prompt.ask("Decision Rationale")
+        if action is not None or rationale is not None:
+            if action not in ("suppress", "relax_rule", "refactor_required", None):
+                self.console.print(
+                    f"[red]Error: Invalid action '{action}'. "
+                    "Choose suppress, relax_rule, or refactor_required.[/red]"
+                )
+                return
+            if action is None:
+                self.console.print(
+                    "[red]Error: --action is required"
+                    " when --rationale is provided.[/red]"
+                )
+                return
+            if not rationale:
+                self.console.print(
+                    "[red]Error: --rationale is required"
+                    " when --action is provided.[/red]"
+                )
+                return
+        else:
+            action = Prompt.ask(
+                "Consensus Action?",
+                choices=["suppress", "relax_rule", "refactor_required"],
+                default="suppress",
+            )
+            rationale = Prompt.ask("Decision Rationale")
 
         decision = EvolutionDecision(
             rule_id=rule_id, action=action, rationale=rationale

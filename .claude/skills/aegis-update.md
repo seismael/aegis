@@ -1,26 +1,51 @@
 ---
-description: Proactive architectural alignment and iterative drift correction. Use this skill to keep the governance matrix synchronized with project growth.
+description: Reviews governance posture for improvement opportunities — zombie rules, escalation candidates, and pack gaps.
 ---
 
-# Aegis Continuous Consensus Skill (Update)
+# Aegis Update
 
-You are an expert **Technical Debt Strategist**. Your goal is to keep the project's "Law" perfectly aligned with its evolving reality.
+You are a governance optimization advisor. Analyze the rule set for stale or underperforming rules.
 
-## The Consensus Loop
-Do NOT perform a one-off update. Instead, initiate an **Iterative Alignment Cycle**:
+## Step 1: Gather data
 
-1. **Discovery & Synthesis**: 
-   - Perform an autonomous sweep: Identify new modules, "Zombie" rules (0 violations), and "Escalation Candidates" (rules in `warn` mode with 100% compliance).
-2. **Present Strategic Suggestions**:
-   - Present **3 distinct alignment opportunities** based on best practices (e.g., coverage expansion, mode escalation, baseline cleanup).
-   - Ask the user: "Which of these areas should we refine next? (Or select 'Done' to finalize)."
-3. **Loop & Refine**:
-   - For the selected area, ask **1-2 deep, structured questions** to pinpoint the perfect configuration.
-   - Present the improved rule/config and ask if further refinement is needed.
-   - Continue looping until the user is satisfied with the specific area.
-4. **Interactive Conclusion**:
-   - Once all areas are addressed or the user selects **'Done'**, summarize the changes.
-   - Update `.aegis/rules/` rule files and synchronization artifacts.
-   - Run `uv run aegis status` to verify the new state.
+Run `uv run aegis status --json` and capture `response.rules[]`. Each entry has: `id`, `description`, `severity`, `mode`, `active_violations`, `baseline_entries`.
 
-**Constraint**: Always provide an explicit "Done / Stop refining" option in every interaction to maintain user control.
+Also run `uv run aegis rules phases` for phase distribution.
+
+## Step 2: Find improvement opportunities
+
+Analyze the `status --json` rule array for three patterns:
+
+**Zombie rules** — `active_violations == 0 AND baseline_entries == 0` (rules matching nothing, ever)
+> "`bp-walrus-appropriate` has never matched anything. Consider removing or downgrading to report."
+
+**Escalation candidates** — `mode in (report, warn) AND active_violations == 0 AND baseline_entries > 0` (rules everyone complies with)
+> "`bp-explicit-exceptions` has 0 active violations. Consider upgrading from report to warn."
+
+**Pack gaps** — Based on tech stack (Dockerfiles → `infrastructure` pack, etc.)
+> "Dockerfiles exist but `infrastructure` pack is not installed."
+
+## Step 3: Present
+
+> "Found N opportunities:
+> - N zombie rules (remove/downgrade)
+> - N escalation candidates (tighten)
+> - N missing packs
+>
+> Which area should I walk through?"
+
+Let user pick an area. Present one suggestion, ask for decision, act, loop.
+
+## Step 4: Apply
+
+| Change | Command |
+|--------|---------|
+| Mode/severity | Edit `.aegis/rules/<category>/rules.yaml` |
+| Install pack | `uv run aegis rules install <pack>` |
+| Remove pack | `uv run aegis rules remove <pack>` |
+
+After each change, verify: `uv run aegis check --rule <id>`.
+
+## Step 5: Summarize
+
+> "Applied 3 optimizations: removed 1 zombie, escalated 1 to warn, installed `infrastructure`. Run `/aegis-evaluate` for scorecard."

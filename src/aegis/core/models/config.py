@@ -9,5 +9,8 @@ class AegisConfig(BaseModel):
     enforcement: str = "warn"
     phase_defaults: dict[str, list[str]] | None = Field(
         default=None,
-        description="Category-level phase overrides, e.g. {'security': ['ci', 'nightly']}",
+        description=(
+            "Category-level phase overrides, "
+            "e.g. {'security': ['ci', 'nightly']}"
+        ),
     )

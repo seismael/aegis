@@ -201,7 +201,10 @@ class AegisKernel:
             for f in custom:
                 lines.append(f"- {f}")
             lines.append("")
-        lines.append(f"**Summary:** {len(installed)} installed, {len(available)} available, {len(custom)} custom")
+        lines.append(
+            f"**Summary:** {len(installed)} installed, "
+            f"{len(available)} available, {len(custom)} custom"
+        )
         return "\n".join(lines)
 
     async def install_rule_pack(self, pack_name: str) -> str:
