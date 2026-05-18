@@ -1,10 +1,8 @@
 """
-Example Aegis plugin — Import Boundary Guard.
+Aegis plugin — Import Boundary Guard.
 
-Demonstrates the CustomAnalyzerInterface for custom governance rules.
-Scans for forbidden cross-layer imports (e.g. infrastructure leaking into domain).
-
-Install: drop this file into .aegis/plugins/ and restart Aegis.
+Enforces structural boundaries by scanning for forbidden cross-layer imports 
+(e.g., infrastructure leaking into domain).
 """
 
 import os
