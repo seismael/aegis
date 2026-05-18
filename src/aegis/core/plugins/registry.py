@@ -22,6 +22,7 @@ class PluginRegistry:
         self.plugin_dir = os.path.join(workspace_root, ".aegis", "plugins")
         self.custom_analyzers: list[RuleAnalyzerInterface] = []
         self.custom_mcp_tools: list[Callable] = []
+        self.auto_rules: list[Rule] = []
         self.loaded_plugins: list[str] = []
 
     def load_plugins(self) -> None:
@@ -52,10 +53,11 @@ class PluginRegistry:
                 analyzers = module.register_analyzers()
                 if isinstance(analyzers, list):
                     self.custom_analyzers.extend(analyzers)
-                    # Collect MCP tools from CustomAnalyzerInterface instances
+                    # Collect advanced capabilities from CustomAnalyzerInterface instances
                     for a in analyzers:
                         if isinstance(a, CustomAnalyzerInterface):
                             self.custom_mcp_tools.extend(a.mcp_tools)
+                            self.auto_rules.extend(a.register_rules())
 
             # Hook 2: Custom MCP Tools
             if hasattr(module, "register_mcp_tools"):

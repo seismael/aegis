@@ -47,6 +47,11 @@ class EvaluationService:
         """
         all_violations: list[ArchitecturalViolation] = []
 
+        # Lifecycle hook: Start
+        for extra in self.extra_analyzers:
+            if hasattr(extra, "on_evaluation_start"):
+                extra.on_evaluation_start(root_dir)
+
         # Partition rules by engine type
         ts_rules = [r for r in rules if r.engine_type == EngineType.TREE_SITTER]
         regex_rules = [r for r in rules if r.engine_type == EngineType.REGEX]
@@ -89,8 +94,18 @@ class EvaluationService:
                 self.graph_analyzer.analyze_graph(root_dir, graph_rules)
             )
 
+        # Hook: Project-wide analysis
+        for extra in self.extra_analyzers:
+            if hasattr(extra, "analyze_project"):
+                all_violations.extend(extra.analyze_project(root_dir, rules))
+
         # Normalize paths to relative for consistent baseline matching
         self._normalize_violation_paths(all_violations, root_dir)
+
+        # Lifecycle hook: End
+        for extra in self.extra_analyzers:
+            if hasattr(extra, "on_evaluation_end"):
+                extra.on_evaluation_end(all_violations)
 
         return ScopeFilter.filter_violations(all_violations, rules)
 

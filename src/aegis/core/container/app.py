@@ -68,7 +68,9 @@ class Container:
         )
 
         # Remediation
-        self.remediation_synthesizer = RemediationPromptSynthesizer()
+        self.remediation_synthesizer = RemediationPromptSynthesizer(
+            extra_analyzers=self.plugin_registry.custom_analyzers
+        )
 
         # Governance orchestration
         self.governance_service = self._build_governance_service()
@@ -140,11 +142,17 @@ class Container:
             return None
 
     def load_rules(self) -> list:
-        """Loads rules from the .aegis/rules/ directory."""
+        """Loads rules from the .aegis/rules/ directory and auto-registered plugin rules."""
         rules_dir = os.path.join(self.workspace_root, ".aegis", "rules")
+        rules = []
         if os.path.isdir(rules_dir):
-            return self.policy_parser.parse_directory(rules_dir)
-        return []
+            rules = self.policy_parser.parse_directory(rules_dir)
+        
+        # Add auto-registered rules from plugins
+        if self.plugin_registry:
+            rules.extend(self.plugin_registry.auto_rules)
+            
+        return rules
 
     def _discover_project_root(self) -> str:
         """

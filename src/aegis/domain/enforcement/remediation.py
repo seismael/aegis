@@ -3,7 +3,7 @@ import os
 import structlog
 
 from aegis.domain.enforcement.ports import RemediationProviderInterface
-from aegis.domain.evaluation.ports import ArchitecturalViolation
+from aegis.domain.evaluation.ports import ArchitecturalViolation, RuleAnalyzerInterface
 from aegis.domain.policy.models import Rule
 
 logger = structlog.get_logger()
@@ -15,6 +15,9 @@ class RemediationPromptSynthesizer(RemediationProviderInterface):
     Converts mathematical AST violations into rigid, context-rich
     system prompts designed to be executed by native AI agents via MCP.
     """
+
+    def __init__(self, extra_analyzers: list[RuleAnalyzerInterface] | None = None):
+        self.extra_analyzers = extra_analyzers or []
 
     def generate_remediation(
         self, violations: list[ArchitecturalViolation], rules_map: dict[str, Rule]
@@ -45,7 +48,16 @@ class RemediationPromptSynthesizer(RemediationProviderInterface):
             else:
                 payload += f"### Violation in `{v.file}` (Line {v.line})\n"
             payload += f"- **Rule ID:** `{v.rule_id}` [{v.severity}]\n"
-            payload += f"- **Description:** {v.description}\n"
+            
+            # Custom Plugin Remediation
+            custom_desc = None
+            for extra in self.extra_analyzers:
+                if hasattr(extra, "provide_remediation"):
+                    custom_desc = extra.provide_remediation(v, rule)
+                    if custom_desc:
+                        break
+            
+            payload += f"- **Description:** {custom_desc or v.description}\n"
             payload += "- **Enforcement Mode:** "
             payload += f"{rule.mode.value if rule else 'unknown'}\n"
             if rule and rule.rationale:

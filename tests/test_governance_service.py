@@ -90,4 +90,4 @@ class TestGovernanceService:
         assert aegis_dir == aegis_dir2
         rules = os.listdir(os.path.join(aegis_dir, "rules"))
         # Rules only copied once
-        assert len(rules) == 2  # architecture.yaml + security.yaml
+        assert len(rules) == 3  # architecture.yaml + security.yaml + cloud_isolation.yaml
