@@ -3,8 +3,8 @@ import os
 
 from pydantic import BaseModel
 
-from aegis.core.models.governance import Rule, RuleCategory
 from aegis.domain.evaluation.ports import ArchitecturalViolation
+from aegis.domain.policy.models import Rule, RuleCategory
 
 
 class BaselineViolation(BaseModel):
@@ -78,6 +78,8 @@ class BaselineManager:
         Uses structural signature matching when available;
         falls back to file/line/rule for violations without signatures.
         """
+        if not isinstance(baseline_entry, dict):
+            return False
         rid = baseline_entry.get("rule_id")
         sig = baseline_entry.get("signature") or None
 
@@ -97,21 +99,22 @@ class BaselineManager:
             return []
         with open(self.path, encoding="utf-8") as f:
             try:
-                return json.load(f)
-            except json.JSONDecodeError:
+                data = json.load(f)
+                return data if isinstance(data, list) else []
+            except (json.JSONDecodeError, ValueError):
                 return []
 
     def prune_stale(self, active_rule_ids: set) -> int:
         """Remove baseline entries for rules that no longer exist."""
-        if not os.path.exists(self.path):
+        baseline = self.load_baseline_raw()
+        if not baseline:
             return 0
-        with open(self.path, encoding="utf-8") as f:
-            try:
-                baseline = json.load(f)
-            except json.JSONDecodeError:
-                return 0
         before = len(baseline)
-        baseline = [b for b in baseline if b.get("rule_id") in active_rule_ids]
+        baseline = [
+            b
+            for b in baseline
+            if isinstance(b, dict) and b.get("rule_id") in active_rule_ids
+        ]
         after = len(baseline)
         if before != after:
             with open(self.path, "w", encoding="utf-8") as f:

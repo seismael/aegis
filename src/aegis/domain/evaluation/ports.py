@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 from pydantic import BaseModel
 
-from aegis.core.models.governance import Rule
+from aegis.domain.policy.models import Rule
 
 
 class ArchitecturalViolation(BaseModel):

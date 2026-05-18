@@ -3,8 +3,11 @@ import os
 from collections import defaultdict
 
 from aegis.core.constants import IGNORE_DIRS
-from aegis.core.models.governance import Rule
 from aegis.domain.evaluation.ports import ArchitecturalViolation, GraphAnalyzerInterface
+from aegis.domain.policy.models import Rule
+
+# Skip files larger than 10 MB to avoid OOM on ast.parse.
+_MAX_FILE_BYTES = 10 * 1024 * 1024
 
 
 class GraphAnalyzer(GraphAnalyzerInterface):
@@ -61,6 +64,13 @@ class GraphAnalyzer(GraphAnalyzerInterface):
                     module = module[: -len(".__init__")]
 
                 try:
+                    file_size = os.path.getsize(file_path)
+                    if file_size > _MAX_FILE_BYTES:
+                        continue
+                except OSError:
+                    continue
+
+                try:
                     with open(file_path, encoding="utf-8") as f:
                         content = f.read()
                 except (UnicodeDecodeError, PermissionError):
@@ -68,7 +78,7 @@ class GraphAnalyzer(GraphAnalyzerInterface):
 
                 try:
                     tree = ast.parse(content, filename=file_path)
-                except SyntaxError:
+                except (SyntaxError, ValueError):
                     continue
 
                 for node in ast.iter_child_nodes(tree):
@@ -130,22 +140,46 @@ class GraphAnalyzer(GraphAnalyzerInterface):
         rule: Rule,
     ) -> list[ArchitecturalViolation]:
         """
-        Detects circular dependencies using DFS with a recursion stack.
-        Returns violations for each edge that completes a cycle.
+        Detects circular dependencies using iterative DFS with explicit stack.
+        Avoids Python recursion limit on deep dependency chains.
         """
         violations: list[ArchitecturalViolation] = []
+
+        # Precompute the set of all known modules (keys + values) for O(1) lookup.
+        all_modules: set[str] = set(adjacency.keys())
+        for targets in adjacency.values():
+            all_modules.update(targets)
+
         visited: set[str] = set()
         rec_stack: set[str] = set()
 
-        def dfs(node: str, path: list[str]) -> None:
-            visited.add(node)
-            rec_stack.add(node)
+        for start_node in list(adjacency.keys()):
+            if start_node in visited:
+                continue
 
-            for neighbor in adjacency.get(node, set()):
-                if neighbor not in adjacency and neighbor not in adjacency.values():
+            # Iterative DFS: each stack entry is (node, neighbor_iterator, path)
+            neighbors_iter = iter(adjacency.get(start_node, set()))
+            stack = [(start_node, neighbors_iter, [start_node])]
+            visited.add(start_node)
+            rec_stack.add(start_node)
+
+            while stack:
+                node, n_iter, path = stack[-1]
+
+                try:
+                    neighbor = next(n_iter)
+                except StopIteration:
+                    rec_stack.discard(node)
+                    stack.pop()
+                    continue
+
+                if neighbor not in all_modules:
                     continue
                 if neighbor not in visited:
-                    dfs(neighbor, path + [neighbor])
+                    visited.add(neighbor)
+                    rec_stack.add(neighbor)
+                    nn = iter(adjacency.get(neighbor, set()))
+                    stack.append((neighbor, nn, path + [neighbor]))
                 elif neighbor in rec_stack:
                     # Found a cycle — report the edge
                     for mod, imports in file_imports.items():
@@ -164,11 +198,5 @@ class GraphAnalyzer(GraphAnalyzerInterface):
                                             severity=rule.severity.value,
                                         )
                                     )
-
-            rec_stack.discard(node)
-
-        for module in list(adjacency.keys()):
-            if module not in visited:
-                dfs(module, [module])
 
         return violations

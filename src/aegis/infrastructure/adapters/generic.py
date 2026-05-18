@@ -48,3 +48,18 @@ class GenericMCPAdapter(ToolAdapter):
         except Exception as e:
             logger.error("Generic MCP manifest creation failed", error=str(e))
             return False
+
+    def uninstall(self) -> bool:
+        manifest_path = self.target_dir / "mcp.json"
+        if not manifest_path.exists():
+            return True
+        try:
+            with open(manifest_path, encoding="utf-8") as f:
+                data = json.load(f)
+            data.get("mcpServers", {}).pop("aegis", None)
+            with open(manifest_path, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2)
+            return True
+        except Exception as e:
+            logger.error("Generic MCP manifest removal failed", error=str(e))
+            return False

@@ -1,4 +1,7 @@
-from aegis.core.models.governance import EnforcementMode, EngineType, Rule, Severity
+import os
+from unittest.mock import patch
+
+from aegis.domain.policy.models import EnforcementMode, EngineType, Rule, Severity
 from aegis.infrastructure.graph_analyzer import GraphAnalyzer
 
 
@@ -255,3 +258,88 @@ class TestGraphAnalyzer:
         analyzer = GraphAnalyzer()
         adjacency, _ = analyzer.build_import_graph(str(tmp_path))
         assert adjacency.get("a") == {"b", "c", "d"}
+
+    def test_very_large_python_file_skipped(self, tmp_path):
+        """File larger than _MAX_FILE_BYTES is skipped."""
+        (tmp_path / "main.py").write_text("from os import path\n", encoding="utf-8")
+        (tmp_path / "huge.py").write_text("x = 1\n", encoding="utf-8")
+        analyzer = GraphAnalyzer()
+        with patch("aegis.infrastructure.graph_analyzer._MAX_FILE_BYTES", 5):
+            adjacency, _ = analyzer.build_import_graph(str(tmp_path))
+        # huge.py (5 bytes) exceeds 5-byte limit, main.py (17 bytes) also skipped
+        assert "huge" not in adjacency
+        assert "main" not in adjacency
+
+    def test_file_size_check_large_file_skipped_small_kept(self, tmp_path):
+        """Small file processed, large file skipped."""
+        (tmp_path / "small.py").write_text("from os import path\n", encoding="utf-8")
+        (tmp_path / "large.py").write_text(
+            "# " + "x" * 2000 + "\nx = 1\n", encoding="utf-8"
+        )
+        analyzer = GraphAnalyzer()
+        with patch("aegis.infrastructure.graph_analyzer._MAX_FILE_BYTES", 500):
+            adjacency, _ = analyzer.build_import_graph(str(tmp_path))
+        assert "small" in adjacency
+        assert "large" not in adjacency
+
+    def test_file_size_check_oserror_skipped(self, tmp_path):
+        """OSError during file size check is handled gracefully."""
+        main = tmp_path / "main.py"
+        broken = tmp_path / "broken.py"
+        main.write_text("from utils import helper\n", encoding="utf-8")
+        (tmp_path / "utils.py").write_text("def helper(): pass\n", encoding="utf-8")
+        broken.write_text("y = 2\n", encoding="utf-8")
+
+        real_getsize = os.path.getsize
+
+        def _fake_getsize(path):
+            if os.fspath(path).endswith("broken.py"):
+                raise OSError("denied")
+            return real_getsize(path)
+
+        analyzer = GraphAnalyzer()
+        with patch(
+            "aegis.infrastructure.graph_analyzer.os.path.getsize",
+            side_effect=_fake_getsize,
+        ):
+            adjacency, _ = analyzer.build_import_graph(str(tmp_path))
+        assert "broken" not in adjacency
+        assert "main" in adjacency
+
+    def test_null_bytes_in_file_skipped(self, tmp_path):
+        """File with null bytes is skipped gracefully."""
+        (tmp_path / "good.py").write_text("from os import path\n", encoding="utf-8")
+        (tmp_path / "binary.py").write_bytes(b"x = 1\x00\x00\x00")
+        analyzer = GraphAnalyzer()
+        adjacency, _ = analyzer.build_import_graph(str(tmp_path))
+        # binary.py skipped due to null bytes in ast.parse, good.py ok
+        assert "good" in adjacency
+
+    def test_empty_python_file_no_crash(self, tmp_path):
+        """Empty .py file produces no adjacency entry."""
+        (tmp_path / "empty.py").write_text("", encoding="utf-8")
+        analyzer = GraphAnalyzer()
+        adjacency, _ = analyzer.build_import_graph(str(tmp_path))
+        assert "empty" not in adjacency
+
+    def test_recursive_import_self_via_init(self, tmp_path):
+        """Self-import via __init__ normalization does not crash."""
+        pkg = tmp_path / "pkg"
+        pkg.mkdir()
+        (pkg / "__init__.py").write_text("from pkg import mod\n", encoding="utf-8")
+        (pkg / "mod.py").write_text("x = 1\n", encoding="utf-8")
+        analyzer = GraphAnalyzer()
+        adjacency, _ = analyzer.build_import_graph(str(tmp_path))
+        # __init__ normalizes to pkg, self-import excluded
+        assert "pkg" not in adjacency or "pkg" not in adjacency.get("pkg", set())
+
+    def test_ignores_non_adjacent_target(self, tmp_path):
+        """Neighbor that is not in adjacency nor in any adjacency values is skipped."""
+        (tmp_path / "a.py").write_text("import b\nimport c\n", encoding="utf-8")
+        (tmp_path / "b.py").write_text("x = 1\n", encoding="utf-8")
+        # c.py does not exist — import target missing from graph
+        analyzer = GraphAnalyzer()
+        adjacency, _ = analyzer.build_import_graph(str(tmp_path))
+        assert "a" in adjacency
+        # c is in adjacency["a"] since we parsed the import, but module doesn't exist
+        assert "b" in adjacency["a"]

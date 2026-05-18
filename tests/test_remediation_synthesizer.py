@@ -1,6 +1,6 @@
-from aegis.core.models.governance import EnforcementMode, Rule, RuleCategory, Severity
 from aegis.domain.enforcement.remediation import RemediationPromptSynthesizer
 from aegis.domain.evaluation.ports import ArchitecturalViolation
+from aegis.domain.policy.models import EnforcementMode, Rule, RuleCategory, Severity
 
 
 class TestRemediationPromptSynthesizer:

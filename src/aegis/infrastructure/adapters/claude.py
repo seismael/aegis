@@ -36,6 +36,15 @@ class ClaudeAdapter(ToolAdapter):
         self._deploy_skills()
         return True
 
+    def uninstall(self) -> bool:
+        """Removes Aegis from Claude config and skills."""
+        if self._try_native_mcp_remove():
+            self._remove_skills()
+            return True
+        self._manual_config_removal()
+        self._remove_skills()
+        return True
+
     def _try_native_mcp_add(self) -> bool:
         """Attempts to use the 'claude' CLI to add the MCP server natively."""
         try:
@@ -52,6 +61,19 @@ class ClaudeAdapter(ToolAdapter):
                     "--transport",
                     "stdio",
                 ],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            return result.returncode == 0
+        except FileNotFoundError:
+            return False
+
+    def _try_native_mcp_remove(self) -> bool:
+        """Attempts to use the 'claude' CLI to remove the MCP server."""
+        try:
+            result = subprocess.run(
+                ["claude", "mcp", "remove", "aegis"],
                 capture_output=True,
                 text=True,
                 check=False,
@@ -84,6 +106,20 @@ class ClaudeAdapter(ToolAdapter):
         with open(config_path, "w", encoding="utf-8") as f:
             json.dump(config, f, indent=2)
 
+    def _manual_config_removal(self) -> None:
+        """Removes Aegis entry from Claude Desktop configuration JSON."""
+        config_path = self.home / ".claude" / "claude_desktop_config.json"
+        if not config_path.exists():
+            return
+        try:
+            with open(config_path, encoding="utf-8") as f:
+                config = json.load(f)
+            config.get("mcpServers", {}).pop("aegis", None)
+            with open(config_path, "w", encoding="utf-8") as f:
+                json.dump(config, f, indent=2)
+        except (json.JSONDecodeError, OSError):
+            pass
+
     def _deploy_skills(self) -> None:
         """Deploys AI instruction skills to Claude's native skills directory."""
         skills_dest = self.home / ".claude" / "skills"
@@ -98,3 +134,18 @@ class ClaudeAdapter(ToolAdapter):
                         shutil.copy2(str(skill_file), str(dest))
         except Exception as e:
             logger.warning("Skill deployment failed", error=str(e))
+
+    def _remove_skills(self) -> None:
+        """Removes deployed Aegis skill files from Claude's skills directory."""
+        skills_dest = self.home / ".claude" / "skills"
+        if not skills_dest.exists():
+            return
+        try:
+            traversable = importlib.resources.files("aegis.resources.skills")
+            for item in traversable.iterdir():
+                if item.name.endswith(".md"):
+                    dest = skills_dest / item.name
+                    if dest.exists():
+                        dest.unlink()
+        except Exception as e:
+            logger.warning("Skill removal failed", error=str(e))

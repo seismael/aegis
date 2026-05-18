@@ -1,4 +1,4 @@
-from aegis.core.models.governance import Rule, Severity
+from aegis.domain.policy.models import Rule, Severity
 from aegis.infrastructure.ast_analyzer import TreeSitterAnalyzer
 
 
@@ -65,6 +65,102 @@ class TestTreeSitterAnalyzer:
         content_good = 'class HasDoc:\n    """Docstring."""\n    pass'
         violations = analyzer.analyze_file("test.py", content_good, rules)
         assert len(violations) == 0
+
+    def test_positive_rule_multiple_candidates(self):
+        """With multiple candidates, only non-compliant ones are flagged."""
+        analyzer = TreeSitterAnalyzer()
+        rules = [
+            Rule(
+                id="require-docstring",
+                candidates_query="(class_definition) @class",
+                check_query=(
+                    "(class_definition body:"
+                    " (block (expression_statement (string)))) @class"
+                ),
+                description="Classes must have docstrings.",
+                severity=Severity.LOW,
+                language="py",
+            )
+        ]
+        content = (
+            'class HasDoc:\n    """Has doc."""\n    pass\n\n'
+            "class NoDoc:\n    pass\n\n"
+            'class AlsoDoc:\n    """Also doc."""\n    pass\n'
+        )
+        violations = analyzer.analyze_file("test.py", content, rules)
+        assert len(violations) == 1
+        assert violations[0].line == 5  # NoDoc is line 5
+
+    def test_positive_rule_no_candidates(self):
+        """No candidates means no violations."""
+        analyzer = TreeSitterAnalyzer()
+        rules = [
+            Rule(
+                id="require-docstring",
+                candidates_query="(class_definition) @class",
+                check_query=(
+                    "(class_definition body:"
+                    " (block (expression_statement (string)))) @class"
+                ),
+                description="Classes must have docstrings.",
+                language="py",
+            )
+        ]
+        violations = analyzer.analyze_file("test.py", "x = 1", rules)
+        assert violations == []
+
+    def test_positive_rule_invalid_candidates_query(self):
+        """Invalid candidates_query does not crash."""
+        analyzer = TreeSitterAnalyzer()
+        rules = [
+            Rule(
+                id="bad-candidates",
+                candidates_query="((( this is not valid",
+                check_query="(class_definition) @cls",
+                description="test",
+                language="py",
+            )
+        ]
+        violations = analyzer.analyze_file("test.py", "class Foo: pass", rules)
+        assert violations == []
+
+    def test_positive_rule_invalid_check_query(self):
+        """Invalid check_query does not crash."""
+        analyzer = TreeSitterAnalyzer()
+        rules = [
+            Rule(
+                id="bad-check",
+                candidates_query="(class_definition) @cls",
+                check_query="((( this is not valid",
+                description="test",
+                language="py",
+            )
+        ]
+        violations = analyzer.analyze_file("test.py", "class Foo: pass", rules)
+        assert violations == []
+
+    def test_positive_rule_query_priority(self):
+        """Standard query takes priority over candidates_query when both set."""
+        analyzer = TreeSitterAnalyzer()
+        rules = [
+            Rule(
+                id="mixed",
+                query="(function_definition) @fn",
+                candidates_query="(class_definition) @cls",
+                check_query=(
+                    "(class_definition body:"
+                    " (block (expression_statement (string)))) @cls"
+                ),
+                description="test",
+                language="py",
+            )
+        ]
+        # query is checked first in analyze_file, so standard query path wins
+        violations = analyzer.analyze_file(
+            "test.py", "class NoDoc:\n    pass\n\ndef f(): pass\n", rules
+        )
+        assert len(violations) == 1
+        assert violations[0].line == 4  # function at line 4, not class at line 1
 
     # --- Signature stability ---
 

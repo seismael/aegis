@@ -1,4 +1,4 @@
-from aegis.core.models.governance import (
+from aegis.domain.policy.models import (
     EnforcementMode,
     EngineType,
     Rule,

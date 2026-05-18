@@ -1,17 +1,9 @@
 import os
 import re
 
-from aegis.core.models.governance import Rule
+from aegis.core.constants import LANG_EXT_MAP
 from aegis.domain.evaluation.ports import ArchitecturalViolation, RegexAnalyzerInterface
-
-_LANG_EXT_MAP = {
-    "py": ".py",
-    "ts": ".ts",
-    "tsx": ".tsx",
-    "js": ".js",
-    "jsx": ".jsx",
-    "rs": ".rs",
-}
+from aegis.domain.policy.models import Rule
 
 
 class RegexAnalyzer(RegexAnalyzerInterface):
@@ -63,7 +55,7 @@ class RegexAnalyzer(RegexAnalyzerInterface):
         """Map file extension to short language code used in rules."""
         _, ext = os.path.splitext(file_path)
         ext = ext.lower()
-        for lang, mapped_ext in _LANG_EXT_MAP.items():
+        for lang, mapped_ext in LANG_EXT_MAP.items():
             if ext == mapped_ext:
                 return lang
         return ext.lstrip(".")

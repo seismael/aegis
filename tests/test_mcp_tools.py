@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from aegis.core.models.evolution import EvolutionDecision
-from aegis.core.models.governance import EnforcementMode, Rule, Severity
+from aegis.domain.policy.models import EnforcementMode, Rule, Severity
 from aegis.kernel.server import AegisKernel
 
 
@@ -30,6 +30,11 @@ def kernel():
     mock_evolution = MagicMock()
     mock_container.evolution_service = mock_evolution
 
+    # Mock governance service
+    mock_governance = MagicMock()
+    mock_governance.get_active_violations.return_value = []
+    mock_container.governance_service = mock_governance
+
     k.container = mock_container
     return k
 
@@ -42,9 +47,6 @@ class TestMCPTools:
     @pytest.mark.asyncio
     async def test_validate_compliance_clean(self, kernel):
         kernel.container.load_rules.return_value = [Rule(id="r1", description="desc")]
-        kernel.container.evaluation_service.evaluate_workspace.return_value = []
-        kernel.container.baseline_manager.is_exempt.return_value = False
-
         result = await kernel.validate_architecture_compliance(staged_only=False)
         assert "No new violations" in result
 
@@ -60,12 +62,11 @@ class TestMCPTools:
                 mode=EnforcementMode.BLOCK,
             )
         ]
-        kernel.container.evaluation_service.evaluate_workspace.return_value = [
+        kernel.container.governance_service.get_active_violations.return_value = [
             ArchitecturalViolation(
                 file="src/main.py", line=5, rule_id="r1", description="violation"
             )
         ]
-        kernel.container.baseline_manager.is_exempt.return_value = False
 
         result = await kernel.validate_architecture_compliance(staged_only=False)
         assert "ARCHITECTURAL DRIFT" in result
@@ -74,8 +75,6 @@ class TestMCPTools:
     @pytest.mark.asyncio
     async def test_apply_remediation_no_violations(self, kernel):
         kernel.container.load_rules.return_value = []
-        kernel.container.evaluation_service.evaluate_workspace.return_value = []
-        kernel.container.baseline_manager.is_exempt.return_value = False
 
         result = await kernel.apply_architectural_remediation()
         assert "No remediation needed" in result
@@ -91,12 +90,11 @@ class TestMCPTools:
             mode=EnforcementMode.BLOCK,
         )
         kernel.container.load_rules.return_value = [rule]
-        kernel.container.evaluation_service.evaluate_workspace.return_value = [
+        kernel.container.governance_service.get_active_violations.return_value = [
             ArchitecturalViolation(
                 file="src/main.py", line=5, rule_id="r1", description="violation"
             )
         ]
-        kernel.container.baseline_manager.is_exempt.return_value = False
 
         result = await kernel.apply_architectural_remediation()
         assert "INTERVENTION" in result
@@ -177,14 +175,12 @@ class TestMCPTools:
 
     @pytest.mark.asyncio
     async def test_validate_compliance_full_scan(self, kernel):
-        """validate_architecture_compliance full scan uses evaluate_workspace."""
+        """validate_architecture_compliance full scan calls governance_service."""
         kernel.container.load_rules.return_value = [Rule(id="r1", description="desc")]
-        kernel.container.evaluation_service.evaluate_workspace.return_value = []
-        kernel.container.baseline_manager.is_exempt.return_value = False
 
         result = await kernel.validate_architecture_compliance(staged_only=False)
         assert "No new violations" in result
-        kernel.container.evaluation_service.evaluate_workspace.assert_called_once()
+        kernel.container.governance_service.get_active_violations.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_validate_compliance_no_rules(self, kernel):

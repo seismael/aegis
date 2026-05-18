@@ -31,5 +31,10 @@ class ToolAdapter(ABC):
         """Performs native installation of the Aegis capability."""
         pass
 
+    @abstractmethod
+    def uninstall(self) -> bool:
+        """Removes the Aegis capability from the tool."""
+        pass
+
     def log_success(self):
         logger.info(f"Successfully installed Aegis capability into {self.name}")

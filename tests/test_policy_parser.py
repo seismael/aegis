@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import yaml
 
-from aegis.core.models.governance import EngineType, RuleCategory, Severity
+from aegis.domain.policy.models import EngineType, RuleCategory, Severity
 from aegis.domain.policy.parser import PolicyParser
 
 

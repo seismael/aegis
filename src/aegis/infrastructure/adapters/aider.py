@@ -35,3 +35,17 @@ class AiderAdapter(ToolAdapter):
             f.write(directive)
 
         return True
+
+    def uninstall(self) -> bool:
+        config_path = self.home / ".aider.conf.yml"
+        if not config_path.exists():
+            return True
+        try:
+            with open(config_path, encoding="utf-8") as f:
+                lines = f.readlines()
+            lines = [line for line in lines if "aegis-kernel" not in line]
+            with open(config_path, "w", encoding="utf-8") as f:
+                f.writelines(lines)
+            return True
+        except OSError:
+            return False

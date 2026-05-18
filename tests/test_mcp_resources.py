@@ -78,3 +78,110 @@ class TestMCPResources:
         with patch("aegis.kernel.server.os.path.exists", return_value=False):
             results = await kernel.mcp.read_resource("aegis://spec")
         assert "WARN" in results[0].content
+
+    @pytest.mark.asyncio
+    async def test_rules_resource_directory_mode(self, kernel):
+        """rules/ directory with yaml files returns combined content."""
+        with patch("aegis.kernel.server.os.path.isdir", return_value=True):
+            with patch(
+                "aegis.kernel.server.os.listdir",
+                return_value=["arch.yaml", "sec.yaml"],
+            ):
+                with patch("aegis.kernel.server.open") as mock_open:
+                    mock_file = MagicMock()
+                    mock_file.__enter__.return_value.read.side_effect = [
+                        "rules:\n  - id: arch1\n",
+                        "rules:\n  - id: sec1\n",
+                    ]
+                    mock_open.return_value = mock_file
+                    results = await kernel.mcp.read_resource("aegis://rules")
+        assert "arch1" in results[0].content
+        assert "sec1" in results[0].content
+
+    @pytest.mark.asyncio
+    async def test_rules_resource_directory_empty(self, kernel):
+        """Empty rules/ directory returns WARN."""
+        with patch("aegis.kernel.server.os.path.isdir", return_value=True):
+            with patch("aegis.kernel.server.os.listdir", return_value=[]):
+                results = await kernel.mcp.read_resource("aegis://rules")
+        assert "WARN" in results[0].content
+        assert "empty" in results[0].content
+
+    @pytest.mark.asyncio
+    async def test_rules_resource_directory_read_error(self, kernel):
+        """Read error in rules/ directory is non-fatal per-file."""
+        with patch("aegis.kernel.server.os.path.isdir", return_value=True):
+            with patch("aegis.kernel.server.os.listdir", return_value=["bad.yaml"]):
+                with patch("aegis.kernel.server.open", side_effect=OSError("denied")):
+                    results = await kernel.mcp.read_resource("aegis://rules")
+        assert "ERROR" in results[0].content or "bad.yaml" in results[0].content
+
+    @pytest.mark.asyncio
+    async def test_rules_resource_read_error(self, kernel):
+        """rules.yaml read error returns ERROR."""
+        with patch("aegis.kernel.server.os.path.isdir", return_value=False):
+            with patch("aegis.kernel.server.os.path.exists", return_value=True):
+                with patch("aegis.kernel.server.open", side_effect=OSError("denied")):
+                    results = await kernel.mcp.read_resource("aegis://rules")
+        assert "ERROR" in results[0].content
+
+    @pytest.mark.asyncio
+    async def test_baseline_resource_read_error(self, kernel):
+        """baseline.json read error returns ERROR."""
+        with patch("aegis.kernel.server.os.path.exists", return_value=True):
+            with patch("aegis.kernel.server.open", side_effect=OSError("denied")):
+                results = await kernel.mcp.read_resource("aegis://baseline")
+        assert "ERROR" in results[0].content
+
+    @pytest.mark.asyncio
+    async def test_evolution_resource_read_error(self, kernel):
+        """evolution_log.json read error returns ERROR."""
+        with patch("aegis.kernel.server.os.path.exists", return_value=True):
+            with patch("aegis.kernel.server.open", side_effect=OSError("denied")):
+                results = await kernel.mcp.read_resource("aegis://evolution")
+        assert "ERROR" in results[0].content
+
+    @pytest.mark.asyncio
+    async def test_spec_resource_read_error(self, kernel):
+        """SPEC.md read error returns ERROR."""
+        with patch("aegis.kernel.server.os.path.exists", return_value=True):
+            with patch("aegis.kernel.server.open", side_effect=OSError("denied")):
+                results = await kernel.mcp.read_resource("aegis://spec")
+        assert "ERROR" in results[0].content
+
+    @pytest.mark.asyncio
+    async def test_baseline_resource_content_returned(self, kernel):
+        """Readable baseline.json returns content."""
+        with patch("aegis.kernel.server.os.path.exists", return_value=True):
+            with patch("aegis.kernel.server.open") as mock_open:
+                mock_file = MagicMock()
+                mock_file.__enter__.return_value.read.return_value = (
+                    '[{"file": "x.py"}]'
+                )
+                mock_open.return_value = mock_file
+                results = await kernel.mcp.read_resource("aegis://baseline")
+        assert "x.py" in results[0].content
+
+    @pytest.mark.asyncio
+    async def test_evolution_resource_content_returned(self, kernel):
+        """Readable evolution_log.json returns content."""
+        with patch("aegis.kernel.server.os.path.exists", return_value=True):
+            with patch("aegis.kernel.server.open") as mock_open:
+                mock_file = MagicMock()
+                mock_file.__enter__.return_value.read.return_value = '{"decisions": []}'
+                mock_open.return_value = mock_file
+                results = await kernel.mcp.read_resource("aegis://evolution")
+        assert "decisions" in results[0].content
+
+    @pytest.mark.asyncio
+    async def test_spec_resource_content_returned(self, kernel):
+        """Readable SPEC.md returns content."""
+        with patch("aegis.kernel.server.os.path.exists", return_value=True):
+            with patch("aegis.kernel.server.open") as mock_open:
+                mock_file = MagicMock()
+                mock_file.__enter__.return_value.read.return_value = (
+                    "# Architecture Spec"
+                )
+                mock_open.return_value = mock_file
+                results = await kernel.mcp.read_resource("aegis://spec")
+        assert "Architecture Spec" in results[0].content

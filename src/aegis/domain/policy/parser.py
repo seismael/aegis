@@ -5,7 +5,7 @@ import httpx
 import structlog
 import yaml
 
-from aegis.core.models.governance import Rule
+from aegis.domain.policy.models import Rule
 
 logger = structlog.get_logger()
 

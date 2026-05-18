@@ -7,7 +7,7 @@ from typer.testing import CliRunner
 
 from aegis.cli.main import AegisCLI
 from aegis.core.container.app import Container
-from aegis.core.models.governance import EnforcementMode, Rule, Severity
+from aegis.domain.policy.models import EnforcementMode, Rule, Severity
 
 # ─── Container / DI composition ─────────────────────────────────────────────
 
@@ -80,6 +80,9 @@ class TestCLIFlagCombinations:
         c.baseline_manager.is_exempt.return_value = False
         c.loaded_plugins = []
         c.remediation_synthesizer.generate_remediation.return_value = "mock prompt"
+        c.governance_service = MagicMock()
+        c.governance_service.get_active_violations.return_value = []
+        c.governance_service.capture_baseline.return_value = 0
         return c
 
     def test_check_help_shows_flags(self):
@@ -101,14 +104,16 @@ class TestCLIFlagCombinations:
         container.load_rules.return_value = [
             Rule(id="r1", description="test", mode=EnforcementMode.WARN)
         ]
-        container.evaluation_service.evaluate_workspace.return_value = [
+        container.evaluation_service.evaluate_changes.return_value = []
+        container.baseline_manager.is_exempt.return_value = False
+        container.loaded_plugins = []
+        container.remediation_synthesizer.generate_remediation.return_value = ""
+        container.governance_service = MagicMock()
+        container.governance_service.get_active_violations.return_value = [
             ArchitecturalViolation(
                 file="x.py", line=1, rule_id="r1", description="test"
             )
         ]
-        container.baseline_manager.is_exempt.return_value = False
-        container.loaded_plugins = []
-        container.remediation_synthesizer.generate_remediation.return_value = ""
 
         (tmp_path / ".aegis").mkdir()
         (tmp_path / ".aegis" / "rules.yaml").write_text("rules: []", encoding="utf-8")
@@ -127,10 +132,12 @@ class TestCLIFlagCombinations:
             Rule(id="r1", description="test", mode=EnforcementMode.BLOCK),
             Rule(id="r2", description="test", mode=EnforcementMode.BLOCK),
         ]
-        container.evaluation_service.evaluate_workspace.return_value = []
+        container.evaluation_service.evaluate_changes.return_value = []
         container.baseline_manager.is_exempt.return_value = False
         container.loaded_plugins = []
         container.remediation_synthesizer.generate_remediation.return_value = ""
+        container.governance_service = MagicMock()
+        container.governance_service.get_active_violations.return_value = []
 
         (tmp_path / ".aegis").mkdir()
         (tmp_path / ".aegis" / "rules.yaml").write_text("rules: []", encoding="utf-8")

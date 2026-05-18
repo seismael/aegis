@@ -118,35 +118,12 @@ class AegisKernel:
         if self.container is None:
             return "ERROR: Kernel not initialized."
 
-        import importlib.resources
-        import shutil
+        from aegis.domain.governance.service import GovernanceService
 
-        root = self._workspace_root
-        aegis_dir = os.path.join(root, ".aegis")
-        rules_dir = os.path.join(aegis_dir, "rules")
-        if not os.path.exists(aegis_dir):
-            os.makedirs(aegis_dir)
-
-        config_path = os.path.join(aegis_dir, "config.yaml")
-        if not os.path.exists(config_path):
-            with open(config_path, "w", encoding="utf-8") as f:
-                f.write("enforcement: warn\n")
-
-        if not os.path.exists(rules_dir):
-            os.makedirs(rules_dir)
-            try:
-                for pack in ("architecture.yaml", "security.yaml"):
-                    src = importlib.resources.files(
-                        "aegis.resources.default_rules"
-                    ).joinpath(pack)
-                    if src.is_file():
-                        with importlib.resources.as_file(src) as sf:
-                            shutil.copy2(str(sf), str(rules_dir))
-            except Exception:
-                pass  # Non-fatal; user can add rules manually
-
+        aegis_dir = GovernanceService.init_project_structure(self._workspace_root)
+        rules_dir = os.path.join(aegis_dir or "", "rules")
         return (
-            f"✅ Aegis governance initialized at {aegis_dir}."
+            f"Aegis governance initialized at {aegis_dir}."
             f" Rules in {rules_dir}/. Use `/aegis-init` to customize."
         )
 
@@ -158,20 +135,21 @@ class AegisKernel:
         if self.container is None:
             return "ERROR: Kernel not initialized."
 
-        root = self._workspace_root
         rules = self._load_rules()
         if not rules:
             return (
                 "ERROR: Project not initialized."
                 " Call `initialize_project_governance` first."
             )
-        violations = self._evaluation_service.evaluate_workspace(root, rules)
-        self._baseline_manager.save_baseline(violations)
-
-        return (
-            f"✅ Successfully baselined {len(violations)}"
-            " violations as legacy technical debt."
+        if not self.container.governance_service:
+            return (
+                "ERROR: Governance service unavailable"
+                " — container running in degraded mode."
+            )
+        count = self.container.governance_service.capture_baseline(
+            rules, self._workspace_root
         )
+        return f"Successfully baselined {count} violations as legacy technical debt."
 
     async def negotiate_architectural_evolution(
         self, rule_id: str, action: str, rationale: str
@@ -371,13 +349,9 @@ class AegisKernel:
             plugin_count = 0
             plugin_tools = 0
             if self._evaluation_service and self._baseline_manager:
-                rules_map = {r.id: r for r in rules}
-                violations = self._evaluation_service.evaluate_workspace(root, rules)
-                active = [
-                    v
-                    for v in violations
-                    if not self._baseline_manager.is_exempt(v, rules_map.get(v.rule_id))
-                ]
+                active = self.container.governance_service.get_active_violations(
+                    rules, root
+                )
             if self.container is not None:
                 plugin_tools = len(self.container.custom_mcp_tools)
                 plugin_count = len(self.container.loaded_plugins)
@@ -414,18 +388,29 @@ class AegisKernel:
                 " — run `/aegis-init` to establish governance."
             )
 
-        rules_map = {r.id: r for r in rules}
-
         if staged_only:
+            if not self._evaluation_service:
+                return (
+                    "ERROR: Evaluation service unavailable"
+                    " — container running in degraded mode."
+                )
             violations = self._evaluation_service.evaluate_changes(rules, root_dir=root)
+            rules_map = {r.id: r for r in rules}
+            bm = self._baseline_manager
+            active = (
+                [v for v in violations if not bm.is_exempt(v, rules_map.get(v.rule_id))]
+                if bm
+                else violations
+            )
         else:
-            violations = self._evaluation_service.evaluate_workspace(root, rules)
-
-        active = [
-            v
-            for v in violations
-            if not self._baseline_manager.is_exempt(v, rules_map.get(v.rule_id))
-        ]
+            if not self.container.governance_service:
+                return (
+                    "ERROR: Governance service unavailable"
+                    " — container running in degraded mode."
+                )
+            active = self.container.governance_service.get_active_violations(
+                rules, root
+            )
 
         if not active:
             return (
@@ -453,16 +438,16 @@ class AegisKernel:
         if self.container is None:
             return "ERROR: Kernel not fully initialized — container unavailable."
 
-        root = self._workspace_root
         rules = self._load_rules()
         rules_map = {r.id: r for r in rules}
-
-        violations = self._evaluation_service.evaluate_workspace(root, rules)
-        active = [
-            v
-            for v in violations
-            if not self._baseline_manager.is_exempt(v, rules_map.get(v.rule_id))
-        ]
+        if not self.container.governance_service:
+            return (
+                "ERROR: Governance service unavailable"
+                " — container running in degraded mode."
+            )
+        active = self.container.governance_service.get_active_violations(
+            rules, self._workspace_root
+        )
 
         if not active:
             return "PASS: Architecture is compliant. No remediation needed."

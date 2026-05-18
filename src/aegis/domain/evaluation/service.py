@@ -3,7 +3,6 @@ import os
 import structlog
 
 from aegis.core.constants import IGNORE_DIRS
-from aegis.core.models.governance import EngineType, Rule
 from aegis.domain.evaluation.ports import (
     ArchitecturalViolation,
     DiffProviderInterface,
@@ -12,6 +11,7 @@ from aegis.domain.evaluation.ports import (
     RuleAnalyzerInterface,
 )
 from aegis.domain.evaluation.scoping import ScopeFilter
+from aegis.domain.policy.models import EngineType, Rule
 
 logger = structlog.get_logger()
 
@@ -57,7 +57,7 @@ class EvaluationService:
             for root, _, files in os.walk(root_dir):
                 for file in files:
                     file_path = os.path.join(root, file)
-                    if any(x in file_path for x in IGNORE_DIRS):
+                    if any(x in file_path.split(os.sep) for x in IGNORE_DIRS):
                         continue
 
                     try:
@@ -113,6 +113,12 @@ class EvaluationService:
         Performs a token-efficient analysis of only the changed lines in changed files.
         Graph rules are skipped (cross-file analysis requires a full workspace sweep).
         """
+        if not self.diff_provider:
+            logger.warning(
+                "evaluate_changes: diff_provider unavailable (not a git repo?)"
+            )
+            return []
+
         diff = self.diff_provider.get_staged_changes()
         all_violations: list[ArchitecturalViolation] = []
 
@@ -184,8 +190,11 @@ class EvaluationService:
         """Derive the workspace root from a set of changed file paths."""
         if not changed_files:
             return os.getcwd()
-        common = os.path.commonpath(list(changed_files))
-        # If common is a file path, use its parent
+        try:
+            common = os.path.commonpath(list(changed_files))
+        except ValueError:
+            return os.getcwd()
+        # If common is a file path (single file diff), use its parent
         if common and not os.path.isdir(common):
             common = os.path.dirname(common)
         return common or os.getcwd()

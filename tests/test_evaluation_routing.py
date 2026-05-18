@@ -1,6 +1,5 @@
 from unittest.mock import MagicMock
 
-from aegis.core.models.governance import EngineType, Rule, Severity
 from aegis.domain.evaluation.ports import (
     DiffProviderInterface,
     GraphAnalyzerInterface,
@@ -8,6 +7,7 @@ from aegis.domain.evaluation.ports import (
     RuleAnalyzerInterface,
 )
 from aegis.domain.evaluation.service import EvaluationService
+from aegis.domain.policy.models import EngineType, Rule, Severity
 
 
 class TestEvaluationRouting:

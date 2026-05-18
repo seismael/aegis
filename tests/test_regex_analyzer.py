@@ -1,4 +1,4 @@
-from aegis.core.models.governance import EnforcementMode, EngineType, Rule, Severity
+from aegis.domain.policy.models import EnforcementMode, EngineType, Rule, Severity
 from aegis.infrastructure.regex_analyzer import RegexAnalyzer
 
 

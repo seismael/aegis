@@ -5,8 +5,8 @@ from typing import Any
 import structlog
 from tree_sitter import Language, Parser, Query, QueryCursor
 
-from aegis.core.models.governance import Rule
 from aegis.domain.evaluation.ports import ArchitecturalViolation, RuleAnalyzerInterface
+from aegis.domain.policy.models import Rule
 
 logger = structlog.get_logger()
 
@@ -20,7 +20,6 @@ class TreeSitterAnalyzer(RuleAnalyzerInterface):
     def __init__(self):
         self._languages: dict[str, Language] = {}
         self._parser_cache: dict[str, Parser] = {}
-        self._tree_cache: dict[str, Any] = {}
 
         # Extension to package mapping
         self._lang_map = {
@@ -50,16 +49,7 @@ class TreeSitterAnalyzer(RuleAnalyzerInterface):
             self._parser_cache[ext] = Parser(language)
 
         parser = self._parser_cache[ext]
-
-        # Cache check
-        content_hash = hashlib.md5(content.encode("utf-8")).hexdigest()
-        cache_key = f"{file_path}:{content_hash}"
-
-        if cache_key in self._tree_cache:
-            tree = self._tree_cache[cache_key]
-        else:
-            tree = parser.parse(bytes(content, "utf8"))
-            self._tree_cache = {cache_key: tree}  # Minimal cache
+        tree = parser.parse(bytes(content, "utf8"))
 
         violations = []
         for rule in relevant_rules:

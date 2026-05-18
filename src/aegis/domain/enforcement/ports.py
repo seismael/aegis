@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
-from aegis.core.models.governance import Rule
 from aegis.domain.evaluation.ports import ArchitecturalViolation
+from aegis.domain.policy.models import Rule
 
 
 class RemediationProviderInterface(ABC):

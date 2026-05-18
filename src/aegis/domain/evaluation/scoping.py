@@ -1,7 +1,7 @@
 from pathlib import PurePosixPath
 
-from aegis.core.models.governance import Rule
 from aegis.domain.evaluation.ports import ArchitecturalViolation
+from aegis.domain.policy.models import Rule
 
 
 class ScopeFilter:
@@ -9,9 +9,7 @@ class ScopeFilter:
     Rule scoping filter: applies_to (positive) and excludes (negative) pattern
     matching against violation file paths.
 
-    PurePosixPath.match() treats ** as a single path component, so
-    patterns like "tests/**" don't match nested directories. The
-    _path_matches_pattern method resolves ** to match all descendants.
+    Supports glob patterns with ** for recursive matching.
     """
 
     @staticmethod
@@ -20,13 +18,51 @@ class ScopeFilter:
         if "**" not in pattern:
             return path.match(pattern)
 
-        prefix = pattern.rsplit("**", 1)[0].rstrip("/")
-        if not prefix:
+        path_str = str(path)
+
+        # Split on ** and strip surrounding slashes.
+        segments = [s.strip("/") for s in pattern.split("**")]
+
+        # Strip leading ./ from the first segment for normalization.
+        if segments and segments[0].startswith("./"):
+            segments[0] = segments[0][2:]
+
+        # Pure ** or all-empty segments matches everything.
+        if all(not s for s in segments):
             return True
 
-        p = prefix + "/"
-        path_str = str(path)
-        return path_str.startswith(p) or p in path_str
+        idx = 0
+
+        for i, seg in enumerate(segments):
+            if not seg:
+                continue
+
+            if i == 0:
+                # First non-empty segment — search anywhere in the path
+                # so that absolute paths (C:/dev/.../src/...) still
+                # match relative patterns (src/**).
+                found = path_str.find(seg)
+                if found == -1:
+                    return False
+                idx = found + len(seg)
+                continue
+
+            if i == len(segments) - 1:
+                # Last non-empty segment must be a suffix.
+                if "*" in seg or "?" in seg or "[" in seg:
+                    if not PurePosixPath(path_str).match(seg):
+                        return False
+                elif not path_str.endswith(seg):
+                    return False
+                continue
+
+            # Middle segments must appear in order after the current position.
+            found = path_str.find(seg, idx)
+            if found == -1:
+                return False
+            idx = found + len(seg)
+
+        return True
 
     @staticmethod
     def filter_violations(
@@ -35,8 +71,8 @@ class ScopeFilter:
         """
         Filter violations by rule scoping (applies_to / excludes).
 
-        Keep violations whose file matches at least one `applies_to` pattern
-        and does NOT match any `excludes` pattern for the violated rule.
+        Keep violations whose file matches at least one *applies_to* pattern
+        and does NOT match any *excludes* pattern for the violated rule.
         """
         rule_map = {r.id: r for r in rules}
         filtered: list[ArchitecturalViolation] = []

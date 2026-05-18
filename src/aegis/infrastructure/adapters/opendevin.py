@@ -45,3 +45,35 @@ class OpenDevinAdapter(ToolAdapter):
         except Exception as e:
             logger.error("OpenDevin integration failed", error=str(e))
             return False
+
+    def uninstall(self) -> bool:
+        config_path = self.target_dir / "config.toml"
+        if not config_path.exists():
+            return True
+        try:
+            with open(config_path, encoding="utf-8") as f:
+                content = f.read()
+            # Remove the [[mcp_servers]] block for aegis
+            lines = content.splitlines(keepends=True)
+            filtered = []
+            in_block = False
+            drop_block = False
+            for line in lines:
+                if line.strip().startswith("[[mcp_servers]]"):
+                    if in_block and drop_block:
+                        drop_block = False
+                    in_block = True
+                    drop_block = False
+                if in_block and 'name = "aegis"' in line:
+                    drop_block = True
+                    continue
+                if not in_block or not drop_block:
+                    filtered.append(line)
+                if in_block and line.strip() == "":
+                    in_block = False
+                    drop_block = False
+            with open(config_path, "w", encoding="utf-8") as f:
+                f.writelines(filtered)
+            return True
+        except OSError:
+            return False

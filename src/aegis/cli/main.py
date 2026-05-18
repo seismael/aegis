@@ -1,7 +1,6 @@
 import json
 import logging
 import os
-import shutil
 from collections import Counter
 
 import typer
@@ -10,7 +9,8 @@ from rich.prompt import Confirm, Prompt
 
 from aegis.core.container.app import Container
 from aegis.core.models.evolution import EvolutionDecision
-from aegis.core.models.governance import EnforcementMode
+from aegis.domain.governance.service import GovernanceService
+from aegis.domain.policy.models import EnforcementMode
 
 
 class AegisCLI:
@@ -24,6 +24,16 @@ class AegisCLI:
         self.console = Console()
         self.app = typer.Typer(help="Aegis: Headless Architectural Governance Engine")
         self._register_commands()
+
+    def _require_governance(self) -> None:
+        """Exit with error if governance service is unavailable."""
+        if not self.container.governance_service:
+            self.console.print(
+                "[red]Error: Governance service unavailable"
+                " — container running in degraded mode."
+                " Check .aegis/ permissions or run 'aegis init'.[/red]"
+            )
+            raise typer.Exit(code=1)
 
     def _register_commands(self):
         self.app.command()(self.install)
@@ -62,41 +72,10 @@ class AegisCLI:
         Initializes Aegis governance for the CURRENT project.
         Sets up the .aegis/ directory with modular rule packs and base configuration.
         """
-        aegis_dir = os.path.join(self.container.workspace_root, ".aegis")
-        if not os.path.exists(aegis_dir):
-            os.makedirs(aegis_dir)
-            self.console.print(f"[green]Initialized .aegis/ at {aegis_dir}[/green]")
-
-        # 1. Create minimal project config
-        config_path = os.path.join(aegis_dir, "config.yaml")
-        if not os.path.exists(config_path):
-            with open(config_path, "w", encoding="utf-8") as f:
-                f.write("enforcement: warn\n")
-
-        # 2. Set up modular rules/ directory
-        rules_dir = os.path.join(aegis_dir, "rules")
-
-        if not os.path.exists(rules_dir):
-            os.makedirs(rules_dir)
-            # Copy default rule packs from package resources
-            try:
-                import importlib.resources
-
-                for pack in ("architecture.yaml", "security.yaml"):
-                    src = importlib.resources.files(
-                        "aegis.resources.default_rules"
-                    ).joinpath(pack)
-                    if src.is_file():
-                        with importlib.resources.as_file(src) as sf:
-                            shutil.copy2(str(sf), str(rules_dir))
-                self.console.print(
-                    "[green]Created default rule packs in .aegis/rules/[/green]"
-                )
-            except Exception as e:
-                self.console.print(
-                    f"[yellow]Warning: could not copy default rules — {e}[/yellow]"
-                )
-
+        aegis_dir = GovernanceService.init_project_structure(
+            self.container.workspace_root
+        )
+        self.console.print(f"[green]Initialized .aegis/ at {aegis_dir}[/green]")
         self.console.print("\n[bold green]Project Governance Initialized![/bold green]")
         self.console.print(
             "Optional: Run `aegis setup-hooks`"
@@ -122,8 +101,7 @@ class AegisCLI:
         all_rules = self.container.load_rules()
         if not all_rules:
             self.console.print(
-                "[red]Error: No rules found in"
-                " .aegis/rules/ or .aegis/rules.yaml."
+                "[red]Error: No rules found in .aegis/rules/."
                 " Run 'aegis init' first.[/red]"
             )
             raise typer.Exit(code=1)
@@ -132,19 +110,32 @@ class AegisCLI:
         rule_map = {r.id: r for r in rules}
 
         if staged:
+            if not self.container.evaluation_service:
+                self.console.print(
+                    "[red]Error: Evaluation service unavailable"
+                    " — container running in degraded mode.[/red]"
+                )
+                raise typer.Exit(code=1)
             violations = self.container.evaluation_service.evaluate_changes(
                 rules, root_dir=self.container.workspace_root
             )
-        else:
-            violations = self.container.evaluation_service.evaluate_workspace(
-                self.container.workspace_root, rules
+            bm = self.container.baseline_manager or (
+                self.console.print(
+                    "[yellow]Warning: Baseline manager unavailable —"
+                    " skipping exemption check.[/yellow]"
+                )
+                or None
             )
-
-        active = [
-            v
-            for v in violations
-            if not self.container.baseline_manager.is_exempt(v, rule_map.get(v.rule_id))
-        ]
+            active = (
+                [v for v in violations if not bm.is_exempt(v, rule_map.get(v.rule_id))]
+                if bm
+                else violations
+            )
+        else:
+            self._require_governance()
+            active = self.container.governance_service.get_active_violations(
+                rules, self.container.workspace_root
+            )
 
         if not active:
             self.console.print("[green]Architecture compliant.[/green]")
@@ -187,49 +178,47 @@ class AegisCLI:
     ):
         """Manages the architectural technical debt ledger."""
         if clear:
-            if os.path.exists(self.container.baseline_manager.path):
-                os.remove(self.container.baseline_manager.path)
+            bm = self.container.baseline_manager
+            if not bm:
+                self.console.print(
+                    "[red]Error: Baseline manager unavailable"
+                    " — container running in degraded mode.[/red]"
+                )
+                return
+            if os.path.exists(bm.path):
+                os.remove(bm.path)
             self.console.print("[yellow]Baseline cleared.[/yellow]")
             return
 
+        self._require_governance()
         rules = self.container.load_rules()
         if not rules:
-            self.console.print(
-                "[red]Error: No rules found in"
-                " .aegis/rules/ or .aegis/rules.yaml.[/red]"
-            )
+            self.console.print("[red]Error: No rules found in .aegis/rules/.[/red]")
             return
 
-        violations = self.container.evaluation_service.evaluate_workspace(
-            self.container.workspace_root, rules
+        count = self.container.governance_service.capture_baseline(
+            rules, self.container.workspace_root
         )
-        self.container.baseline_manager.save_baseline(violations)
-        self.console.print(
-            f"[green]Successfully baselined {len(violations)} violations.[/green]"
-        )
+        self.console.print(f"[green]Successfully baselined {count} violations.[/green]")
 
     def status(self, json_output: bool = typer.Option(False, "--json")):
         """Provides a summary of the current governance state."""
         rules = self.container.load_rules()
-        baseline = self.container.baseline_manager.load_baseline_raw()
+        baseline = (
+            self.container.baseline_manager.load_baseline_raw()
+            if self.container.baseline_manager
+            else []
+        )
 
         # Engine distribution
         engine_counts = Counter(r.engine_type.value for r in rules)
 
         # Active violations (run evaluation, subtract baseline)
         active_violations = []
-        if rules:
-            rule_map = {r.id: r for r in rules}
-            violations = self.container.evaluation_service.evaluate_workspace(
-                self.container.workspace_root, rules
+        if rules and self.container.governance_service:
+            active_violations = self.container.governance_service.get_active_violations(
+                rules, self.container.workspace_root
             )
-            active_violations = [
-                v
-                for v in violations
-                if not self.container.baseline_manager.is_exempt(
-                    v, rule_map.get(v.rule_id)
-                )
-            ]
 
         stats = {
             "rules_count": len(rules),
@@ -281,23 +270,16 @@ class AegisCLI:
 
         all_rules = self.container.load_rules()
         if not all_rules:
-            self.console.print(
-                "[red]Error: No rules found in"
-                " .aegis/rules/ or .aegis/rules.yaml.[/red]"
-            )
+            self.console.print("[red]Error: No rules found in .aegis/rules/.[/red]")
             return
 
         rules = [r for r in all_rules if r.id == rule] if rule else all_rules
         rule_map = {r.id: r for r in rules}
 
-        violations = self.container.evaluation_service.evaluate_workspace(
-            self.container.workspace_root, rules
+        self._require_governance()
+        active = self.container.governance_service.get_active_violations(
+            rules, self.container.workspace_root
         )
-        active = [
-            v
-            for v in violations
-            if not self.container.baseline_manager.is_exempt(v, rule_map.get(v.rule_id))
-        ]
 
         if not active:
             self.console.print(
@@ -325,10 +307,7 @@ class AegisCLI:
 
         rules = self.container.load_rules()
         if not rules:
-            self.console.print(
-                "[red]Error: No rules found in"
-                " .aegis/rules/ or .aegis/rules.yaml.[/red]"
-            )
+            self.console.print("[red]Error: No rules found in .aegis/rules/.[/red]")
             return
 
         rule = next((r for r in rules if r.id == rule_id), None)
@@ -347,20 +326,26 @@ class AegisCLI:
         decision = EvolutionDecision(
             rule_id=rule_id, action=action, rationale=rationale
         )
-        self.container.evolution_service.log_decision(decision)
+        if self.container.evolution_service:
+            self.container.evolution_service.log_decision(decision)
+        else:
+            self.console.print(
+                "[red]Error: Evolution service unavailable"
+                " — decision not recorded.[/red]"
+            )
+            return
 
         if action == "suppress":
+            self._require_governance()
             self.console.print(
                 "[yellow]Capturing current violations"
                 " for this rule into baseline...[/yellow]"
             )
-            violations = self.container.evaluation_service.evaluate_workspace(
-                self.container.workspace_root, [rule]
+            violation_count = self.container.governance_service.capture_baseline(
+                [rule], self.container.workspace_root
             )
-            for v in violations:
-                self.container.baseline_manager.add_to_baseline(v)
             self.console.print(
-                f"[green]Successfully suppressed {len(violations)} violations.[/green]"
+                f"[green]Successfully suppressed {violation_count} violations.[/green]"
             )
 
         self.console.print("\n✅ Decision recorded in evolution_log.json")

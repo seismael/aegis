@@ -1,6 +1,6 @@
-from aegis.core.models.governance import Rule, RuleCategory
 from aegis.domain.evaluation.baseline import BaselineManager
 from aegis.domain.evaluation.ports import ArchitecturalViolation
+from aegis.domain.policy.models import Rule, RuleCategory
 
 
 class TestBaselineManager:
@@ -241,3 +241,87 @@ class TestBaselineManager:
         v = self._violation("src/main.py", 10, "r1")
         bm.add_to_baseline(v)
         assert bm.is_exempt(v)
+
+    # ─── Corruption edge cases ──────────────────────────────────────────────
+
+    def test_load_baseline_non_list_json(self, tmp_path):
+        """Non-list JSON (dict) returns empty list."""
+        bm = BaselineManager(str(tmp_path))
+        (tmp_path / "baseline.json").write_text('{"not": "a list"}', encoding="utf-8")
+        assert bm.load_baseline_raw() == []
+
+    def test_load_baseline_scalar_json(self, tmp_path):
+        """Scalar JSON (string) returns empty list."""
+        bm = BaselineManager(str(tmp_path))
+        (tmp_path / "baseline.json").write_text('"just a string"', encoding="utf-8")
+        assert bm.load_baseline_raw() == []
+
+    def test_is_exempt_non_list_baseline(self, tmp_path):
+        """is_exempt handles non-list baseline without crashing."""
+        bm = BaselineManager(str(tmp_path))
+        (tmp_path / "baseline.json").write_text('{"not": "a list"}', encoding="utf-8")
+        v = self._violation("main.py", 1, "r1")
+        assert not bm.is_exempt(v)
+
+    def test_is_exempt_baseline_with_non_dict_entries(self, tmp_path):
+        """is_exempt handles baseline entries that aren't dicts."""
+        bm = BaselineManager(str(tmp_path))
+        import json
+
+        bm.add_to_baseline(self._violation("main.py", 1, "r1"))
+        raw = bm.load_baseline_raw()
+        raw.append(None)
+        raw.append(42)
+        raw.append("string")
+        (tmp_path / "baseline.json").write_text(json.dumps(raw), encoding="utf-8")
+        # _match should skip non-dict entries via .get() safely
+        v = self._violation("main.py", 1, "r1")
+        assert bm.is_exempt(v)
+
+    def test_save_baseline_with_corrupt_existing(self, tmp_path):
+        """save_baseline overwrites corrupt file cleanly."""
+        bm = BaselineManager(str(tmp_path))
+        (tmp_path / "baseline.json").write_text("corrupt", encoding="utf-8")
+        bm.save_baseline([self._violation("a.py", 1, "r1")])
+        raw = bm.load_baseline_raw()
+        assert len(raw) == 1
+        assert raw[0]["rule_id"] == "r1"
+
+    def test_add_to_baseline_with_corrupt_existing(self, tmp_path):
+        """add_to_baseline handles corrupt file by overwriting."""
+        bm = BaselineManager(str(tmp_path))
+        (tmp_path / "baseline.json").write_text("corrupt", encoding="utf-8")
+        v = self._violation("a.py", 1, "r1")
+        bm.add_to_baseline(v)
+        raw = bm.load_baseline_raw()
+        assert len(raw) == 1
+
+    def test_prune_stale_with_non_list_baseline(self, tmp_path):
+        """prune_stale handles non-list JSON without crashing."""
+        bm = BaselineManager(str(tmp_path))
+        (tmp_path / "baseline.json").write_text('{"not": "list"}', encoding="utf-8")
+        count = bm.prune_stale({"r1"})
+        assert count == 0
+
+    def test_is_exempt_baseline_missing_keys(self, tmp_path):
+        """Entries missing file/line/rule_id keys don't cause KeyError."""
+        bm = BaselineManager(str(tmp_path))
+        import json
+
+        (tmp_path / "baseline.json").write_text(
+            json.dumps([{"file": "x.py"}]), encoding="utf-8"
+        )
+        v = self._violation("x.py", 1, "r1")
+        assert not bm.is_exempt(v)
+
+    def test_is_exempt_baseline_line_is_none(self, tmp_path):
+        """Null line in baseline entry handled gracefully."""
+        bm = BaselineManager(str(tmp_path))
+        import json
+
+        (tmp_path / "baseline.json").write_text(
+            json.dumps([{"file": "x.py", "line": None, "rule_id": "r1"}]),
+            encoding="utf-8",
+        )
+        v = self._violation("x.py", 1, "r1")
+        assert not bm.is_exempt(v)
