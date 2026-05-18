@@ -2,26 +2,26 @@
 
 **Aegis** is a universal governance engine designed to automate architectural perfection. It transforms static design principles into **active execution gates**, ensuring structural compliance and preventing drift across any development workflow.
 
-Aegis solves the problem of **architectural erosion** by introducing a high-performance, real-time feedback loop that enforces your project's core laws at the moment of code creation.
+Unlike traditional linters, Aegis is a **Steering-First** protocol. It provides proactive architectural guidance *before* code is written, ensuring that both human developers and autonomous agents remain aligned with project invariants by design.
 
 ---
 
 ## 🎯 Core Objectives
 
+- **Proactive Architectural Steering**: Generate "Architectural Flight Plans" at the start of every task to align implementation with project goals.
 - **Enforce Structural Invariants**: Mathematically verify that your code follows its intended design (e.g., Hexagonal boundaries, OOD principles).
-- **Eliminate Architectural Drift**: Automatically detect and block "leaky" abstractions and paradigm violations before they enter your codebase.
-- **Automate Quality Gates**: Provide instant, context-rich feedback to developers (and automated tools) to ensure every change adheres to the project's standards.
-- **Manage Technical Debt**: Use sophisticated baselining to "grandfather" legacy violations while strictly enforcing zero-drift on new code.
+- **Eliminate Architectural Drift**: Automatically detect and block "leaky" abstractions and paradigm violations in real-time.
+- **Manage Technical Debt**: Use sophisticated structural baselining to "grandfather" legacy violations while strictly enforcing zero-drift on new code.
 
 ---
 
 ## 🚀 Key Capabilities
 
-- **Real-Time AST Enforcement**: Deep structural analysis using **Tree-sitter** that targets only modified code for ultra-fast feedback.
-- **Polyglot Analysis**: Unified governance across multiple languages (Python, TypeScript, JavaScript, Rust).
-- **Universal Integration**: Seamlessly binds to your existing toolchain via the **Model Context Protocol (MCP)** and standard CLI interfaces.
-- **Modular Policy-as-Code**: Define your laws in simple YAML files organized by category (Architecture, Security, Style).
-- **Extensible Plugin System**: Build custom analyzers for specialized domain needs using a robust platform interface.
+- **Steering-First Discovery**: Pre-fetch relevant architectural laws for any file path *before* editing.
+- **Real-Time AST Enforcement**: Deep structural analysis using **Tree-sitter** that targets modified code for ultra-fast feedback.
+- **Universal Integration**: Seamlessly binds to your toolchain via the **Model Context Protocol (MCP)** and standard CLI.
+- **Modular Policy-as-Code**: Define laws in simple YAML files organized by category (Architecture, Security, Style).
+- **Extensible Plugin Platform**: Build project-wide analyzers for specialized domain needs (e.g., dead code detection, cloud-isolation).
 
 ---
 

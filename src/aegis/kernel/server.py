@@ -810,6 +810,18 @@ class AegisKernel:
     @staticmethod
     def entry_point():
         import argparse
+        import sys
+
+        # Route structlog to stderr so MCP JSON-RPC on stdout stays clean
+        try:
+            import structlog
+
+            structlog.configure(
+                wrapper_class=structlog.stdlib.BoundLogger,
+                logger_factory=structlog.PrintLoggerFactory(sys.stderr),
+            )
+        except ImportError:
+            pass
 
         parser = argparse.ArgumentParser(description="Aegis Architecture Engine (MCP)")
         parser.add_argument(

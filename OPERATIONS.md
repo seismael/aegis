@@ -4,11 +4,22 @@ This document defines the **Governance Protocol** that ensures architectural int
 
 ---
 
-## 🏛️ Governance Protocol
-- **MANDATORY**: Run `uv run aegis check` before every commit or when a logical task is complete. Blocking violations MUST be resolved or baselined.
+## 🏛️ Governance Protocol: Steering-First
+
+Aegis enforces a **Steering-First** methodology. You are mandated to use the following proactive cycle:
+
+### 1. Discovery (Task Start)
+- **MANDATORY**: Whenever starting a new logical task, call the `propose_architectural_steering` tool.
+- Align your implementation strategy with the resulting **Architectural Flight Plan**.
+
+### 2. Awareness (File Edit)
+- **MANDATORY**: Before editing any specific file, call `get_relevant_rules(path)`.
+- Explicitly respect the returned structural laws during generation.
+
+### 3. Validation (Commit/Gate)
+- **MANDATORY**: Run `uv run aegis check` before every commit.
 - **TRANSPARENCY**: Run `uv run aegis status` to inspect the current rule matrix and debt ledger.
 - **DEBT MANAGEMENT**: Baseline new or unavoidable violations with `uv run aegis baseline`. Never suppress violations silently.
-- **RATIONALE**: Every rule modification must include a clear rationale stored via the evolution protocol.
 
 ---
 
@@ -28,6 +39,8 @@ This document defines the **Governance Protocol** that ensures architectural int
 Aegis leverages the **Model Context Protocol (MCP)** to provide seamless integration with development tools:
 
 ### Core Tools
+- `propose_architectural_steering`: Generate a pre-emptive flight plan for a task.
+- `get_relevant_rules`: Fetch laws for a specific file path before editing.
 - `validate_architecture_compliance`: Perform a hunk-aware or workspace scan.
 - `apply_architectural_remediation`: Receive structured fix instructions for violations.
 - `get_rule_rationale`: Trace the history and reasoning behind any law.
@@ -45,12 +58,8 @@ Aegis is a **Self-Governing Engine**. It enforces its own structural invariants,
 
 ## 🧠 Environment Capabilities
 
+### The Principal Architect Persona
+Use the `aegis-principal-architect` skill for all architectural alignment. This persona is your primary guide for maintaining project perfection.
+
 ### Issue Tracker
 All work is tracked via GitHub Issues. Use the `gh` CLI to interact with the repository's task matrix.
-
-### Triage Labels
-We use a deterministic labeling system:
-- `role:*` (Architect, Security, DevOps)
-- `domain:*` (Governance, Compliance, Strategy)
-- `ecosystem:*` (MCP, Tree-sitter)
-- `intent:*` (Review, Expansion)

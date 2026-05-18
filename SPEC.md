@@ -22,6 +22,8 @@ The Aegis Kernel is the engine of **Structural Enforcement**. It supports three 
 The **Aegis Kernel** exposes its capabilities via the **Model Context Protocol (MCP)**, offering three tiers of integration:
 
 ### 3.1 Tools (Actionable Commands)
+- `propose_architectural_steering`: Innovation — Generates a pre-emptive "Flight Plan" for a task.
+- `get_relevant_rules`: Discovery — Fetches laws for a specific file path before editing.
 - `validate_architecture_compliance`: Executes a workspace or hunk-aware scan.
 - `apply_architectural_remediation`: Returns structured, context-rich fix instructions.
 - `get_rule_rationale`: Fetches the reasoning behind a law.
