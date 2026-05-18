@@ -1,13 +1,12 @@
 """
 Aegis Plugin: Cloud Isolation Guard
 
-Enforces strict hexagonal boundaries by ensuring that domain logic 
+Enforces strict hexagonal boundaries by ensuring that domain logic
 is decoupled from cloud-provider SDKs (AWS, GCP, Azure).
 
 Use-case: Enterprise-grade isolation of business logic from infrastructure providers.
 """
 
-import os
 import re
 from collections.abc import Callable
 from typing import Any
@@ -36,54 +35,53 @@ class CloudIsolationPlugin(CustomAnalyzerInterface):
         self, file_path: str, content: str, rules: list[Rule]
     ) -> list[ArchitecturalViolation]:
         violations: list[ArchitecturalViolation] = []
-        rel_path = os.path.normpath(file_path)
 
         # Filter for rules that explicitly invoke cloud isolation
         cloud_rules = [
-            r for r in rules 
-            if r.id.startswith("cloud-isolation") or (r.metadata or {}).get("plugin") == "cloud-isolation"
+            r
+            for r in rules
+            if r.id.startswith("cloud-isolation")
+            or (r.metadata or {}).get("plugin") == "cloud-isolation"
         ]
 
         if not cloud_rules:
             return []
 
         for rule in cloud_rules:
-            # Check if the file is in scope for this rule
-            # (Note: ScopeFilter in EvaluationService handles global scoping, 
-            # but we can do extra checks here if needed via metadata)
-            
             sdks = (rule.metadata or {}).get("sdks", self.DEFAULT_CLOUD_SDKS)
-            
+
             for i, line in enumerate(content.splitlines(), 1):
                 stripped = line.strip()
                 if not (stripped.startswith("import ") or stripped.startswith("from ")):
                     continue
-                
+
                 for sdk in sdks:
-                    if re.search(fr"\b{sdk}\b", stripped):
+                    if re.search(rf"\b{sdk}\b", stripped):
+                        desc = (
+                            f"Cloud Leak detected: '{sdk}' SDK imported in pure "
+                            "domain layer. Business logic must be cloud-agnostic. "
+                            "Move to an infrastructure adapter."
+                        )
                         violations.append(
                             ArchitecturalViolation(
                                 file=file_path,
                                 line=i,
                                 rule_id=rule.id,
-                                description=(
-                                    f"Cloud Leak detected: '{sdk}' SDK imported in pure domain layer. "
-                                    f"Business logic must be cloud-agnostic. Move to an infrastructure adapter."
-                                ),
+                                description=desc,
                                 severity=rule.severity.value,
                             )
                         )
-        
+
         return violations
 
     @property
     def mcp_tools(self) -> list[Callable]:
         def get_cloud_isolation_status() -> dict[str, Any]:
-            """Returns the current configuration and health of the CloudIsolationPlugin."""
+            """Returns the current status of the CloudIsolationPlugin."""
             return {
                 "status": "active",
                 "default_sdks_monitored": self.DEFAULT_CLOUD_SDKS,
-                "scope": "Domain Layer (Hexagonal Isolation)"
+                "scope": "Domain Layer (Hexagonal Isolation)",
             }
 
         return [get_cloud_isolation_status]

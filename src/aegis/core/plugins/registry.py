@@ -7,6 +7,7 @@ import structlog
 
 from aegis.core.plugins.interfaces import CustomAnalyzerInterface
 from aegis.domain.evaluation.ports import RuleAnalyzerInterface
+from aegis.domain.policy.models import Rule
 
 logger = structlog.get_logger()
 
@@ -53,7 +54,8 @@ class PluginRegistry:
                 analyzers = module.register_analyzers()
                 if isinstance(analyzers, list):
                     self.custom_analyzers.extend(analyzers)
-                    # Collect advanced capabilities from CustomAnalyzerInterface instances
+                    # Collect advanced capabilities from
+                    # CustomAnalyzerInterface instances
                     for a in analyzers:
                         if isinstance(a, CustomAnalyzerInterface):
                             self.custom_mcp_tools.extend(a.mcp_tools)

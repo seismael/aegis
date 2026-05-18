@@ -1,7 +1,7 @@
 """
 Aegis plugin — Import Boundary Guard.
 
-Enforces structural boundaries by scanning for forbidden cross-layer imports 
+Enforces structural boundaries by scanning for forbidden cross-layer imports
 (e.g., infrastructure leaking into domain).
 """
 

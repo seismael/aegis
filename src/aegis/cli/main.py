@@ -367,11 +367,11 @@ class AegisCLI:
             "# Aegis Pre-Commit Enforcement (Example)\n"
             "# This hook ensures architectural compliance before every commit.\n"
             "\n"
-            'echo "🛡️  Aegis: Validating architectural compliance..."\n'
+            'echo "[Aegis] Validating architectural compliance..."\n'
             "aegis check --staged\n"
             "\n"
             "if [ $? -ne 0 ]; then\n"
-            '  echo "❌  Architectural drift detected. Commit blocked."\n'
+            '  echo "[Aegis] Architectural drift detected. Commit blocked."\n'
             "  exit 1\n"
             "fi\n"
         )
@@ -389,7 +389,7 @@ class AegisCLI:
             os.chmod(hook_path, 0o755)
 
         self.console.print(
-            "[bold green]✅ Optional Git pre-commit hook"
+            "[bold green]Optional Git pre-commit hook"
             " wired successfully.[/bold green]"
         )
 

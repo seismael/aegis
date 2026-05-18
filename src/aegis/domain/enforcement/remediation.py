@@ -48,7 +48,7 @@ class RemediationPromptSynthesizer(RemediationProviderInterface):
             else:
                 payload += f"### Violation in `{v.file}` (Line {v.line})\n"
             payload += f"- **Rule ID:** `{v.rule_id}` [{v.severity}]\n"
-            
+
             # Custom Plugin Remediation
             custom_desc = None
             for extra in self.extra_analyzers:
@@ -56,7 +56,7 @@ class RemediationPromptSynthesizer(RemediationProviderInterface):
                     custom_desc = extra.provide_remediation(v, rule)
                     if custom_desc:
                         break
-            
+
             payload += f"- **Description:** {custom_desc or v.description}\n"
             payload += "- **Enforcement Mode:** "
             payload += f"{rule.mode.value if rule else 'unknown'}\n"

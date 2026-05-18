@@ -142,16 +142,19 @@ class Container:
             return None
 
     def load_rules(self) -> list:
-        """Loads rules from the .aegis/rules/ directory and auto-registered plugin rules."""
+        """
+        Loads rules from the .aegis/rules/ directory
+        and auto-registered plugin rules.
+        """
         rules_dir = os.path.join(self.workspace_root, ".aegis", "rules")
         rules = []
         if os.path.isdir(rules_dir):
             rules = self.policy_parser.parse_directory(rules_dir)
-        
+
         # Add auto-registered rules from plugins
         if self.plugin_registry:
             rules.extend(self.plugin_registry.auto_rules)
-            
+
         return rules
 
     def _discover_project_root(self) -> str:

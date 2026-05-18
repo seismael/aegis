@@ -1,5 +1,4 @@
 from collections.abc import Callable
-from typing import Any
 
 from aegis.domain.evaluation.ports import ArchitecturalViolation, RuleAnalyzerInterface
 from aegis.domain.policy.models import Rule
@@ -25,16 +24,16 @@ class CustomAnalyzerInterface(RuleAnalyzerInterface):
         return []
 
     def analyze_project(
-        self, root_dir: str, rules: list[Rule]
+        self, _root_dir: str, _rules: list[Rule]
     ) -> list[ArchitecturalViolation]:
         """
-        Hook for project-wide analysis. 
+        Hook for project-wide analysis.
         Useful for rules that require a global view (e.g., dead code, global coupling).
         """
         return []
 
     def provide_remediation(
-        self, violation: ArchitecturalViolation, rule: Rule
+        self, _violation: ArchitecturalViolation, _rule: Rule
     ) -> str | None:
         """
         Allows the plugin to provide custom fix instructions for a violation.

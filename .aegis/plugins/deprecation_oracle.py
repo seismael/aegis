@@ -1,17 +1,15 @@
 """
 Aegis Plugin: Deprecation & Migration Oracle
 
-Enforces technical debt management by flagging deprecated modules, 
+Enforces technical debt management by flagging deprecated modules,
 functions, or patterns and providing high-fidelity migration paths.
 
-Use-case: Managing complex migrations (e.g. requests -> httpx) and 
+Use-case: Managing complex migrations (e.g. requests -> httpx) and
 sunsetting legacy internal APIs in professional codebases.
 """
 
-import os
 import re
 from collections.abc import Callable
-from typing import Any
 
 from aegis.core.plugins import CustomAnalyzerInterface
 from aegis.domain.evaluation.ports import ArchitecturalViolation
@@ -21,7 +19,7 @@ from aegis.domain.policy.models import Rule
 class DeprecationOraclePlugin(CustomAnalyzerInterface):
     """
     Detects usages of deprecated code.
-    Configured via rule.metadata: 'deprecated_patterns' (regex list) 
+    Configured via rule.metadata: 'deprecated_patterns' (regex list)
     and 'migration_path' (advice string).
     """
 
@@ -29,10 +27,9 @@ class DeprecationOraclePlugin(CustomAnalyzerInterface):
         self, file_path: str, content: str, rules: list[Rule]
     ) -> list[ArchitecturalViolation]:
         violations: list[ArchitecturalViolation] = []
-        
+
         oracle_rules = [
-            r for r in rules 
-            if (r.metadata or {}).get("plugin") == "deprecation-oracle"
+            r for r in rules if (r.metadata or {}).get("plugin") == "deprecation-oracle"
         ]
 
         if not oracle_rules:
@@ -42,7 +39,7 @@ class DeprecationOraclePlugin(CustomAnalyzerInterface):
             meta = rule.metadata or {}
             patterns = meta.get("deprecated_patterns", [])
             migration_path = meta.get("migration_path", "No migration path provided.")
-            
+
             if not patterns:
                 continue
 
@@ -66,7 +63,7 @@ class DeprecationOraclePlugin(CustomAnalyzerInterface):
                                 severity=rule.severity.value,
                             )
                         )
-        
+
         return violations
 
     @property
