@@ -22,27 +22,36 @@ import json
 from typing import Any
 
 
-def error(code: str, message: str, *, hint: str | None = None) -> str:
-    """Return a structured JSON error string for MCP tool responses."""
-    payload: dict[str, Any] = {
-        "success": False,
-        "error_code": code,
-        "message": message,
-    }
-    if hint:
-        payload["hint"] = hint
-    return json.dumps(payload)
+class MCPResponse:
+    """Structured response helpers for MCP tool protocol."""
+
+    @staticmethod
+    def error(code: str, message: str, *, hint: str | None = None) -> str:
+        """Return a structured JSON error string for MCP tool responses."""
+        payload: dict[str, Any] = {
+            "success": False,
+            "error_code": code,
+            "message": message,
+        }
+        if hint:
+            payload["hint"] = hint
+        return json.dumps(payload)
+
+    @staticmethod
+    def ok(message: str) -> str:
+        """Return a plain success string."""
+        return message
+
+    @staticmethod
+    def warn(message: str) -> str:
+        """Return a WARN-prefixed message (backward-compatible warning format)."""
+        return f"WARN: {message}"
 
 
-def ok(message: str) -> str:
-    """Return a plain success string."""
-    return message
-
-
-def warn(message: str) -> str:
-    """Return a WARN-prefixed message (backward-compatible warning format)."""
-    return f"WARN: {message}"
-
+# Module-level aliases for ergonomic imports
+error = MCPResponse.error
+ok = MCPResponse.ok
+warn = MCPResponse.warn
 
 # Standardized error codes
 ERR_CONTAINER_NOT_INIT = "CONTAINER_NOT_INIT"

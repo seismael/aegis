@@ -179,6 +179,9 @@ class BaselineManager:
                         continue  # expired
                 except (ValueError, TypeError):
                     pass  # keep entries with unparseable timestamps
+            elif active_rule_ids is not None:
+                # No timestamp — treat as expired for active rules
+                continue
             kept.append(b)
 
         after = len(kept)

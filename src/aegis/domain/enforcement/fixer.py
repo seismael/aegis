@@ -89,96 +89,106 @@ class FstringFixer(RuleFixer):
 # Registry
 # ---------------------------------------------------------------------------
 
-_FIXERS: dict[str, RuleFixer] = {}
+class FixerRegistry:
+    """Registry of rule fixers, keyed by rule ID."""
+
+    def __init__(self):
+        self._fixers: dict[str, RuleFixer] = {}
+
+    def register(self, fixer: RuleFixer) -> None:
+        self._fixers[fixer.rule_id] = fixer
+
+    def get(self, rule_id: str) -> RuleFixer | None:
+        return self._fixers.get(rule_id)
+
+    def list_ids(self) -> list[str]:
+        return list(self._fixers.keys())
+
+    def apply_fixes(
+        self,
+        violations: list[ArchitecturalViolation],
+        rules_map: dict[str, Rule],
+        dry_run: bool = False,
+    ) -> list[FixResult]:
+        """Apply auto-fixes to files for all fixable violations.
+
+        Returns a list of FixResult describing what was (or would be) changed.
+        When *dry_run* is True, files are not modified.
+        """
+        by_file: dict[str, list[ArchitecturalViolation]] = {}
+        for v in violations:
+            if self.get(v.rule_id) is not None:
+                by_file.setdefault(v.file, []).append(v)
+
+        results: list[FixResult] = []
+
+        for filepath, file_violations in by_file.items():
+            path = Path(filepath)
+            if not path.exists():
+                results.append(
+                    FixResult(filepath, 0, "", False, f"File not found: {filepath}")
+                )
+                continue
+
+            try:
+                content = path.read_text(encoding="utf-8")
+            except OSError as e:
+                results.append(
+                    FixResult(filepath, 0, "", False, f"Cannot read: {e}")
+                )
+                continue
+
+            lines = content.splitlines(keepends=True)
+            modified = False
+
+            for v in sorted(file_violations, key=lambda x: x.line, reverse=True):
+                fixer = self.get(v.rule_id)
+                if fixer is None:
+                    continue
+                rule = rules_map.get(v.rule_id)
+                if rule is None:
+                    continue
+
+                idx = v.line - 1
+                if idx < 0 or idx >= len(lines):
+                    continue
+
+                original = lines[idx]
+                fixed = fixer.fix_line(original, rule)
+                if fixed is not None:
+                    lines[idx] = fixed
+                    modified = True
+                    results.append(
+                        FixResult(
+                            filepath,
+                            v.line,
+                            v.rule_id,
+                            True,
+                            f"Fixed at line {v.line}",
+                        )
+                    )
+
+            if modified and not dry_run:
+                try:
+                    path.write_text("".join(lines), encoding="utf-8")
+                except OSError as e:
+                    results.append(
+                        FixResult(filepath, 0, "", False, f"Cannot write: {e}")
+                    )
+
+        return results
 
 
-def register(fixer: RuleFixer):
-    _FIXERS[fixer.rule_id] = fixer
+# Global singleton registry
+_REGISTRY = FixerRegistry()
 
-
-def get_fixer(rule_id: str) -> RuleFixer | None:
-    return _FIXERS.get(rule_id)
-
-
-def list_fixable_rule_ids() -> list[str]:
-    return list(_FIXERS.keys())
+# Module-level aliases for ergonomic imports
+register = _REGISTRY.register
+get_fixer = _REGISTRY.get
+list_fixable_rule_ids = _REGISTRY.list_ids
+apply_fixes = _REGISTRY.apply_fixes
 
 
 # Register built-in fixers
 register(BareExceptFixer())
 register(PrintToLoggerFixer())
-
-
-def apply_fixes(
-    violations: list[ArchitecturalViolation],
-    rules_map: dict[str, Rule],
-    dry_run: bool = False,
-) -> list[FixResult]:
-    """Apply auto-fixes to files for all fixable violations.
-
-    Returns a list of FixResult describing what was (or would be) changed.
-    When *dry_run* is True, files are not modified.
-    """
-    # Group violations by file
-    by_file: dict[str, list[ArchitecturalViolation]] = {}
-    for v in violations:
-        if v.rule_id in _FIXERS:
-            by_file.setdefault(v.file, []).append(v)
-
-    results: list[FixResult] = []
-
-    for filepath, file_violations in by_file.items():
-        path = Path(filepath)
-        if not path.exists():
-            results.append(
-                FixResult(filepath, 0, "", False, f"File not found: {filepath}")
-            )
-            continue
-
-        try:
-            content = path.read_text(encoding="utf-8")
-        except OSError as e:
-            results.append(
-                FixResult(filepath, 0, "", False, f"Cannot read: {e}")
-            )
-            continue
-
-        lines = content.splitlines(keepends=True)
-        modified = False
-
-        for v in sorted(file_violations, key=lambda x: x.line, reverse=True):
-            fixer = get_fixer(v.rule_id)
-            if fixer is None:
-                continue
-            rule = rules_map.get(v.rule_id)
-            if rule is None:
-                continue
-
-            idx = v.line - 1  # 1-based → 0-based
-            if idx < 0 or idx >= len(lines):
-                continue
-
-            original = lines[idx]
-            fixed = fixer.fix_line(original, rule)
-            if fixed is not None:
-                lines[idx] = fixed
-                modified = True
-                results.append(
-                    FixResult(
-                        filepath,
-                        v.line,
-                        v.rule_id,
-                        True,
-                        f"Fixed at line {v.line}",
-                    )
-                )
-
-        if modified and not dry_run:
-            try:
-                path.write_text("".join(lines), encoding="utf-8")
-            except OSError as e:
-                results.append(
-                    FixResult(filepath, 0, "", False, f"Cannot write: {e}")
-                )
-
-    return results

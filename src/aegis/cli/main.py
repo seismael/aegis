@@ -265,13 +265,13 @@ class AegisCLI:
             ),
         ):
             """Scaffold a new Aegis plugin in .aegis/plugins/."""
-            from aegis.core.plugins.scaffold import create_plugin_scaffold
+            from aegis.core.plugins.scaffold import PluginScaffold
 
             plugin_dir = os.path.join(
                 self.container.workspace_root, ".aegis", "plugins"
             )
             try:
-                path = create_plugin_scaffold(plugin_dir, name)
+                path = PluginScaffold.create(plugin_dir, name)
                 self.console.print(
                     f"[green]Plugin scaffold created: {path}[/green]"
                 )
@@ -849,7 +849,7 @@ class AegisCLI:
         from datetime import datetime
 
         from aegis.domain.evaluation.service import EvaluationService
-        from aegis.infrastructure.file_watcher import watch_files
+        from aegis.infrastructure.file_watcher import FileWatcher
 
         root = self.container.workspace_root
         rules = self.container.load_rules()
@@ -928,7 +928,8 @@ class AegisCLI:
                     )
 
         try:
-            watch_files(root, interval=interval, on_change=_on_change)
+            watcher = FileWatcher(root)
+            watcher.watch(interval=interval, on_change=_on_change)
         except KeyboardInterrupt:
             self.console.print("\n[bold blue]Watch stopped.[/bold blue]")
 

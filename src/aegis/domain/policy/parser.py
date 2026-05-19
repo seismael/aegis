@@ -15,53 +15,55 @@ logger = structlog.get_logger()
 _CACHE_TTL = 3600  # 1 hour cache for remote policies
 
 
-def _validate_url(url: str) -> None:
-    """Validate that a remote policy URL is secure."""
-    if not url.startswith("https://"):
-        raise ValueError(
-            f"Remote policy URL must use HTTPS for security: '{url}'"
-        )
+class RemotePolicyFetcher:
+    """Fetches and caches remote governance policies over HTTPS."""
 
+    @staticmethod
+    def validate_url(url: str) -> None:
+        """Validate that a remote policy URL is secure."""
+        if not url.startswith("https://"):
+            raise ValueError(
+                f"Remote policy URL must use HTTPS for security: '{url}'"
+            )
 
-def _cache_path(cache_dir: str, url: str) -> str:
-    """Return a deterministic cache file path for a URL."""
-    h = hashlib.sha256(url.encode()).hexdigest()[:16]
-    return os.path.join(cache_dir, f"remote_{h}.json")
+    @staticmethod
+    def cache_path(cache_dir: str, url: str) -> str:
+        """Return a deterministic cache file path for a URL."""
+        h = hashlib.sha256(url.encode()).hexdigest()[:16]
+        return os.path.join(cache_dir, f"remote_{h}.json")
 
+    @staticmethod
+    def fetch_remote(url: str, cache_dir: str | None = None) -> list[dict]:
+        """Fetch remote rules, with optional caching."""
+        if cache_dir:
+            cp = RemotePolicyFetcher.cache_path(cache_dir, url)
+            if os.path.exists(cp):
+                try:
+                    with open(cp, encoding="utf-8") as f:
+                        cached = json.load(f)
+                    age = time.time() - cached.get("ts", 0)
+                    if age < _CACHE_TTL:
+                        logger.debug("Using cached remote policy", url=url)
+                        return cached.get("rules", [])
+                except (OSError, json.JSONDecodeError):
+                    pass
 
-def _fetch_remote(url: str, cache_dir: str | None = None) -> list[dict]:
-    """Fetch remote rules, with optional caching."""
-    # Check cache first
-    if cache_dir:
-        cp = _cache_path(cache_dir, url)
-        if os.path.exists(cp):
+        RemotePolicyFetcher.validate_url(url)
+        logger.info("Fetching remote governance policy", url=url)
+        response = httpx.get(url, timeout=10.0)
+        response.raise_for_status()
+        remote_data = yaml.safe_load(response.text)
+        rules = remote_data.get("rules", []) if remote_data else []
+
+        if cache_dir:
+            os.makedirs(cache_dir, exist_ok=True)
             try:
-                with open(cp, encoding="utf-8") as f:
-                    cached = json.load(f)
-                age = time.time() - cached.get("ts", 0)
-                if age < _CACHE_TTL:
-                    logger.debug("Using cached remote policy", url=url)
-                    return cached.get("rules", [])
-            except (OSError, json.JSONDecodeError):
+                with open(cp, "w", encoding="utf-8") as f:
+                    json.dump({"ts": time.time(), "url": url, "rules": rules}, f)
+            except OSError:
                 pass
 
-    _validate_url(url)
-    logger.info("Fetching remote governance policy", url=url)
-    response = httpx.get(url, timeout=10.0)
-    response.raise_for_status()
-    remote_data = yaml.safe_load(response.text)
-    rules = remote_data.get("rules", []) if remote_data else []
-
-    # Write to cache
-    if cache_dir:
-        os.makedirs(cache_dir, exist_ok=True)
-        try:
-            with open(cp, "w", encoding="utf-8") as f:
-                json.dump({"ts": time.time(), "url": url, "rules": rules}, f)
-        except OSError:
-            pass
-
-    return rules
+        return rules
 
 
 class PolicyParser:
@@ -98,7 +100,9 @@ class PolicyParser:
             urls = extends if isinstance(extends, list) else [extends]
             for url in urls:
                 try:
-                    rules_data.extend(_fetch_remote(url, self.cache_dir))
+                    rules_data.extend(
+                        RemotePolicyFetcher.fetch_remote(url, self.cache_dir)
+                    )
                 except Exception as e:
                     logger.error(
                         "Failed to fetch remote policy",

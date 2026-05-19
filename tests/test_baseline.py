@@ -430,8 +430,8 @@ class TestBaselineManager:
         assert len(remaining) == 1
         assert remaining[0]["rule_id"] == "r_deleted"
 
-    def test_expire_old_no_timestamp_kept(self, tmp_path):
-        """Entries without captured_at are preserved by expire_old."""
+    def test_expire_old_no_timestamp_kept_when_active_unknown(self, tmp_path):
+        """Entries without captured_at are kept when active_rule_ids is None."""
         bm = BaselineManager(str(tmp_path))
         raw = [
             {"file": "no_ts.py", "line": 1, "rule_id": "r1"},
@@ -443,3 +443,17 @@ class TestBaselineManager:
         removed = bm.expire_old(days=1)
         assert removed == 0
         assert len(bm.load_baseline_raw()) == 1
+
+    def test_expire_old_no_timestamp_expired_with_active_ids(self, tmp_path):
+        """Entries without captured_at expire when active_rule_ids is provided."""
+        bm = BaselineManager(str(tmp_path))
+        raw = [
+            {"file": "no_ts.py", "line": 1, "rule_id": "r1"},
+        ]
+        import json
+        (tmp_path / "baseline.json").write_text(json.dumps(raw), encoding="utf-8")
+        bm.path = str(tmp_path / "baseline.json")
+
+        removed = bm.expire_old(days=1, active_rule_ids={"r1"})
+        assert removed == 1
+        assert len(bm.load_baseline_raw()) == 0
