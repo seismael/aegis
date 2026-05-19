@@ -1,5 +1,7 @@
+import os
 from pathlib import PurePosixPath
 
+from aegis.core.constants import LANG_EXT_MAP
 from aegis.domain.evaluation.ports import ArchitecturalViolation
 from aegis.domain.policy.models import Rule
 
@@ -117,16 +119,14 @@ class ScopeFilter:
         for rule in rules:
             if rule.applies_to:
                 allowed = any(
-                    ScopeFilter._path_matches_pattern(pp, p)
-                    for p in rule.applies_to
+                    ScopeFilter._path_matches_pattern(pp, p) for p in rule.applies_to
                 )
                 if not allowed:
                     continue
 
             if rule.excludes:
                 excluded = any(
-                    ScopeFilter._path_matches_pattern(pp, p)
-                    for p in rule.excludes
+                    ScopeFilter._path_matches_pattern(pp, p) for p in rule.excludes
                 )
                 if excluded:
                     continue
@@ -134,3 +134,91 @@ class ScopeFilter:
             matching.append(rule)
 
         return matching
+
+    @staticmethod
+    def _resolve_language(file_path: str) -> str:
+        """Map file extension to short language code used in rules."""
+        _, ext = os.path.splitext(file_path)
+        ext = ext.lower()
+        for lang, mapped_ext in LANG_EXT_MAP.items():
+            if ext == mapped_ext:
+                return lang
+        return ext.lstrip(".")
+
+    @staticmethod
+    def _module_from_path(file_path: str, base_dir: str | None = None) -> str:
+        """Convert file path to dotted module name for adjacency lookup."""
+        rel = os.path.relpath(file_path, base_dir or os.getcwd()).replace("\\", "/")
+        module = rel.replace("/", ".").removesuffix(".py")
+        if module.endswith(".__init__"):
+            module = module[: -len(".__init__")]
+        return module
+
+    @staticmethod
+    def get_relevant_rules(
+        file_path: str,
+        rules: list[Rule],
+        adjacency: dict[str, set[str]] | None = None,
+        max_rules: int = 5,
+        base_dir: str | None = None,
+    ) -> list[Rule]:
+        """
+        Returns the N most relevant rules for a file.
+        Filters by language and path scoping, then optionally
+        expands via dependency graph proximity.
+        """
+        lang = ScopeFilter._resolve_language(file_path)
+        pp = PurePosixPath(file_path.replace("\\", "/"))
+
+        # First pass: language match + path scoping
+        direct_matches: list[Rule] = []
+        lang_matched: list[Rule] = []
+
+        for rule in rules:
+            if rule.language and rule.language != lang:
+                continue
+            lang_matched.append(rule)
+            if rule.applies_to:
+                if not any(
+                    ScopeFilter._path_matches_pattern(pp, p) for p in rule.applies_to
+                ):
+                    continue
+            if rule.excludes:
+                if any(ScopeFilter._path_matches_pattern(pp, p) for p in rule.excludes):
+                    continue
+            direct_matches.append(rule)
+
+        result: dict[str, Rule] = {r.id: r for r in direct_matches}
+
+        # Second pass: proximity scoping via import graph
+        if adjacency is not None and len(result) < max_rules:
+            module = ScopeFilter._module_from_path(file_path, base_dir=base_dir)
+            related: set[str] = set()
+            related.update(adjacency.get(module, set()))
+            for mod, deps in adjacency.items():
+                if module in deps:
+                    related.add(mod)
+
+            for rel_mod in related:
+                if len(result) >= max_rules:
+                    break
+                rel_path = rel_mod.replace(".", "/") + ".py"
+                rel_pp = PurePosixPath(rel_path)
+                for rule in lang_matched:
+                    if rule.id in result:
+                        continue
+                    if rule.applies_to:
+                        if not any(
+                            ScopeFilter._path_matches_pattern(rel_pp, p)
+                            for p in rule.applies_to
+                        ):
+                            continue
+                    if rule.excludes:
+                        if any(
+                            ScopeFilter._path_matches_pattern(rel_pp, p)
+                            for p in rule.excludes
+                        ):
+                            continue
+                    result[rule.id] = rule
+
+        return list(result.values())[:max_rules]

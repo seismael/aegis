@@ -20,6 +20,7 @@ class TreeSitterAnalyzer(RuleAnalyzerInterface):
     def __init__(self):
         self._languages: dict[str, Language] = {}
         self._parser_cache: dict[str, Parser] = {}
+        self._query_cache: dict[str, Query] = {}  # query_string -> compiled Query
 
         # Extension to package mapping
         self._lang_map = {
@@ -31,9 +32,20 @@ class TreeSitterAnalyzer(RuleAnalyzerInterface):
             "rs": "tree_sitter_rust",
         }
 
+        # Verify tree-sitter C extension loaded at init time
+        try:
+            _ = Parser  # verify the top-level import succeeded
+            self._ts_available = True
+        except NameError:
+            self._ts_available = False
+            logger.warning("Tree-sitter not available — AST analysis disabled")
+
     def analyze_file(
         self, file_path: str, content: str, rules: list[Rule]
     ) -> list[ArchitecturalViolation]:
+        if not self._ts_available:
+            return []
+
         ext = file_path.split(".")[-1].lower()
 
         # Filter rules by language
@@ -56,7 +68,9 @@ class TreeSitterAnalyzer(RuleAnalyzerInterface):
             try:
                 # Handle standard query
                 if rule.query:
-                    query = Query(language, rule.query)
+                    if rule.query not in self._query_cache:
+                        self._query_cache[rule.query] = Query(language, rule.query)
+                    query = self._query_cache[rule.query]
                     cursor = QueryCursor(query)
                     captures = cursor.captures(tree.root_node)
 
@@ -68,11 +82,18 @@ class TreeSitterAnalyzer(RuleAnalyzerInterface):
 
                 # Handle positive rules (candidates - check)
                 elif rule.candidates_query and rule.check_query:
-                    c_query = Query(language, rule.candidates_query)
+                    c_key = f"candidates:{rule.candidates_query}"
+                    if c_key not in self._query_cache:
+                        q = Query(language, rule.candidates_query)
+                        self._query_cache[c_key] = q
+                    c_query = self._query_cache[c_key]
                     c_cursor = QueryCursor(c_query)
                     candidates = c_cursor.captures(tree.root_node)
 
-                    compliance_query = Query(language, rule.check_query)
+                    ck_key = f"check:{rule.check_query}"
+                    if ck_key not in self._query_cache:
+                        self._query_cache[ck_key] = Query(language, rule.check_query)
+                    compliance_query = self._query_cache[ck_key]
                     compliance_cursor = QueryCursor(compliance_query)
                     compliant = compliance_cursor.captures(tree.root_node)
 

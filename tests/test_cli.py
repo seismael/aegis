@@ -420,6 +420,7 @@ class TestWatchCLI:
 
     def _mock_container(self):
         from unittest.mock import MagicMock
+
         c = MagicMock()
         c.workspace_root = "/fake/project"
         c.load_rules.return_value = [Rule(id="r1", description="test")]
@@ -456,6 +457,7 @@ class TestPluginCLI:
     def test_plugin_create(self, tmp_path):
         """plugin create scaffolds a new plugin file."""
         from unittest.mock import MagicMock
+
         c = MagicMock()
         c.workspace_root = str(tmp_path)
         cli = AegisCLI(container=c)
@@ -463,16 +465,69 @@ class TestPluginCLI:
         assert result.exit_code == 0, f"Exited {result.exit_code}: {result.stdout}"
         assert "Plugin scaffold created" in result.stdout
         # Scaffold converts hyphens to underscores
-        plugin_file = os.path.join(
-            str(tmp_path), ".aegis", "plugins", "my_custom.py"
-        )
+        plugin_file = os.path.join(str(tmp_path), ".aegis", "plugins", "my_custom.py")
         assert os.path.exists(plugin_file), f"Not found: {plugin_file}"
 
     def test_plugin_create_invalid_name(self, tmp_path):
         """plugin create with invalid name exits 1."""
         from unittest.mock import MagicMock
+
         c = MagicMock()
         c.workspace_root = str(tmp_path)
         cli = AegisCLI(container=c)
         result = self.runner.invoke(cli.app, ["plugin", "create", ""])
         assert result.exit_code != 0
+
+
+class TestInsightsCLI:
+    """Tests for aegis insights command."""
+
+    runner = CliRunner()
+
+    def _mock_container(self):
+        from unittest.mock import MagicMock
+
+        c = MagicMock()
+        c.workspace_root = "/fake/project"
+        c.load_rules.return_value = []
+        c.evaluation_service.evaluate_workspace.return_value = []
+        c.evaluation_service.evaluate_changes.return_value = []
+        c.baseline_manager.load_baseline_raw.return_value = []
+        c.baseline_manager.is_exempt.return_value = False
+        c.loaded_plugins = []
+        c.remediation_synthesizer.generate_remediation.return_value = "mock prompt"
+        c.governance_service = MagicMock()
+        c.governance_service.get_active_violations.return_value = []
+        return c
+
+    def test_insights_with_data(self, tmp_path):
+        """insights shows scorecard when telemetry has data."""
+        from unittest.mock import MagicMock
+
+        container = self._mock_container()
+        container.workspace_root = str(tmp_path)
+        mock_recorder = MagicMock()
+        mock_recorder.display_insights.return_value = (
+            "## Aegis Insights Scorecard\n\n"
+            "- **Total checks run:** 2\n"
+            "- **Total remediations applied: 1**\n"
+        )
+        container.telemetry_recorder = mock_recorder
+
+        cli = AegisCLI(container=container)
+        result = self.runner.invoke(cli.app, ["insights"])
+        assert result.exit_code == 0
+        assert "checks run" in result.stdout
+        assert "remediations applied" in result.stdout
+
+    def test_insights_no_telemetry(self, tmp_path):
+        """insights reports error when telemetry unavailable."""
+        container = self._mock_container()
+        container.workspace_root = str(tmp_path)
+        # No telemetry recorder mock — simulate unavailable
+        container.telemetry_recorder = None
+
+        cli = AegisCLI(container=container)
+        result = self.runner.invoke(cli.app, ["insights"])
+        assert result.exit_code == 1
+        assert "unavailable" in result.stdout.lower()

@@ -1,3 +1,4 @@
+import json
 import os
 import re
 
@@ -18,6 +19,17 @@ from aegis.domain.enforcement.errors import (
 )
 from aegis.domain.enforcement.remediation import RemediationPromptSynthesizer
 from aegis.infrastructure.graph_analyzer import GraphAnalyzer
+from aegis.kernel.models import (
+    AgentHandoffContext,
+    CodeDeltaResult,
+    ComplianceResult,
+    DependencyGraphResult,
+    PackInfo,
+    RelevantRulesResult,
+    RuleInfo,
+    ServerStatusResult,
+    ViolationInfo,
+)
 
 _VALID_TOOL_NAME = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$")
 _VERSION = "0.1.0"
@@ -110,6 +122,12 @@ class AegisKernel:
             return self.container.graph_analyzer
         return None
 
+    @property
+    def _telemetry_recorder(self):
+        if self.container is not None:
+            return self.container.telemetry_recorder
+        return None
+
     def _register_tools(self):
         self.mcp.tool()(self.get_architecture_spec)
         self.mcp.tool()(self.validate_architecture_compliance)
@@ -132,23 +150,27 @@ class AegisKernel:
         self.mcp.tool()(self.update_rule_packs)
         self.mcp.tool()(self.list_evaluation_phases)
         self.mcp.tool()(self.get_phase_mapping)
+        self.mcp.tool()(self.get_active_context)
+        self.mcp.tool()(self.evaluate_code_delta)
 
     async def propose_architectural_steering(self, task_description: str) -> str:
         """
-        Call at START of a task. Returns relevant rules, SPEC.md guidance,
-        and execution directives for the given task description.
+        Creates an architectural flight plan for a task description.
+
+        Uses keyword matching against rule descriptions to find relevant rules,
+        then appends SPEC.md guidance and execution directives.
+        This is a heuristic — for precise rule lookups use get_relevant_rules.
+        Call at START of a task.
         """
         if self.container is None:
             return error(
-                ERR_CONTAINER_NOT_INIT, "Kernel not initialized.",
+                ERR_CONTAINER_NOT_INIT,
+                "Kernel not initialized.",
                 hint="Initialize the container first.",
             )
 
-        # 1. Fetch relevant docs
         spec = await self.get_architecture_spec()
 
-        # 2. Identify potential modules based on description
-        # (Simple keyword matching for now, can be LLM-enhanced later)
         keywords = ["domain", "service", "adapter", "api", "model", "cli"]
         potential_paths = [kw for kw in keywords if kw in task_description.lower()]
 
@@ -197,35 +219,166 @@ class AegisKernel:
 
     async def get_relevant_rules(self, path: str) -> str:
         """
-        Returns all architectural laws applicable to a given file path.
+        Returns structured JSON of all rules applicable to a given file path.
         Call BEFORE editing a file to avoid violating project invariants.
         """
         if self.container is None:
             return error(
-                ERR_CONTAINER_NOT_INIT, "Kernel not initialized.",
+                ERR_CONTAINER_NOT_INIT,
+                "Kernel not initialized.",
                 hint="Initialize the container first.",
             )
 
         all_rules = self._load_rules()
         if not all_rules:
-            return "No rules found. Architecture is unconstrained."
+            return RelevantRulesResult(
+                file_path=path,
+                total_rules=0,
+                rules=[],
+                message="No rules found. Architecture is unconstrained.",
+            ).model_dump_json()
 
         from aegis.domain.evaluation.scoping import ScopeFilter
 
         relevant = ScopeFilter.filter_rules_for_file(path, all_rules)
 
-        if not relevant:
-            return f"No specific structural laws found for path: {path}."
+        rules_list = [
+            RuleInfo(
+                id=r.id,
+                description=r.description,
+                severity=r.severity.value,
+                mode=r.mode.value,
+                category=r.category.value,
+                engine_type=r.engine_type.value,
+                language=r.language,
+                rationale=r.rationale,
+            )
+            for r in relevant
+        ]
 
-        report = f"## Active Laws for `{path}`\n\n"
-        for r in relevant:
-            report += f"### {r.id} ({r.severity})\n"
-            report += f"- **Description:** {r.description}\n"
-            if r.rationale:
-                report += f"- **Rationale:** {r.rationale}\n"
-            report += "\n"
+        result = RelevantRulesResult(
+            file_path=path,
+            total_rules=len(rules_list),
+            rules=rules_list,
+            message=(
+                None
+                if rules_list
+                else f"No specific structural laws found for path: {path}."
+            ),
+        )
+        return result.model_dump_json()
 
-        return report
+    async def get_active_context(self, file_path: str) -> str:
+        """
+        Returns structured JSON of the 4-5 most relevant rules for a specific file.
+        Uses path-based scoping and dependency graph proximity.
+        Call before editing a file to understand applicable invariants.
+        """
+        if self.container is None:
+            return error(
+                ERR_CONTAINER_NOT_INIT,
+                "Kernel not initialized.",
+                hint="Initialize the container first.",
+            )
+
+        all_rules = self._load_rules()
+        if not all_rules:
+            return RelevantRulesResult(
+                file_path=file_path,
+                total_rules=0,
+                rules=[],
+                message="No rules found. Architecture is unconstrained.",
+            ).model_dump_json()
+
+        adjacency = None
+        try:
+            analyzer = self._graph_analyzer
+            if analyzer is not None:
+                adjacency, _ = analyzer.build_import_graph(self._workspace_root)
+        except Exception:
+            adjacency = None
+
+        from aegis.domain.evaluation.scoping import ScopeFilter
+
+        relevant = ScopeFilter.get_relevant_rules(
+            file_path,
+            all_rules,
+            adjacency=adjacency,
+            max_rules=5,
+            base_dir=self._workspace_root,
+        )
+
+        rules_list = [
+            RuleInfo(
+                id=r.id,
+                description=r.description,
+                severity=r.severity.value,
+                mode=r.mode.value,
+                category=r.category.value,
+                engine_type=r.engine_type.value,
+                language=r.language,
+                rationale=r.rationale,
+            )
+            for r in relevant
+        ]
+
+        result = RelevantRulesResult(
+            file_path=file_path,
+            total_rules=len(rules_list),
+            rules=rules_list,
+            message=(
+                None
+                if rules_list
+                else f"No matching rules found for `{file_path}`."
+            ),
+        )
+        return result.model_dump_json()
+
+    async def evaluate_code_delta(self, code_string: str, language: str) -> str:
+        """
+        Evaluates a code string in-memory against applicable rules.
+        Returns structured JSON with violations and pass/fail status.
+        Allows AI to validate mid-thought before writing to disk.
+        """
+        if not code_string or not language:
+            return error(
+                ERR_INVALID_INPUT,
+                "code_string and language are required.",
+            )
+
+        all_rules = self._load_rules()
+        if not all_rules:
+            return error(
+                ERR_NOT_INITIALIZED,
+                "No rules loaded — run initialize_project_governance first.",
+            )
+
+        if self._evaluation_service is None:
+            return error(
+                ERR_SERVICE_UNAVAILABLE,
+                "Evaluation service unavailable — container in degraded mode.",
+            )
+
+        violations = self._evaluation_service.evaluate_code_string(
+            code_string, language, all_rules
+        )
+
+        violations_list = [
+            ViolationInfo(
+                file="<inline>",
+                line=v.line,
+                rule_id=v.rule_id,
+                severity=v.severity,
+                description=v.description,
+            )
+            for v in violations
+        ]
+        result = CodeDeltaResult(
+            passed=len(violations) == 0,
+            total_violations=len(violations),
+            violations=violations_list,
+        )
+        return result.model_dump_json()
 
     async def initialize_project_governance(self) -> str:
         """
@@ -234,7 +387,8 @@ class AegisKernel:
         """
         if self.container is None:
             return error(
-                ERR_CONTAINER_NOT_INIT, "Kernel not initialized.",
+                ERR_CONTAINER_NOT_INIT,
+                "Kernel not initialized.",
                 hint="Initialize the container first.",
             )
 
@@ -303,13 +457,15 @@ class AegisKernel:
         # 3. Build pack recommendations
         recommendations = []
         if "Python" in stack:
-            recommendations.extend([
-                "python-best-practices",
-                "security",
-                "testing",
-                "structure",
-                "style",
-            ])
+            recommendations.extend(
+                [
+                    "python-best-practices",
+                    "security",
+                    "testing",
+                    "structure",
+                    "style",
+                ]
+            )
         if "Node.js/TypeScript" in stack:
             recommendations.append("javascript-typescript")
         if "Rust" in stack:
@@ -344,7 +500,8 @@ class AegisKernel:
         """
         if self.container is None:
             return error(
-                ERR_CONTAINER_NOT_INIT, "Kernel not initialized.",
+                ERR_CONTAINER_NOT_INIT,
+                "Kernel not initialized.",
                 hint="Initialize the container first.",
             )
 
@@ -355,9 +512,9 @@ class AegisKernel:
                 "Project not initialized. Call initialize_project_governance first.",
             )
         if not self.container.governance_service:
-            return (
-                error(ERR_SERVICE_UNAVAILABLE,
-                      "Governance service unavailable — container in degraded mode.")
+            return error(
+                ERR_SERVICE_UNAVAILABLE,
+                "Governance service unavailable — container in degraded mode.",
             )
         count = self.container.governance_service.capture_baseline(
             rules, self._workspace_root
@@ -374,7 +531,8 @@ class AegisKernel:
         """
         if self.container is None:
             return error(
-                ERR_CONTAINER_NOT_INIT, "Kernel not initialized.",
+                ERR_CONTAINER_NOT_INIT,
+                "Kernel not initialized.",
                 hint="Initialize the container first.",
             )
 
@@ -401,32 +559,35 @@ class AegisKernel:
     async def list_rule_packs(self) -> str:
         """
         Lists available, installed, and custom rule packs with descriptions.
+        Returns structured JSON with separate installed/available/custom arrays.
         """
         pm = self._rule_pack_manager
         if pm is None:
             return error(ERR_SERVICE_UNAVAILABLE, "Rule pack manager unavailable.")
 
-        installed = pm.list_installed()
         available = pm.list_available()
         custom = pm.list_custom()
+        installed_names = pm.list_installed()
 
-        lines = []
-        if available:
-            lines.append("## Available Rule Packs\n")
-            for name, meta in available.items():
-                status = "[installed]" if name in installed else "[available]"
-                lines.append(f"- **{name}** {status} — {meta.description}")
-            lines.append("")
-        if custom:
-            lines.append("## Custom (Unpackaged) Rules\n")
-            for f in custom:
-                lines.append(f"- {f}")
-            lines.append("")
-        lines.append(
-            f"**Summary:** {len(installed)} installed, "
-            f"{len(available)} available, {len(custom)} custom"
-        )
-        return "\n".join(lines)
+        packs = [
+            PackInfo(
+                name=name,
+                description=meta.description,
+                installed=name in installed_names,
+                version=meta.version,
+            )
+            for name, meta in available.items()
+        ]
+        custom_list = [
+            {"name": name, "installed": True} for name in custom
+        ]
+
+        return json.dumps({
+            "packs": [p.model_dump() for p in packs],
+            "custom": custom_list,
+            "summary": f"{len(installed_names)} installed, "
+                       f"{len(available)} available, {len(custom)} custom",
+        }, indent=2)
 
     async def install_rule_pack(self, pack_name: str) -> str:
         """
@@ -627,7 +788,10 @@ class AegisKernel:
             return (
                 f"I am starting the following task: {description}. "
                 "Call `propose_architectural_steering` with this description "
-                "to get relevant rules and guidance. Then read the `aegis://rules` "
+                "to get relevant rules and guidance. Returns structured JSON "
+                "with rules array (id, description, severity, mode, rationale). "
+                "Also call `get_active_context` for file-specific rules before "
+                "editing each file. Then read the `aegis://rules` "
                 "resource to align your implementation with project invariants."
             )
 
@@ -639,8 +803,11 @@ class AegisKernel:
             return (
                 "You are an architectural governance auditor. "
                 "Run `validate_architecture_compliance` on the full workspace. "
-                "If violations are found, group them by rule and severity, "
-                "then produce a scorecard showing the worst offenders. "
+                "Returns structured JSON: passed (bool), violations[] with "
+                "file, line, rule_id, severity, description for each violation. "
+                "Parse the JSON directly — no string parsing needed. "
+                "If violations are found, group them by rule_id and severity "
+                "to produce a scorecard. "
                 "Call `list_evaluation_phases` and `get_phase_mapping` to "
                 "contextualize when each rule is evaluated."
             )
@@ -653,7 +820,8 @@ class AegisKernel:
             return (
                 "You are a remediation agent. First call `apply_auto_fixes` "
                 "to resolve deterministic violations automatically. "
-                "Then call `validate_architecture_compliance` to see what remains. "
+                "Then call `validate_architecture_compliance` to see what remains "
+                "(returns structured JSON with violations[]). "
                 "For remaining violations, call `apply_architectural_remediation` "
                 "for structured fix instructions, then resolve each violation "
                 "one by one. Re-validate after each fix until all are cleared."
@@ -733,8 +901,10 @@ class AegisKernel:
                         return f.read()
                 except OSError as e:
                     return error(ERR_READ_FAILED, f"reading rules.yaml — {e}")
-            return error(ERR_FILE_NOT_FOUND,
-                         "No rules found. Run `aegis init` to create governance rules.")
+            return error(
+                ERR_FILE_NOT_FOUND,
+                "No rules found. Run `aegis init` to create governance rules.",
+            )
 
         @self.mcp.resource(
             "aegis://baseline",
@@ -760,9 +930,8 @@ class AegisKernel:
         async def get_evolution_resource() -> str:
             path = os.path.join(self._workspace_root, ".aegis", "evolution_log.json")
             if not os.path.exists(path):
-                return (
-                    warn("evolution_log.json not found"
-                         " — no evolution history recorded.")
+                return warn(
+                    "evolution_log.json not found — no evolution history recorded."
                 )
             try:
                 with open(path, encoding="utf-8") as f:
@@ -772,6 +941,62 @@ class AegisKernel:
                     "Failed to read evolution resource", path=path, error=str(e)
                 )
                 return error(ERR_READ_FAILED, f"reading evolution_log.json — {e}")
+
+        @self.mcp.resource(
+            "aegis://context",
+            description="Compact governance state summary for agent-to-agent handoff",
+        )
+        async def get_context_resource() -> str:
+            """
+            Governance state snapshot for agent handoff.
+            An agent finishing a governance task can read this and pass
+            the summary to the next agent so it doesn't need to re-scan.
+            """
+            rules = self._load_rules()
+            active: list = []
+            baseline_count = 0
+            if self._evaluation_service and self._baseline_manager:
+                try:
+                    active = (
+                        self.container.governance_service.get_active_violations(
+                            rules, self._workspace_root
+                        )
+                    )
+                    raw = self._baseline_manager.load_baseline_raw()
+                    baseline_count = len(raw)
+                except Exception:
+                    pass
+
+            block_count = sum(
+                1 for v in active if v.severity in ("HIGH", "CRITICAL")
+            )
+            top_rules = [
+                RuleInfo(
+                    id=r.id,
+                    description=r.description,
+                    severity=r.severity.value,
+                    mode=r.mode.value,
+                    category=r.category.value,
+                    engine_type=r.engine_type.value,
+                    language=r.language,
+                    rationale=r.rationale,
+                )
+                for r in rules[:10]
+            ]
+            ctx = AgentHandoffContext(
+                rules_loaded=len(rules),
+                active_violations=len(active),
+                blocking_violations=block_count,
+                baselined_entries=baseline_count,
+                top_rules=top_rules,
+                status=(
+                    "clean"
+                    if not active
+                    else "violations" if block_count == 0 else "degraded"
+                ),
+                workspace=self._workspace_root,
+            )
+            return ctx.model_dump_json(indent=2)
 
         @self.mcp.resource(
             "aegis://spec", description="Architecture specification (SPEC.md)"
@@ -807,7 +1032,11 @@ class AegisKernel:
             self.logger.info("Registered custom MCP tool", tool=name)
 
     async def get_architecture_spec(self) -> str:
-        """Returns the project's SPEC.md content, or a WARN if not found."""
+        """Reads SPEC.md from the workspace root.
+
+        Note: this reads an existing file, it does not generate one.
+        Prefer the `aegis://spec` resource for cached access.
+        Returns the file content or a WARN if not found."""
         try:
             spec_path = os.path.join(self._workspace_root, "SPEC.md")
             if not os.path.exists(spec_path):
@@ -820,13 +1049,13 @@ class AegisKernel:
 
     async def server_status(self) -> str:
         """
-        Returns server health: version, container status, rule count,
-        tool/resource/prompt counts, active violations, loaded plugins.
+        Returns server health as structured JSON: version, container status,
+        rule count, tool/resource/prompt counts, active violations, loaded plugins.
         """
         try:
             root = self._workspace_root
             rules = self._load_rules()
-            active = []
+            active: list = []
             plugin_count = 0
             plugin_tools = 0
             if self._evaluation_service and self._baseline_manager:
@@ -838,19 +1067,20 @@ class AegisKernel:
                 plugin_count = len(self.container.loaded_plugins)
 
             container_status = "degraded" if self.container is None else "ready"
-            summary = "## Aegis Kernel Status\n\n"
-            summary += f"- **Version:** {_VERSION}\n"
-            summary += f"- **Status:** {container_status}\n"
-            summary += f"- **Workspace:** `{root}`\n"
-            summary += f"- **Rules:** {len(rules)} loaded\n"
-            tm = getattr(self.mcp, '_tool_manager', None)
-            tool_count = len(tm._tools) if tm and hasattr(tm, '_tools') else 21
-            summary += f"- **Tools:** {tool_count} built-in + {plugin_tools} plugin\n"
-            summary += "- **Resources:** 4 governance artifacts\n"
-            summary += "- **Prompts:** 5 workflow templates\n"
-            summary += f"- **Violations:** {len(active)} active\n"
-            summary += f"- **Plugins:** {plugin_count} loaded\n"
-            return summary
+            tm = getattr(self.mcp, "_tool_manager", None)
+            tool_count = len(tm._tools) if tm and hasattr(tm, "_tools") else 21
+            result = ServerStatusResult(
+                version=_VERSION,
+                status=container_status,
+                workspace=root,
+                rules_loaded=len(rules),
+                tools_count=tool_count + plugin_tools,
+                resources_count=4,
+                prompts_count=5,
+                active_violations=len(active),
+                plugins_loaded=plugin_count,
+            )
+            return result.model_dump_json()
         except Exception as e:
             self.logger.error("Status check failed", error=str(e))
             return error(ERR_SERVICE_UNAVAILABLE, "status check failed", hint=str(e))
@@ -863,7 +1093,7 @@ class AegisKernel:
     ) -> str:
         """
         Validates the workspace against all active rules.
-        Returns PASS or a list of violations with file, line, severity, and rule ID.
+        Returns structured JSON with violations, counts, and pass/fail status.
         staged_only: only check git-staged changes.
         phase: filter by 'pre-commit'|'pre-push'|'ci'|'nightly'|'on-demand'.
         category: filter by rule category.
@@ -897,10 +1127,9 @@ class AegisKernel:
 
         if staged_only:
             if not self._evaluation_service:
-                return (
-                    error(ERR_SERVICE_UNAVAILABLE,
-                          "Evaluation service unavailable"
-                      " — container in degraded mode.")
+                return error(
+                    ERR_SERVICE_UNAVAILABLE,
+                    "Evaluation service unavailable — container in degraded mode.",
                 )
             violations = self._evaluation_service.evaluate_changes(rules, root_dir=root)
             rules_map = {r.id: r for r in rules}
@@ -912,32 +1141,46 @@ class AegisKernel:
             )
         else:
             if not self.container.governance_service:
-                return (
-                    error(ERR_SERVICE_UNAVAILABLE,
-                          "Governance service unavailable"
-                          " — container running in degraded mode.")
+                return error(
+                    ERR_SERVICE_UNAVAILABLE,
+                    "Governance service unavailable"
+                    " — container running in degraded mode.",
                 )
             active = self.container.governance_service.get_active_violations(
                 rules, root
             )
 
-        if not active:
-            return (
-                "PASS: Architecture compliance check passed."
-                " No new violations detected."
+        # Record telemetry
+        if self._telemetry_recorder is not None:
+            try:
+                self._telemetry_recorder.record_check(len(active))
+            except Exception:
+                pass
+
+        violations_list = [
+            ViolationInfo(
+                file=v.file,
+                line=v.line,
+                rule_id=v.rule_id,
+                severity=v.severity,
+                description=v.description,
+                signature=v.signature,
             )
-
-        report = "FAIL: ARCHITECTURAL DRIFT DETECTED\n"
-        report += "The following NEW violations must be resolved before proceeding:\n\n"
-        for v in active:
-            report += f"- [{v.severity}] {v.file}:{v.line}\n"
-            report += f"  Violation: {v.description} ({v.rule_id})\n"
-
-        report += (
-            "\nUse the `apply_architectural_remediation` tool "
-            "to receive specific refactoring instructions."
+            for v in active
+        ]
+        blocking = [v for v in violations_list if v.severity in ("HIGH", "CRITICAL")]
+        result = ComplianceResult(
+            passed=len(active) == 0,
+            message=(
+                "Architecture compliance check passed. No new violations detected."
+                if not active
+                else f"{len(active)} active violations found."
+            ),
+            total_violations=len(active),
+            blocking_violations=len(blocking),
+            violations=violations_list,
         )
-        return report
+        return result.model_dump_json()
 
     async def apply_architectural_remediation(self) -> str:
         """
@@ -954,13 +1197,21 @@ class AegisKernel:
         rules = self._load_rules()
         rules_map = {r.id: r for r in rules}
         if not self.container.governance_service:
-            return (
-                error(ERR_SERVICE_UNAVAILABLE,
-                      "Governance service unavailable — container in degraded mode.")
+            return error(
+                ERR_SERVICE_UNAVAILABLE,
+                "Governance service unavailable — container in degraded mode.",
             )
         active = self.container.governance_service.get_active_violations(
             rules, self._workspace_root
         )
+
+        # Record telemetry for observability scorecard
+        if self._telemetry_recorder is not None and active:
+            try:
+                for rid in {v.rule_id for v in active}:
+                    self._telemetry_recorder.record_remediation(rid)
+            except Exception:
+                pass
 
         if not active:
             return "PASS: Architecture is compliant. No remediation needed."
@@ -1017,60 +1268,50 @@ class AegisKernel:
 
     async def get_dependency_graph(self, node_name: str) -> str:
         """
-        Returns imports and reverse-dependencies for a given module name.
-        Shows what the module imports and what imports it.
+        Returns structured JSON of imports and reverse-dependencies for a module.
+        Shows what the module imports, what imports it, and circular dependencies.
         """
         if not node_name or not node_name.strip():
             return error(ERR_INVALID_INPUT, "node_name must be a non-empty string.")
 
-        # Prevent path traversal in module name
         if ".." in node_name or node_name.startswith("/") or node_name.startswith("\\"):
             return error(
                 ERR_INVALID_INPUT,
                 f"node_name '{node_name}' is not a valid module name.",
             )
 
-        # Build the full dependency graph
         analyzer = self._graph_analyzer or GraphAnalyzer()
-        adjacency, _ = analyzer.build_import_graph(self._workspace_root)
+        adjacency, cycles = analyzer.build_import_graph(self._workspace_root)
 
         if not adjacency:
-            return (
-                warn("no Python modules found in the workspace "
-                     "or unable to parse dependency graph.")
+            return error(
+                ERR_SERVICE_UNAVAILABLE,
+                "No Python modules found or unable to parse dependency graph.",
             )
 
-        # Find the requested node (fuzzy match: any node containing the name)
         matched = [m for m in adjacency if node_name in m]
-
         if not matched:
-            return (
-                warn(f"module '{node_name}' not found in the dependency graph.\n"
-                     f"Available roots: {', '.join(sorted(adjacency.keys())[:10])}")
+            return error(
+                ERR_SERVICE_UNAVAILABLE,
+                f"Module '{node_name}' not found in dependency graph.",
             )
 
-        result = f"## Dependency Graph: `{node_name}`\n\n"
+        total_deps = 0
+        total_rev_deps = 0
+        for module in matched:
+            total_deps += len(adjacency.get(module, set()))
+            total_rev_deps += len(
+                [m for m, deps in adjacency.items() if module in deps]
+            )
 
-        for module in sorted(matched):
-            result += f"### {module}\n"
-            deps = adjacency.get(module, set())
-            if deps:
-                result += "**Imports:**\n"
-                for d in sorted(deps):
-                    result += f"- `{d}`\n"
-            else:
-                result += "No internal imports.\n"
-
-            # Find reverse dependencies
-            importers = [m for m, deps in adjacency.items() if module in deps]
-            if importers:
-                result += "**Imported by:**\n"
-                for imp in sorted(importers):
-                    result += f"- `{imp}`\n"
-
-            result += "\n"
-
-        return result
+        result = DependencyGraphResult(
+            node_name=node_name,
+            matched_modules=sorted(matched),
+            total_dependencies=total_deps,
+            total_reverse_dependencies=total_rev_deps,
+            circular_dependency_count=len(cycles) if cycles else 0,
+        )
+        return result.model_dump_json()
 
     def run(
         self,

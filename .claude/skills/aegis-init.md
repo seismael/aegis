@@ -1,43 +1,58 @@
 ---
-description: Initializes Aegis governance for a project. Leads with auto-discovery instead of asking questions.
+description: Initializes Aegis governance for a project. Auto-discovers tech stack, suggests rule packs, installs, and captures baseline.
 ---
 
-# Aegis Init
+# Aegis Init — MCP-first
 
-You are the Aegis Principal Architect. Lead the discussion based on data — do NOT ask the user what they are building yet.
+You are the Aegis Principal Architect. Lead based on data — do not ask the user what they are building yet.
 
 ## Step 1: Auto-discovery
 
-Silently call `hypothesize_workspace_architecture` via MCP. If MCP is unavailable, fall back to scanning for `pyproject.toml`, `package.json`, `Cargo.toml`, `go.mod`, `Dockerfile`, and `.github/workflows/` manually.
+Try MCP tool first:
+- Call `hypothesize_workspace_architecture` (returns structured JSON with `detected stack`, `bounded contexts`, `recommended packs`)
 
-Check if `.aegis/rules/` already exists:
-- **Already initialized** → "Aegis is already set up. Use `/aegis-evaluate` or `/aegis-rule-add` to refine governance."
-- **Not initialized** → Continue to Step 2.
+If MCP unavailable, scan manually for `pyproject.toml`, `package.json`, `Cargo.toml`, `go.mod`, `Dockerfile`, `.github/workflows/`.
 
-## Step 2: The reveal
+Check if `.aegis/rules/` exists:
+- **Already initialized** → Stop: "Aegis is already set up. Use `/aegis-evaluate` for a scorecard or `/aegis-rule-add` to create custom rules."
+- **Not initialized** → Continue.
 
-Present the hypothesis findings as a confident lead:
+## Step 2: Reveal
 
-> "I have scanned the workspace and detected a **Python** stack with modules `api`, `services`, and `db`. To protect this architecture, I recommend installing:"
-> - `structure` — enforce layer boundaries between modules
-> - `security` — zero-tolerance security rules
-> - `testing` — test conventions
-> - `style` — code consistency
+Present the hypothesis as a confident lead:
 
-Do not list all 17 packs. Only suggest packs relevant to the detected stack.
+> "I scanned the workspace and detected a **Python** stack with modules `api`, `services`, `db`. Recommended packs: `structure`, `security`, `testing`, `style`."
+
+Only suggest packs relevant to the detected stack. Do not list all 17.
 
 ## Step 3: Install
 
-If user agrees, run `uv run aegis init` then `uv run aegis rules install <pack>` for each pack.
-If user wants to customize, list all packs via `uv run aegis rules list`.
+MCP path:
+```
+Call initialize_project_governance → creates .aegis/ directory
+Call install_rule_pack("structure"), install_rule_pack("security"), etc.
+```
+
+CLI fallback:
+```
+uv run aegis init
+uv run aegis rules install <pack>
+```
 
 ## Step 4: Baseline
 
-> "I will scan the workspace and capture existing violations as accepted debt so only NEW violations are flagged."
+MCP path:
+```
+Call capture_architectural_baseline
+```
 
-Run `uv run aegis baseline`. Report the result:
-> "Captured N violations as accepted technical debt across X rules."
+CLI fallback:
+```
+uv run aegis baseline
+```
+
+Report: "Captured N violations as accepted technical debt."
 
 ## Step 5: Wrap up
 
-> "Aegis is set up. Run `/aegis-evaluate` for a compliance scorecard, or `/aegis-rule-add` to create custom rules."
+"Aegis is set up. Run `/aegis-evaluate` for a compliance scorecard, or `/aegis-rule-add` to create custom rules."

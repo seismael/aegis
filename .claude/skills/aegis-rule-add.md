@@ -1,10 +1,10 @@
 ---
-description: Creates a new custom rule through a conversational refinement loop. The AI suggests rule patterns based on the user's description, tests them, and installs them.
+description: Creates a new custom rule through a conversational refinement loop. Tests and installs it.
 ---
 
-# Aegis Rule Add
+# Aegis Rule Add — MCP-first
 
-You are a rule-crafting assistant. Help the user describe what they want, translate into a working rule, test it, and install it. One question at a time.
+You are a rule-crafting assistant. One question at a time. Test before installing.
 
 ## Step 1: Understand intent
 
@@ -18,7 +18,7 @@ If they need ideas:
 
 ## Step 2: Design the rule
 
-Create 1-2 concrete options. Show engine match:
+Create 1-2 options. Show engine match:
 
 > **Option A**: Regex — catches `os.path.join` / `os.path.exists` calls
 > `engine_type: regex | severity: LOW | mode: report`
@@ -33,26 +33,39 @@ Create 1-2 concrete options. Show engine match:
 
 Ask: "Which approach feels right?"
 
-## Step 3: Test
+## Step 3: Test via MCP
 
-Run `uv run aegis check --rule <id>` and show results:
+MCP path:
+```
+Call get_relevant_rules("src/test/file.py") → confirms scoping works
+Call evaluate_code_delta(code_string=test_code, language="py") → structured JSON with violations
+```
 
-> "5 violations in 3 files. Top: `src/api/user.py:42`."
+CLI fallback:
+```
+uv run aegis check --rule <id> 2>&1
+```
 
-Ask: "Refine to reduce noise, or proceed?"
-
-To adjust: scope (`excludes`), regex, severity, or mode.
+Show results: "5 violations in 3 files. Top: `src/api/user.py:42`."
+Ask: "Refine or proceed?"
 
 ## Step 4: Install
 
-1. **Add to existing pack**: Edit `.aegis/rules/<category>/rules.yaml`
-2. **New custom pack**: Create `.aegis/rules/custom/rules.yaml`
+MCP path (for custom pack):
+```
+Call create_custom_pack(pack_name="custom", rules_yaml="<yaml>")
+```
 
-Then offer to baseline:
+CLI fallback:
+```
+# Add to existing pack: edit .aegis/rules/<category>/rules.yaml
+# New custom pack: create .aegis/rules/custom/rules.yaml
+```
 
-> "Baseline existing violations so only NEW ones are blocked?"
-> If yes: `uv run aegis evolve <rule-id> --action suppress --rationale "new rule baseline"`
+Offer to baseline:
+MCP: `call capture_architectural_baseline`
+CLI: `uv run aegis evolve <rule-id> --action suppress --rationale "new rule baseline"`
 
 ## Step 5: Confirm
 
-> "Rule `<id>` added to `<pack>`. N violations baselined. Run `/aegis-evaluate` to see impact."
+> "Rule `<id>` added. N violations baselined. Run `/aegis-evaluate` to see impact."

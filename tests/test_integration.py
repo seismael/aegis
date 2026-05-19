@@ -208,8 +208,8 @@ class TestMCPErrorHandling:
         mock_container.graph_analyzer.build_import_graph.return_value = ({}, {})
         k.container = mock_container
         result = await k.get_dependency_graph("main")
-        assert "WARN" in result
-        assert "no Python modules" in result
+        assert '"success": false' in result
+        assert "No Python modules found" in result
 
 
 # ─── Rule model deserialization ────────────────────────────────────────────

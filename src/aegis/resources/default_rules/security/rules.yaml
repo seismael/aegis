@@ -64,16 +64,16 @@ rules:
     rationale: Parameterized queries prevent SQL injection. Never concatenate user input into SQL strings.
 
   - id: sec-csrf-protection
-    description: POST/PUT/DELETE endpoints should include CSRF protection in web frameworks.
+    description: State-changing endpoints (POST/PUT/DELETE) should be reviewed for CSRF protection.
     engine_type: regex
-    severity: HIGH
-    mode: block
+    severity: MEDIUM
+    mode: warn
     applies_to:
       - "**/views/**"
       - "**/controllers/**"
       - "**/routes/**"
     query: '@(app|route)\.(post|put|delete)'
-    rationale: Missing CSRF protection enables cross-site request forgery on state-changing endpoints.
+    rationale: State-changing endpoints without CSRF protection enable cross-site request forgery. Review each flagged route for CSRF middleware or per-endpoint protection.
 
   - id: sec-insecure-deserialization
     description: pickle.load or yaml.load without SafeLoader enables arbitrary code execution.
@@ -84,11 +84,11 @@ rules:
     rationale: Insecure deserialization can trigger arbitrary code execution during object reconstruction.
 
   - id: sec-path-traversal
-    description: User input used in file path construction without sanitization enables directory traversal.
+    description: User input used in open() calls should be validated to prevent directory traversal.
     engine_type: regex
-    severity: HIGH
-    mode: block
-    query: open\s*\(\s*.*(?:request|input|params|args|query).*[+f]
+    severity: MEDIUM
+    mode: warn
+    query: open\s*\(\s*(?:request\.|input\(|params\[|args\[|query\.)
     rationale: Unvalidated file paths allow attackers to read arbitrary files outside the intended directory.
 
   - id: sec-jwt-validation
@@ -96,7 +96,7 @@ rules:
     engine_type: regex
     severity: HIGH
     mode: block
-    query: jwt\.decode\s*\([^)]*(?<!verify)
+    query: jwt\.decode\s*\((?![^)]*verify\s*=)
     rationale: JWT decode without verification accepts forged tokens using algorithm confusion attacks.
 
   - id: sec-no-subprocess-shell

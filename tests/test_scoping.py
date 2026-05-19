@@ -252,3 +252,117 @@ class TestViolationScopeFiltering:
         r = self._rule("r1", applies_to=["src/**"])
         result = ScopeFilter.filter_violations([v], [r])
         assert len(result) == 1
+
+
+class TestScopeFilterGetRelevantRules:
+    """Test suite for ScopeFilter.get_relevant_rules — JIT rule scoping."""
+
+    def _rule(self, rid, language="py", applies_to=None, excludes=None):
+        return Rule(
+            id=rid,
+            description=f"Rule: {rid}",
+            engine_type=EngineType.TREE_SITTER,
+            query="(function_definition) @v",
+            severity=Severity.HIGH,
+            mode=EnforcementMode.BLOCK,
+            language=language,
+            applies_to=applies_to or [],
+            excludes=excludes or [],
+        )
+
+    def test_language_mismatch_filters_out(self):
+        """A .js file does not match py-only rules."""
+        rules = [self._rule("r1", language="py")]
+        result = ScopeFilter.get_relevant_rules("src/app.js", rules)
+        assert len(result) == 0
+
+    def test_language_match_includes(self):
+        """A .py file matches py rules."""
+        rules = [self._rule("r1", language="py")]
+        result = ScopeFilter.get_relevant_rules("src/app.py", rules)
+        assert len(result) == 1
+
+    def test_path_scoping_narrows_results(self):
+        """applies_to must match the file path."""
+        rules = [
+            self._rule("r1", applies_to=["src/**"]),
+            self._rule("r2", applies_to=["tests/**"]),
+        ]
+        result = ScopeFilter.get_relevant_rules("src/app.py", rules)
+        assert len(result) == 1
+        assert result[0].id == "r1"
+
+    def test_max_rules_limit(self):
+        """Results capped at max_rules."""
+        rules = [self._rule(f"r{i}") for i in range(10)]
+        result = ScopeFilter.get_relevant_rules("src/app.py", rules, max_rules=4)
+        assert len(result) == 4
+
+    def test_proximity_scoping_adds_rules(self, monkeypatch):
+        """Adjacency brings in rules matching related modules."""
+        rules = [
+            self._rule("r1", applies_to=["src/core/**"]),
+            self._rule("r2", applies_to=["src/utils/**"]),
+        ]
+
+        # _module_from_path derives module from relpath against cwd.
+        # Force cwd to a clean root so the module resolves as expected.
+        monkeypatch.chdir("/")
+
+        # The full module path for src/core/main.py is src.core.main
+        # when relpath is resolved from /
+        adjacency = {"src.core.main": {"src.utils"}, "src.utils": set()}
+
+        result = ScopeFilter.get_relevant_rules(
+            "src/core/main.py", rules, adjacency=adjacency, max_rules=5
+        )
+        assert len(result) == 2
+        found_ids = {r.id for r in result}
+        assert "r1" in found_ids
+        assert "r2" in found_ids
+
+    def test_excludes_in_get_relevant_rules(self):
+        """excludes pattern filters rules in get_relevant_rules."""
+        rules = [
+            self._rule("r1", applies_to=["src/**"], excludes=["src/generated/**"]),
+        ]
+        result = ScopeFilter.get_relevant_rules("src/generated/autogen.py", rules)
+        assert len(result) == 0
+
+    def test_adjacency_none_returns_only_direct_matches(self):
+        """When adjacency is None, only direct path-scoped matches are returned."""
+        rules = [
+            self._rule("r1", applies_to=["src/core/**"]),
+            self._rule("r2", applies_to=["src/utils/**"]),
+        ]
+        result = ScopeFilter.get_relevant_rules(
+            "src/core/main.py", rules, adjacency=None
+        )
+        assert len(result) == 1
+        assert result[0].id == "r1"
+
+    def test_filter_rules_for_file(self):
+        """filter_rules_for_file returns matching rules for a path."""
+        rules = [
+            self._rule("r1", applies_to=["src/**"]),
+            self._rule("r2", applies_to=["tests/**"]),
+        ]
+        result = ScopeFilter.filter_rules_for_file("src/main.py", rules)
+        assert len(result) == 1
+        assert result[0].id == "r1"
+
+
+class TestScopeFilterUtilities:
+    """Direct tests for ScopeFilter utility methods."""
+
+    def test_resolve_language_py(self):
+        assert ScopeFilter._resolve_language("src/main.py") == "py"
+
+    def test_resolve_language_tsx(self):
+        assert ScopeFilter._resolve_language("src/component.tsx") == "tsx"
+
+    def test_resolve_language_unknown(self):
+        assert ScopeFilter._resolve_language("src/main.cpp") == "cpp"
+
+    def test_resolve_language_no_ext(self):
+        assert ScopeFilter._resolve_language("Makefile") == ""

@@ -1,70 +1,238 @@
-# Aegis: Universal Architectural Governance Protocol
+# Aegis — Universal Architectural Governance Protocol
 
-**Aegis** is a universal governance engine designed to automate architectural perfection. It transforms static design principles into **active execution gates**, ensuring structural compliance and preventing drift across any development workflow.
+Aegis is a governance engine that enforces architectural rules via AST analysis, regex patterns, and import-graph validation. It integrates as a CLI tool and MCP server, detecting structural drift before it reaches production.
 
-Unlike traditional linters, Aegis is a **Steering-First** protocol. It provides proactive architectural guidance *before* code is written, ensuring that both human developers and autonomous agents remain aligned with project invariants by design.
-
----
-
-## 🎯 Core Objectives
-
-- **Proactive Architectural Steering**: Generate "Architectural Flight Plans" at the start of every task to align implementation with project goals.
-- **Enforce Structural Invariants**: Mathematically verify that your code follows its intended design (e.g., Hexagonal boundaries, OOD principles).
-- **Eliminate Architectural Drift**: Automatically detect and block "leaky" abstractions and paradigm violations in real-time.
-- **Manage Technical Debt**: Use sophisticated structural baselining to "grandfather" legacy violations while strictly enforcing zero-drift on new code.
-
----
-
-## 🚀 Key Capabilities
-
-- **Steering-First Discovery**: Pre-fetch relevant architectural laws for any file path *before* editing.
-- **Real-Time AST Enforcement**: Deep structural analysis using **Tree-sitter** that targets modified code for ultra-fast feedback.
-- **Universal Integration**: Seamlessly binds to your toolchain via the **Model Context Protocol (MCP)** and standard CLI.
-- **Modular Policy-as-Code**: Define laws in simple YAML files organized by category (Architecture, Security, Style).
-- **Extensible Plugin Platform**: Build project-wide analyzers for specialized domain needs (e.g., dead code detection, cloud-isolation).
-
----
-
-## 🛠️ Getting Started
-
-### 1. Global Setup
-Register Aegis into your local development environment:
+## Installation
 
 ```bash
-# Register the Aegis protocol globally
-uv run aegis install
+# pip
+pip install aegis-governance
+
+# uv
+uv tool install aegis-governance
+
+# pipx
+pipx install aegis-governance
 ```
 
-### 2. Project Activation
-Initialize governance for a specific repository:
+### From source
 
 ```bash
-# Bootstrap the .aegis/ law-matrix
+git clone https://github.com/seismael/aegis.git
+cd aegis
+uv sync --dev
+```
+
+## Quickstart
+
+```bash
+# 1. Register global hooks
+aegis install
+
+# 2. Initialize governance in your project
+cd my-project
 aegis init
+
+# 3. Run governance check
+aegis check
 ```
 
----
+Example output:
 
-## 🏛️ Target Use Cases
+```
+$ aegis check
+- BLOCK src/domain/order.py:42 (arch-layer-violation)
+    Domain layer imports infrastructure module 'db.session'
+    Severity: HIGH | Rule: arch-layer-violation
 
-| Use Case | Solution |
+- WARN src/api/routes.py:18 (sec-csrf-protection)
+    POST route without CSRF protection
+    Severity: MEDIUM | Rule: sec-csrf-protection
+
+- REPORT src/utils/helpers.py:7 (style-consistent-quotes)
+    Inconsistent quote style (expected single quotes)
+    Severity: LOW | Rule: style-consistent-quotes
+
+Summary: 3 total, 1 blocking.
+```
+
+### Strict mode
+
+Exit with code 1 on any violation (not just BLOCK):
+
+```bash
+aegis check --strict
+```
+
+### Filter by rule
+
+```bash
+aegis check --rule arch-layer-violation,sec-jwt-validation
+```
+
+### View status
+
+```bash
+aegis status
+```
+
+### Baseline existing violations
+
+Grandfather existing violations so only new drift is flagged:
+
+```bash
+aegis baseline --capture
+aegis check
+```
+
+## CLI Reference
+
+| Command | Description |
 |---|---|
-| **Layer Isolation** | Enforce strict boundaries between Domain, Application, and Infrastructure layers. |
-| **Cloud-Native Decoupling** | Prevent cloud-provider SDKs from leaking into business logic. |
-| **API Deprecation** | Manage migrations by blocking new usages of deprecated patterns while permitting existing ones. |
-| **Security Invariants** | Detect hardcoded secrets and unsafe coding patterns in real-time. |
-| **Modular Encapsulation** | Restrict access to private internal modules to authorized consumers only. |
+| `aegis init` | Bootstrap `.aegis/` governance directory |
+| `aegis check` | Run all rules against the workspace |
+| `aegis status` | Show governance health summary |
+| `aegis fix` | Auto-remediate fixable violations |
+| `aegis evolve` | Accept or reject a proposed rule change |
+| `aegis baseline` | Manage the technical debt ledger (capture, show, prune, expire) |
+| `aegis apply` | Apply proposed architectural steering |
+| `aegis rules list` | List installed rule packs |
+| `aegis rules show <pack>` | Show rules in a specific pack |
+| `aegis rules install <pack>` | Install a rule pack |
+| `aegis serve` | Start the MCP kernel server |
 
----
+## Rule YAML Schema
 
-## 🟢 Contribute
-We welcome all developers who are passionate about architectural integrity.
+Rules are defined in YAML files organized by category under `.aegis/rules/` or `src/aegis/resources/default_rules/`.
 
-Visit our [**Issue Tracker**](https://github.com/seismael/aegis/issues) to find curated tasks labeled by **role**, **domain**, and **intent**.
+### Pack descriptor (`pack.yaml`)
 
----
+```yaml
+name: architecture        # unique pack name
+version: 1.0.0
+description: Layered architecture invariants
+author: Aegis
+```
 
-## ⚖️ License
-Aegis is released under the **Apache License 2.0**, facilitating universal adoption and contribution.
+### Rule fields
 
-**Govern your architecture. Automate your perfection.**
+```yaml
+rules:
+  - id: arch-layer-violation          # unique rule identifier
+    description: >                    # human-readable summary
+      Domain layer must not import infrastructure modules
+    severity: HIGH                    # LOW | MEDIUM | HIGH | CRITICAL | WARN
+    mode: block                       # silent | report | warn | block | fix
+    category: architecture            # ruleset taxonomy for phase mapping
+    engine_type: regex                # regex | tree-sitter | graph
+    language: py                      # py | ts | tsx | js | jsx | rs
+    query: ^from\s+infrastructure     # engine-specific query pattern
+    applies_to:                       # glob patterns for targeted files
+      - "**/domain/**"
+    excludes: []                      # glob patterns to exclude
+    rationale: >                      # why the rule exists
+      Layered architecture requires domain purity
+```
+
+### Engine types
+
+- **regex** — Pattern matching via Python `re` module. Use for naming conventions, forbidden patterns, style rules.
+- **tree-sitter** — AST-level queries using Tree-sitter query syntax. Use for structural patterns (function definitions, class hierarchies, import statements).
+- **graph** — Import-graph analysis. Use for layer violations, circular dependencies, module isolation. Currently Python-only.
+
+### Positive rules (candidates/check)
+
+For rules enforcing "X must have Y" (e.g., every public function must have a docstring):
+
+```yaml
+  - id: required-docstrings
+    engine_type: tree-sitter
+    candidates_query: "(function_definition) @fn"  # all functions
+    check_query: "(function_definition body: (block . (expression_statement (string))?) @body)"  # functions with docstrings
+```
+
+Violations = candidates minus check results.
+
+## CI/CD Integration
+
+### GitHub Actions
+
+```yaml
+name: Governance Check
+on: [push, pull_request]
+jobs:
+  governance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install aegis-governance
+      - run: aegis init
+      - run: aegis check --strict
+```
+
+Exit codes: 0 = clean, 1 = violations found (blocking in strict mode).
+
+### Pre-commit hook
+
+Aegis registers a pre-commit hook during `aegis install` that runs `aegis check` on staged changes.
+
+## MCP Integration
+
+Aegis exposes 22 MCP tools covering the full governance lifecycle. Run the MCP server:
+
+```bash
+aegis serve
+```
+
+Configure in your MCP client (Claude Code, Cursor, etc.):
+
+```json
+{
+  "mcpServers": {
+    "aegis": {
+      "command": "aegis",
+      "args": ["serve"]
+    }
+  }
+}
+```
+
+Key MCP tools: `initialize_governance`, `evaluate_workspace`, `evaluate_code_delta`, `get_active_context`, `propose_architectural_steering`, `manage_baseline`, `install_rule_pack`.
+
+## Configuration
+
+Aegis reads `.aegis/config.yaml`:
+
+```yaml
+version: "1.0"
+rules_dir: .aegis/rules
+strict: false
+phases:
+  - pre-commit
+  - ci
+  - nightly
+plugins:
+  - name: cloud_isolation
+    enabled: true
+```
+
+## Troubleshooting
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `Tree-sitter not available` | Missing C extension | `pip install tree-sitter` |
+| `No rules found` | Bad rules path | Run `aegis init` to create `.aegis/` |
+| `aegis: command not found` | Not on PATH | Use `uv run aegis` or check install |
+| Baseline violations not matching | Signature drift | Run `aegis baseline --capture` to refresh |
+| MCP connection refused | Server not running | Run `aegis serve` in a separate terminal |
+
+## Project Status
+
+Aegis is in beta. The core engine (regex, tree-sitter, graph analyzers) is production-tested with 92 default rules across 17 categories. The plugin SDK and MCP integration are stable.
+
+## License
+
+Apache License 2.0

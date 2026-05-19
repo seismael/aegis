@@ -300,6 +300,7 @@ class TestRemotePolicySecurity:
 
     def _write_rules(self, tmp_path, data):
         import yaml as ymlib
+
         f = tmp_path / "rules.yaml"
         f.write_text(ymlib.dump(data), encoding="utf-8")
         return str(f)
@@ -327,18 +328,22 @@ class TestRemotePolicySecurity:
         with patch("httpx.get") as mock_get:
             mock_get.side_effect = [
                 _mock_response(
-                    yaml.dump({
-                        "rules": [
-                            {"id": "r1", "description": "base", "query": "x"},
-                        ],
-                    })
+                    yaml.dump(
+                        {
+                            "rules": [
+                                {"id": "r1", "description": "base", "query": "x"},
+                            ],
+                        }
+                    )
                 ),
                 _mock_response(
-                    yaml.dump({
-                        "rules": [
-                            {"id": "r2", "description": "extra", "query": "y"},
-                        ],
-                    })
+                    yaml.dump(
+                        {
+                            "rules": [
+                                {"id": "r2", "description": "extra", "query": "y"},
+                            ],
+                        }
+                    )
                 ),
             ]
             parser = PolicyParser()
@@ -351,6 +356,7 @@ class TestRemotePolicySecurity:
         cache_dir = str(tmp_path / ".aegis" / "cache")
         import json
         import time
+
         os.makedirs(cache_dir, exist_ok=True)
         url = "https://org.example.com/rules.yaml"
         cache_key = hashlib.sha256(url.encode()).hexdigest()[:16]
@@ -371,6 +377,7 @@ class TestRemotePolicySecurity:
         """Expired cache entry triggers a fresh fetch."""
         cache_dir = str(tmp_path / ".aegis" / "cache")
         import json
+
         os.makedirs(cache_dir, exist_ok=True)
         url = "https://org.example.com/rules.yaml"
         cache_key = hashlib.sha256(url.encode()).hexdigest()[:16]
@@ -382,11 +389,13 @@ class TestRemotePolicySecurity:
         rules_file = self._write_rules(tmp_path, {"extends": url})
         with patch("httpx.get") as mock_get:
             mock_get.return_value = _mock_response(
-                yaml.dump({
-                    "rules": [
-                        {"id": "fresh", "description": "fresh", "query": "y"},
-                    ],
-                })
+                yaml.dump(
+                    {
+                        "rules": [
+                            {"id": "fresh", "description": "fresh", "query": "y"},
+                        ],
+                    }
+                )
             )
             parser = PolicyParser(cache_dir=cache_dir)
             rules = parser.parse_rules(rules_file)

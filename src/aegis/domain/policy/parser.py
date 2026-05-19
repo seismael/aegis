@@ -22,9 +22,7 @@ class RemotePolicyFetcher:
     def validate_url(url: str) -> None:
         """Validate that a remote policy URL is secure."""
         if not url.startswith("https://"):
-            raise ValueError(
-                f"Remote policy URL must use HTTPS for security: '{url}'"
-            )
+            raise ValueError(f"Remote policy URL must use HTTPS for security: '{url}'")
 
     @staticmethod
     def cache_path(cache_dir: str, url: str) -> str:
@@ -106,16 +104,27 @@ class PolicyParser:
                 except Exception as e:
                     logger.error(
                         "Failed to fetch remote policy",
-                        url=url, error=str(e),
+                        url=url,
+                        error=str(e),
                     )
 
         # 2. Merge local rules (local overrides remote)
         if "rules" in data:
             # Overwrite rules with the same ID
             local_rules = data["rules"]
-            remote_dict = {r.get("id"): r for r in rules_data}
+            remote_dict: dict[str, dict] = {}
+            for r in rules_data:
+                rid = r.get("id")
+                if rid:
+                    remote_dict[rid] = r
+                else:
+                    logger.warning("Skipping remote rule without 'id' field")
             for lr in local_rules:
-                remote_dict[lr.get("id")] = lr
+                rid = lr.get("id")
+                if rid:
+                    remote_dict[rid] = lr
+                else:
+                    logger.warning("Skipping local rule without 'id' field")
             rules_data = list(remote_dict.values())
 
         if not rules_data:

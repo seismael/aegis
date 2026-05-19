@@ -30,7 +30,6 @@ class AegisConfig(BaseModel):
     max_violations: int = Field(
         default=0,
         description=(
-            "Warn when active violations exceed this threshold."
-            " 0 = no limit."
+            "Warn when active violations exceed this threshold. 0 = no limit."
         ),
     )

@@ -361,6 +361,7 @@ class TestBaselineManager:
         assert raw[0]["captured_at"] is not None
         # Verify it's a valid ISO datetime string
         from datetime import datetime
+
         datetime.fromisoformat(raw[0]["captured_at"])
 
     def test_add_to_baseline_sets_captured_at(self, tmp_path):
@@ -398,6 +399,7 @@ class TestBaselineManager:
             {"file": "new.py", "line": 2, "rule_id": "r1", "captured_at": new_ts},
         ]
         import json
+
         (tmp_path / "baseline.json").write_text(json.dumps(raw), encoding="utf-8")
         bm.path = str(tmp_path / "baseline.json")
 
@@ -414,12 +416,21 @@ class TestBaselineManager:
 
         old_ts = (datetime.now(UTC) - timedelta(days=100)).isoformat()
         raw = [
-            {"file": "dead.py", "line": 1,
-             "rule_id": "r_deleted", "captured_at": old_ts},
-            {"file": "active.py", "line": 2,
-             "rule_id": "r_active", "captured_at": old_ts},
+            {
+                "file": "dead.py",
+                "line": 1,
+                "rule_id": "r_deleted",
+                "captured_at": old_ts,
+            },
+            {
+                "file": "active.py",
+                "line": 2,
+                "rule_id": "r_active",
+                "captured_at": old_ts,
+            },
         ]
         import json
+
         (tmp_path / "baseline.json").write_text(json.dumps(raw), encoding="utf-8")
         bm.path = str(tmp_path / "baseline.json")
 
@@ -437,6 +448,7 @@ class TestBaselineManager:
             {"file": "no_ts.py", "line": 1, "rule_id": "r1"},
         ]
         import json
+
         (tmp_path / "baseline.json").write_text(json.dumps(raw), encoding="utf-8")
         bm.path = str(tmp_path / "baseline.json")
 
@@ -451,6 +463,7 @@ class TestBaselineManager:
             {"file": "no_ts.py", "line": 1, "rule_id": "r1"},
         ]
         import json
+
         (tmp_path / "baseline.json").write_text(json.dumps(raw), encoding="utf-8")
         bm.path = str(tmp_path / "baseline.json")
 

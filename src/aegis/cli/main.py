@@ -34,6 +34,7 @@ class AegisCLI:
 
     def _require_governance(self) -> None:
         """Exit with error if governance service is unavailable."""
+        self._warn_degraded()
         if not self.container.governance_service:
             self.console.print(
                 "[red]Error: Governance service unavailable"
@@ -41,6 +42,13 @@ class AegisCLI:
                 " Check .aegis/ permissions or run 'aegis init'.[/red]"
             )
             raise typer.Exit(code=1)
+
+    def _warn_degraded(self) -> None:
+        """Print warnings for any container initialization failures."""
+        errors = self.container.init_errors
+        if errors:
+            for err in errors:
+                self.console.print(f"[yellow]Warning: {err}[/yellow]")
 
     def _register_commands(self):
         self.app.command()(self.install)
@@ -55,6 +63,7 @@ class AegisCLI:
         self.app.command()(self.serve)
         self.app.command()(self.watch)
         self.app.command()(self.self_check)
+        self.app.command()(self.insights)
         self.app.add_typer(
             self._rules_app, name="rules", help="Manage governance rule packs"
         )
@@ -271,9 +280,7 @@ class AegisCLI:
             )
             try:
                 path = PluginScaffold.create(plugin_dir, name)
-                self.console.print(
-                    f"[green]Plugin scaffold created: {path}[/green]"
-                )
+                self.console.print(f"[green]Plugin scaffold created: {path}[/green]")
             except ValueError as e:
                 self.console.print(f"[red]{e}[/red]")
                 raise typer.Exit(code=1) from e
@@ -340,7 +347,8 @@ class AegisCLI:
             help="Evaluation phase: pre-commit, pre-push, ci, nightly, on-demand",
         ),
         category: str | None = typer.Option(
-            None, "--category",
+            None,
+            "--category",
             help=(
                 "Filter by rule category: architecture, security, testing,"
                 " style, structure, design, best-practices, tools,"
@@ -445,8 +453,7 @@ class AegisCLI:
             )
 
         self.console.print(
-            f"\n[bold]Summary:[/bold] {len(active)} total,"
-            f" {len(blocking)} blocking."
+            f"\n[bold]Summary:[/bold] {len(active)} total, {len(blocking)} blocking."
         )
 
         if blocking:
@@ -478,7 +485,7 @@ class AegisCLI:
                 "[red]Error: Baseline manager unavailable"
                 " - container running in degraded mode.[/red]"
             )
-            return
+            raise typer.Exit(code=1)
 
         if clear:
             if os.path.exists(bm.path):
@@ -612,7 +619,7 @@ class AegisCLI:
         all_rules = self.container.load_rules()
         if not all_rules:
             self.console.print("[red]Error: No rules found in .aegis/rules/.[/red]")
-            return
+            raise typer.Exit(code=1)
 
         rules = [r for r in all_rules if r.id == rule] if rule else all_rules
         rule_map = {r.id: r for r in rules}
@@ -694,9 +701,7 @@ class AegisCLI:
                 )
         if failed:
             for r in failed:
-                self.console.print(
-                    f"  [red]FAIL[/red] {r.file}:{r.line} - {r.message}"
-                )
+                self.console.print(f"  [red]FAIL[/red] {r.file}:{r.line} - {r.message}")
 
         count = len(fixed)
         if dry_run:
@@ -729,32 +734,31 @@ class AegisCLI:
         rules = self.container.load_rules()
         if not rules:
             self.console.print("[red]Error: No rules found in .aegis/rules/.[/red]")
-            return
+            raise typer.Exit(code=1)
 
         rule = next((r for r in rules if r.id == rule_id), None)
 
         if not rule:
             self.console.print(f"[red]Error: Rule '{rule_id}' not found.[/red]")
-            return
+            raise typer.Exit(code=1)
 
         if action not in ("suppress", "relax_rule", "refactor_required", None):
             self.console.print(
                 f"[red]Error: Invalid action '{action}'. "
                 "Choose suppress, relax_rule, or refactor_required.[/red]"
             )
-            return
+            raise typer.Exit(code=1)
         if action is None:
             self.console.print(
                 "[red]Error: --action is required"
                 " (suppress, relax_rule, or refactor_required).[/red]"
             )
-            return
+            raise typer.Exit(code=1)
         if not rationale:
             self.console.print(
-                "[red]Error: --rationale is required"
-                " when --action is provided.[/red]"
+                "[red]Error: --rationale is required when --action is provided.[/red]"
             )
-            return
+            raise typer.Exit(code=1)
 
         decision = EvolutionDecision(
             rule_id=rule_id, action=action, rationale=rationale
@@ -839,7 +843,8 @@ class AegisCLI:
         host: str = typer.Option("127.0.0.1", "--host", help="Bind host (SSE/HTTP)"),
         port: int = typer.Option(8000, "--port", help="Bind port (SSE/HTTP)"),
         cors_origins: str | None = typer.Option(
-            None, "--cors-origins",
+            None,
+            "--cors-origins",
             help="Comma-separated CORS origins (SSE/HTTP only)",
         ),
     ):
@@ -851,9 +856,7 @@ class AegisCLI:
             f"(transport={transport}, host={host}, port={port})"
         )
         kernel = AegisKernel()
-        kernel.run(
-            transport=transport, host=host, port=port, cors_origins=cors_origins
-        )
+        kernel.run(transport=transport, host=host, port=port, cors_origins=cors_origins)
 
     def watch(
         self,
@@ -887,6 +890,7 @@ class AegisCLI:
 
         if phase or category:
             from aegis.domain.policy.models import EvaluationPhase, RuleCategory
+
             phase_enum = EvaluationPhase(phase) if phase else None
             cat_enum = RuleCategory(category) if category else None
             rules = EvaluationService.filter_rules_by_phase(
@@ -920,7 +924,8 @@ class AegisCLI:
                 violations = self.container.evaluation_service.evaluate_file(fp, rules)
                 active = (
                     [
-                        v for v in violations
+                        v
+                        for v in violations
                         if not bm.is_exempt(v, rules_map.get(v.rule_id))
                     ]
                     if bm
@@ -951,9 +956,7 @@ class AegisCLI:
                             f" {v.description} (line {v.line})"
                         )
                 else:
-                    self.console.print(
-                        f"[dim]{now}[/dim] [green]OK[/green] {fp}"
-                    )
+                    self.console.print(f"[dim]{now}[/dim] [green]OK[/green] {fp}")
 
         try:
             watcher = FileWatcher(root)
@@ -977,6 +980,14 @@ class AegisCLI:
                     "[bold red]FAIL - Self-governance violation detected![/bold red]"
                 )
             raise e
+
+    def insights(self):
+        """Generates an architectural insights scorecard from telemetry data."""
+        recorder = self.container.telemetry_recorder
+        if recorder is None:
+            self.console.print("[red]Error: Telemetry recorder unavailable.[/red]")
+            raise typer.Exit(code=1)
+        self.console.print(recorder.display_insights())
 
     def run(self):
         self.app()

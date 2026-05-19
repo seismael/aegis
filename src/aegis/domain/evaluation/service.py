@@ -2,7 +2,7 @@ import os
 
 import structlog
 
-from aegis.core.constants import IGNORE_DIRS
+from aegis.core.constants import IGNORE_DIRS, LANG_EXT_MAP
 from aegis.domain.evaluation.ports import (
     ArchitecturalViolation,
     DiffProviderInterface,
@@ -167,6 +167,52 @@ class EvaluationService:
             )
 
         return [r for r in rules if _matches(r)]
+
+    def evaluate_code_string(
+        self, code_string: str, language: str, rules: list[Rule]
+    ) -> list[ArchitecturalViolation]:
+        """Evaluate a code string in-memory against applicable rules.
+
+        Builds a synthetic path so analyzers resolve the correct language
+        from the extension.  Tree-sitter failures on partial code are caught
+        and silently skipped.
+        """
+        if not code_string or not rules:
+            return []
+
+        ext = LANG_EXT_MAP.get(language, f".{language}")
+        synthetic_path = f"memory{ext}"
+
+        lang_rules = [r for r in rules if r.language == language]
+        if not lang_rules:
+            return []
+
+        violations: list[ArchitecturalViolation] = []
+
+        ts_rules = [r for r in lang_rules if r.engine_type == EngineType.TREE_SITTER]
+        regex_rules = [r for r in lang_rules if r.engine_type == EngineType.REGEX]
+
+        if ts_rules:
+            try:
+                violations.extend(
+                    self.tree_sitter_analyzer.analyze_file(
+                        synthetic_path, code_string, ts_rules
+                    )
+                )
+            except Exception:
+                pass
+
+        if regex_rules:
+            try:
+                violations.extend(
+                    self.regex_analyzer.analyze_file(
+                        synthetic_path, code_string, regex_rules
+                    )
+                )
+            except Exception:
+                pass
+
+        return violations
 
     def evaluate_file(
         self,

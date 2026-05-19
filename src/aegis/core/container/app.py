@@ -44,6 +44,7 @@ class Container:
 
         # Configuration
         self._aegis_config: AegisConfig = load_aegis_config(self.workspace_root)
+        self._telemetry_recorder_cache = None
 
         # Infrastructure — Analyzers (always safe to construct)
         self.tree_sitter_analyzer = TreeSitterAnalyzer()
@@ -114,6 +115,25 @@ class Container:
     @property
     def loaded_plugins(self) -> list[str]:
         return self.plugin_registry.loaded_plugins
+
+    @property
+    def telemetry_recorder(self):
+        """Lazy TelemetryRecorder for architectural observability."""
+        if self._telemetry_recorder_cache is _DEGRADED_SENTINEL:
+            return None
+        if self._telemetry_recorder_cache is not None:
+            return self._telemetry_recorder_cache
+        try:
+            from aegis.domain.observability.telemetry import (
+                TelemetryRecorder,
+            )
+
+            self._telemetry_recorder_cache = TelemetryRecorder(self.workspace_root)
+            return self._telemetry_recorder_cache
+        except Exception as exc:
+            self._telemetry_recorder_cache = _DEGRADED_SENTINEL
+            self._record_init_error(f"telemetry_recorder: {exc}")
+            return None
 
     @property
     def init_errors(self) -> list[str]:

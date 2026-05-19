@@ -21,7 +21,7 @@ class RegexAnalyzer(RegexAnalyzerInterface):
         for rule in rules:
             if not rule.query:
                 continue
-            if ext != rule.language:
+            if rule.language and ext != rule.language:
                 continue
 
             pattern = self._get_pattern(rule.query)

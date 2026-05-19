@@ -3,14 +3,14 @@
 
 rules:
   - id: perf-repeated-computation
-    description: Repeated len() calls in loop conditions are redundant (Python caches length).
+    description: Repeated len() calls inside loop bodies may indicate a cache opportunity.
     engine_type: regex
-    severity: MEDIUM
-    mode: warn
+    severity: LOW
+    mode: report
     applies_to:
       - "**/*.py"
     query: for\s+\w+\s+in[\s\S]{0,100}len\([\s\S]{0,50}len\(
-    rationale: len() inside loop conditions is redundant and wastes cycles.
+    rationale: Caching repeated len() results outside the loop avoids unnecessary O(1) calls.
 
   - id: perf-large-data-copies
     description: Full list slices [:] in loops create unnecessary O(n²) copies.
@@ -29,12 +29,12 @@ rules:
     rationale: Blocking calls in async functions defeat the purpose of async and hang the event loop.
 
   - id: perf-unbounded-append
-    description: Repeated .append() calls in loops on long-lived objects may grow without bound.
+    description: Repeated .append() calls may indicate a collection that should be pre-sized.
     engine_type: regex
-    severity: MEDIUM
-    mode: warn
+    severity: LOW
+    mode: report
     query: \.\s*append\s*\([\s\S]{0,200}\.\s*append[\s\S]{0,200}\.\s*append
-    rationale: Unbounded appends in long-lived objects create memory leaks over time.
+    rationale: Consider pre-sizing or using list comprehensions when building collections.
 
   - id: perf-string-concat
     description: Use str.join() instead of += for string concatenation in loops.

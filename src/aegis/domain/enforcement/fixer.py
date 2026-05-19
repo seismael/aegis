@@ -27,8 +27,7 @@ class RuleFixer(ABC):
 
     @property
     @abstractmethod
-    def rule_id(self) -> str:
-        ...
+    def rule_id(self) -> str: ...
 
     @abstractmethod
     def fix_line(self, line: str, _rule: Rule) -> str | None:
@@ -40,6 +39,7 @@ class RuleFixer(ABC):
 # Concrete fixers
 # ---------------------------------------------------------------------------
 
+
 class BareExceptFixer(RuleFixer):
     """Replace bare `except:` with `except Exception:`."""
 
@@ -50,7 +50,7 @@ class BareExceptFixer(RuleFixer):
     def fix_line(self, line: str, _rule: Rule) -> str | None:
         m = self._PATTERN.match(line)
         if m:
-            return f"{m.group(1)}except Exception:{line[len(m.group(0)):]}"
+            return f"{m.group(1)}except Exception:{line[len(m.group(0)) :]}"
         return None
 
 
@@ -75,6 +75,7 @@ class PrintToLoggerFixer(RuleFixer):
 # ---------------------------------------------------------------------------
 # Registry
 # ---------------------------------------------------------------------------
+
 
 class FixerRegistry:
     """Registry of rule fixers, keyed by rule ID."""
@@ -120,9 +121,7 @@ class FixerRegistry:
             try:
                 content = path.read_text(encoding="utf-8")
             except OSError as e:
-                results.append(
-                    FixResult(filepath, 0, "", False, f"Cannot read: {e}")
-                )
+                results.append(FixResult(filepath, 0, "", False, f"Cannot read: {e}"))
                 continue
 
             lines = content.splitlines(keepends=True)

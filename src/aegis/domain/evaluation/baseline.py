@@ -1,5 +1,6 @@
 import json
 import os
+import threading
 from datetime import UTC, datetime
 
 import structlog
@@ -25,47 +26,61 @@ class BaselineManager:
     """
     Manages the architectural technical debt ledger (.aegis/baseline.json).
     Uses structural signatures to prevent line-number drift.
+    Thread-safe with file locking and atomic writes.
     """
 
     def __init__(self, directory: str = ".aegis"):
         self.path = os.path.join(directory, "baseline.json")
-        os.makedirs(directory, exist_ok=True)
+        self._lock = threading.Lock()
+        # Do NOT create the directory in __init__ — let callers handle that.
+        # The directory will be created on first write if needed.
+
+    def _atomic_write(self, data: list) -> None:
+        """Write data atomically: write to .tmp then os.replace."""
+        tmp = self.path + ".tmp"
+        os.makedirs(os.path.dirname(self.path), exist_ok=True)
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+        os.replace(tmp, self.path)
 
     def save_baseline(self, violations: list[ArchitecturalViolation]) -> None:
         now = datetime.now(UTC).isoformat()
         baseline = [
             BaselineViolation(
-                file=v.file, line=v.line, rule_id=v.rule_id,
-                signature=v.signature, captured_at=now,
+                file=v.file,
+                line=v.line,
+                rule_id=v.rule_id,
+                signature=v.signature,
+                captured_at=now,
             ).model_dump()
             for v in violations
         ]
-        with open(self.path, "w", encoding="utf-8") as f:
-            json.dump(baseline, f, indent=2)
+        with self._lock:
+            self._atomic_write(baseline)
 
     def add_to_baseline(self, violation: ArchitecturalViolation) -> None:
-        baseline = self.load_baseline_raw()
-        if len(baseline) >= 50_000:
-            logger.warning(
-                "Baseline has grown unusually large",
-                size=len(baseline),
-                hint="Run 'aegis baseline --prune' to clean stale entries",
-            )
+        with self._lock:
+            baseline = self.load_baseline_raw()
+            if len(baseline) >= 50_000:
+                logger.warning(
+                    "Baseline has grown unusually large",
+                    size=len(baseline),
+                    hint="Run 'aegis baseline --prune' to clean stale entries",
+                )
 
-        now = datetime.now(UTC).isoformat()
-        new_entry = BaselineViolation(
-            file=violation.file,
-            line=violation.line,
-            rule_id=violation.rule_id,
-            signature=violation.signature,
-            captured_at=now,
-        ).model_dump()
+            now = datetime.now(UTC).isoformat()
+            new_entry = BaselineViolation(
+                file=violation.file,
+                line=violation.line,
+                rule_id=violation.rule_id,
+                signature=violation.signature,
+                captured_at=now,
+            ).model_dump()
 
-        # Match by signature if available, otherwise fallback to file/line/rule
-        if not any(self._match(b, violation) for b in baseline):
-            baseline.append(new_entry)
-            with open(self.path, "w", encoding="utf-8") as f:
-                json.dump(baseline, f, indent=2)
+            # Match by signature if available, otherwise fallback to file/line/rule
+            if not any(self._match(b, violation) for b in baseline):
+                baseline.append(new_entry)
+                self._atomic_write(baseline)
 
     def is_exempt(
         self, violation: ArchitecturalViolation, rule: Rule | None = None
@@ -122,19 +137,19 @@ class BaselineManager:
 
     def prune_stale(self, active_rule_ids: set) -> int:
         """Remove baseline entries for rules that no longer exist."""
-        baseline = self.load_baseline_raw()
-        if not baseline:
-            return 0
-        before = len(baseline)
-        baseline = [
-            b
-            for b in baseline
-            if isinstance(b, dict) and b.get("rule_id") in active_rule_ids
-        ]
-        after = len(baseline)
-        if before != after:
-            with open(self.path, "w", encoding="utf-8") as f:
-                json.dump(baseline, f, indent=2)
+        with self._lock:
+            baseline = self.load_baseline_raw()
+            if not baseline:
+                return 0
+            before = len(baseline)
+            baseline = [
+                b
+                for b in baseline
+                if isinstance(b, dict) and b.get("rule_id") in active_rule_ids
+            ]
+            after = len(baseline)
+            if before != after:
+                self._atomic_write(baseline)
         return before - after
 
     def show_baseline(self) -> str:
@@ -159,35 +174,38 @@ class BaselineManager:
         Only applies age-based expiry to entries for currently active rules.
         Entries for deleted/unknown rules are preserved regardless of age.
         """
-        baseline = self.load_baseline_raw()
-        if not baseline:
-            return 0
-        before = len(baseline)
-        cutoff = datetime.now(UTC)
-        kept = []
-        for b in baseline:
-            if not isinstance(b, dict):
-                continue
-            # Preserve entries for deleted rules regardless of age
-            if active_rule_ids is not None and b.get("rule_id") not in active_rule_ids:
+        with self._lock:
+            baseline = self.load_baseline_raw()
+            if not baseline:
+                return 0
+            before = len(baseline)
+            cutoff = datetime.now(UTC)
+            kept = []
+            for b in baseline:
+                if not isinstance(b, dict):
+                    continue
+                # Preserve entries for deleted rules regardless of age
+                if (
+                    active_rule_ids is not None
+                    and b.get("rule_id") not in active_rule_ids
+                ):
+                    kept.append(b)
+                    continue
+                captured = b.get("captured_at")
+                if captured:
+                    try:
+                        captured_dt = datetime.fromisoformat(captured)
+                        age_days = (cutoff - captured_dt).days
+                        if age_days > days:
+                            continue  # expired
+                    except (ValueError, TypeError):
+                        pass  # keep entries with unparseable timestamps
+                elif active_rule_ids is not None:
+                    # No timestamp — treat as expired for active rules
+                    continue
                 kept.append(b)
-                continue
-            captured = b.get("captured_at")
-            if captured:
-                try:
-                    captured_dt = datetime.fromisoformat(captured)
-                    age_days = (cutoff - captured_dt).days
-                    if age_days > days:
-                        continue  # expired
-                except (ValueError, TypeError):
-                    pass  # keep entries with unparseable timestamps
-            elif active_rule_ids is not None:
-                # No timestamp — treat as expired for active rules
-                continue
-            kept.append(b)
 
-        after = len(kept)
-        if before != after:
-            with open(self.path, "w", encoding="utf-8") as f:
-                json.dump(kept, f, indent=2)
+            after = len(kept)
+            if before != after:
+                self._atomic_write(kept)
         return before - after

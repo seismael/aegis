@@ -46,6 +46,7 @@ class TestFileWatcher:
         w = FileWatcher(str(tmp_path))
         first = w._iter_python_files()
         import time
+
         time.sleep(0.01)
         f.write_text("x = 2")
         second = w._iter_python_files()

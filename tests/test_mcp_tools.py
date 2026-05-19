@@ -46,12 +46,18 @@ class TestMCPTools:
 
     @pytest.mark.asyncio
     async def test_validate_compliance_clean(self, kernel):
+        import json
+
         kernel.container.load_rules.return_value = [Rule(id="r1", description="desc")]
-        result = await kernel.validate_architecture_compliance(staged_only=False)
-        assert "No new violations" in result
+        raw = await kernel.validate_architecture_compliance(staged_only=False)
+        result = json.loads(raw)
+        assert result["passed"] is True
+        assert result["total_violations"] == 0
 
     @pytest.mark.asyncio
     async def test_validate_compliance_with_violations(self, kernel):
+        import json
+
         from aegis.domain.evaluation.ports import ArchitecturalViolation
 
         kernel.container.load_rules.return_value = [
@@ -68,9 +74,11 @@ class TestMCPTools:
             )
         ]
 
-        result = await kernel.validate_architecture_compliance(staged_only=False)
-        assert "ARCHITECTURAL DRIFT" in result
-        assert "src/main.py" in result
+        raw = await kernel.validate_architecture_compliance(staged_only=False)
+        result = json.loads(raw)
+        assert result["passed"] is False
+        assert result["total_violations"] == 1
+        assert result["violations"][0]["file"] == "src/main.py"
 
     @pytest.mark.asyncio
     async def test_apply_remediation_no_violations(self, kernel):
@@ -163,26 +171,34 @@ class TestMCPTools:
     @pytest.mark.asyncio
     async def test_validate_compliance_staged(self, kernel):
         """validate_architecture_compliance staged_only=True uses evaluate_changes."""
+        import json
+
         kernel.container.load_rules.return_value = [Rule(id="r1", description="desc")]
         kernel.container.evaluation_service.evaluate_changes.return_value = []
         kernel.container.baseline_manager.is_exempt.return_value = False
 
-        result = await kernel.validate_architecture_compliance(staged_only=True)
-        assert "No new violations" in result
+        raw = await kernel.validate_architecture_compliance(staged_only=True)
+        result = json.loads(raw)
+        assert result["passed"] is True
         kernel.container.evaluation_service.evaluate_changes.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_validate_compliance_full_scan(self, kernel):
         """validate_architecture_compliance full scan calls governance_service."""
+        import json
+
         kernel.container.load_rules.return_value = [Rule(id="r1", description="desc")]
 
-        result = await kernel.validate_architecture_compliance(staged_only=False)
-        assert "No new violations" in result
+        raw = await kernel.validate_architecture_compliance(staged_only=False)
+        result = json.loads(raw)
+        assert result["passed"] is True
         kernel.container.governance_service.get_active_violations.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_validate_compliance_no_rules(self, kernel):
         """validate_architecture_compliance returns error when no rules loaded."""
+        import json
+
         kernel.container.load_rules.return_value = []
         kernel.container.evaluation_service.evaluate_workspace.return_value = []
         kernel.container.baseline_manager.is_exempt.return_value = False
@@ -192,11 +208,132 @@ class TestMCPTools:
         result = await kernel.validate_architecture_compliance()
         assert "not initialized" in result
 
-        result = await kernel.server_status()
-        assert "Aegis Kernel Status" in result
-        assert "/fake/project" in result
-        assert "Rules:" in result
-        assert "Tools:" in result
+        result = json.loads(await kernel.server_status())
+        assert result["status"] in ("ready", "degraded")
+        assert result["workspace"] == "/fake/project"
+
+    @pytest.mark.asyncio
+    async def test_get_active_context(self, kernel):
+        """get_active_context returns matching rules for a file."""
+        import json
+
+        kernel.container.load_rules.return_value = [
+            Rule(id="r1", description="core rule", language="py"),
+            Rule(id="r2", description="test rule", language="py"),
+        ]
+        kernel.container.graph_analyzer = MagicMock()
+        kernel.container.graph_analyzer.build_import_graph.return_value = ({}, {})
+
+        result = json.loads(await kernel.get_active_context("src/core/main.py"))
+        assert result["total_rules"] == 2
+        rule_ids = {r["id"] for r in result["rules"]}
+        assert "r1" in rule_ids
+        assert "r2" in rule_ids
+
+    @pytest.mark.asyncio
+    async def test_get_active_context_no_rules(self, kernel):
+        """get_active_context returns message when no rules loaded."""
+        import json
+
+        kernel.container.load_rules.return_value = []
+
+        result = json.loads(await kernel.get_active_context("src/main.py"))
+        assert result["total_rules"] == 0
+
+    @pytest.mark.asyncio
+    async def test_get_active_context_uninitialized(self, kernel):
+        """get_active_context returns error when container is None."""
+        kernel.container = None
+
+        result = await kernel.get_active_context("src/main.py")
+        assert "CONTAINER_NOT_INIT" in result
+
+    @pytest.mark.asyncio
+    async def test_evaluate_code_delta_ok(self, kernel):
+        """evaluate_code_delta returns passed=true for clean code."""
+        import json
+
+        kernel.container.load_rules.return_value = [
+            Rule(id="r1", description="test", language="py"),
+        ]
+        kernel.container.evaluation_service.evaluate_code_string.return_value = []
+
+        result = json.loads(await kernel.evaluate_code_delta("def f(): pass", "py"))
+        assert result["passed"] is True
+        assert result["total_violations"] == 0
+
+    @pytest.mark.asyncio
+    async def test_evaluate_code_delta_with_violations(self, kernel):
+        """evaluate_code_delta returns violations in structured JSON."""
+        import json
+
+        from aegis.domain.evaluation.ports import ArchitecturalViolation
+
+        kernel.container.load_rules.return_value = [
+            Rule(id="r1", description="test", language="py"),
+        ]
+        kernel.container.evaluation_service.evaluate_code_string.return_value = [
+            ArchitecturalViolation(
+                file="memory.py",
+                line=1,
+                rule_id="r1",
+                description="no print",
+                severity="HIGH",
+            )
+        ]
+
+        result = json.loads(await kernel.evaluate_code_delta("print('x')", "py"))
+        assert result["passed"] is False
+        assert result["violations"][0]["rule_id"] == "r1"
+        assert result["violations"][0]["description"] == "no print"
+
+    @pytest.mark.asyncio
+    async def test_evaluate_code_delta_empty_string(self, kernel):
+        """evaluate_code_delta returns INVALID_INPUT for empty code."""
+        result = await kernel.evaluate_code_delta("", "py")
+        assert "INVALID_INPUT" in result
+
+    @pytest.mark.asyncio
+    async def test_evaluate_code_delta_empty_language(self, kernel):
+        """evaluate_code_delta returns INVALID_INPUT for empty language."""
+        result = await kernel.evaluate_code_delta("def f(): pass", "")
+        assert "INVALID_INPUT" in result
+
+    @pytest.mark.asyncio
+    async def test_evaluate_code_delta_no_rules(self, kernel):
+        """evaluate_code_delta returns NOT_INITIALIZED when no rules."""
+        kernel.container.load_rules.return_value = []
+
+        result = await kernel.evaluate_code_delta("def f(): pass", "py")
+        assert "NOT_INITIALIZED" in result
+
+    @pytest.mark.asyncio
+    async def test_evaluate_code_delta_service_unavailable(self, kernel):
+        """evaluate_code_delta returns SERVICE_UNAVAILABLE when eval service None."""
+        kernel.container.load_rules.return_value = [
+            Rule(id="r1", description="test", language="py"),
+        ]
+        kernel.container.evaluation_service = None
+
+        result = await kernel.evaluate_code_delta("def f(): pass", "py")
+        assert "SERVICE_UNAVAILABLE" in result
+
+    @pytest.mark.asyncio
+    async def test_get_active_context_graph_failure(self, kernel):
+        """get_active_context degrades gracefully when build_import_graph fails."""
+        import json
+
+        kernel.container.load_rules.return_value = [
+            Rule(id="r1", description="core rule", language="py"),
+        ]
+        kernel.container.graph_analyzer = MagicMock()
+        kernel.container.graph_analyzer.build_import_graph.side_effect = RuntimeError(
+            "fail"
+        )
+
+        result = json.loads(await kernel.get_active_context("src/core/main.py"))
+        assert result["total_rules"] == 1
+        assert result["rules"][0]["id"] == "r1"
 
 
 class TestCORSSupport:

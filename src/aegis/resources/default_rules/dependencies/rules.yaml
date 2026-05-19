@@ -14,12 +14,12 @@ rules:
     rationale: Unpinned dependencies can introduce breaking changes on rebuild or redeploy.
 
   - id: deps-known-vulnerabilities
-    description: Commonly exploited packages should be kept up to date.
+    description: Review dependency versions for known vulnerabilities.
     engine_type: regex
-    severity: HIGH
-    mode: block
+    severity: LOW
+    mode: report
     query: \b(django|flask|requests|urllib3|cryptography|jinja2)\s*[><]=\s*[0-9]
-    rationale: Outdated dependencies with known CVEs expose the project to remote exploits.
+    rationale: Pin versions with known CVEs should be reviewed. Use 'pip-audit' or 'safety' for actual CVE detection.
 
   - id: deps-excessive-count
     description: Projects with excessive direct dependencies increase attack surface.

@@ -93,13 +93,15 @@ class TestConfigLoader:
         aegis_dir = tmp_path / ".aegis"
         aegis_dir.mkdir()
         (aegis_dir / "config.yaml").write_text(
-            yaml.dump({
-                "enforcement": "warn",
-                "phase_defaults": {"style": ["pre-commit"]},
-                "category_overrides": {"security": ["ci", "nightly"]},
-                "auto_baseline": True,
-                "max_violations": 1000,
-            }),
+            yaml.dump(
+                {
+                    "enforcement": "warn",
+                    "phase_defaults": {"style": ["pre-commit"]},
+                    "category_overrides": {"security": ["ci", "nightly"]},
+                    "auto_baseline": True,
+                    "max_violations": 1000,
+                }
+            ),
             encoding="utf-8",
         )
         config = load_aegis_config(str(tmp_path))

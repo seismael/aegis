@@ -97,7 +97,8 @@ class TestApplyFixes:
         f.write_text("except:\n")
         violations = [
             ArchitecturalViolation(
-                file=str(f), line=1,
+                file=str(f),
+                line=1,
                 rule_id="bp-explicit-exceptions",
                 description="bare except",
             )
@@ -114,7 +115,8 @@ class TestApplyFixes:
         f.write_text("except:\n")
         violations = [
             ArchitecturalViolation(
-                file=str(f), line=1,
+                file=str(f),
+                line=1,
                 rule_id="bp-explicit-exceptions",
                 description="bare except",
             )
@@ -131,7 +133,8 @@ class TestApplyFixes:
         f.write_text("def foo():\n    except:\n    pass\n")
         violations = [
             ArchitecturalViolation(
-                file=str(f), line=2,
+                file=str(f),
+                line=2,
                 rule_id="bp-explicit-exceptions",
                 description="bare except",
             )

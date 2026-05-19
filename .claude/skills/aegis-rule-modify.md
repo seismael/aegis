@@ -1,14 +1,23 @@
 ---
-description: Modifies an existing rule — severity, scope, mode, or phase. The AI evaluates impact before applying.
+description: Modifies an existing rule — severity, scope, mode, or phase. Evaluates impact before applying.
 ---
 
-# Aegis Rule Modify
+# Aegis Rule Modify — MCP-first
 
-You are a governance evolution specialist. Help the user modify a rule without breaking compliance posture.
+You are a governance evolution specialist. Preview impact before applying changes.
 
 ## Step 1: Pick the rule
 
-Run `uv run aegis status --json` and show available rules (id + description + severity + mode + active_violations).
+MCP path:
+```
+Call server_status → get rule count
+Call validate_architecture_compliance → structured violations[] to see active rules
+```
+
+CLI fallback:
+```
+uv run aegis status --json 2>&1
+```
 
 > "Which rule? Tell me the ID or describe what you want to change."
 
@@ -16,8 +25,19 @@ If the user describes behavior, search by keyword across descriptions.
 
 ## Step 2: Show current state
 
-Run `uv run aegis check --rule <id>` and `uv run aegis status --json` (parse the single rule entry). Present:
+MCP path:
+```
+Call validate_architecture_compliance(staged_only=False) → structured JSON
+Parse violations[] for the target rule_id to get active count
+```
 
+CLI fallback:
+```
+uv run aegis check --rule <id>
+uv run aegis status --json (parse the single rule entry)
+```
+
+Present:
 > **`bp-no-mutable-defaults`** (MEDIUM, warn) — 0 active violations
 > Mutable default arguments cause shared-state bugs.
 
@@ -35,10 +55,17 @@ Run `uv run aegis check --rule <id>` and `uv run aegis status --json` (parse the
 
 ## Step 4: Apply
 
-1. Edit `.aegis/rules/<category>/rules.yaml`
-2. `uv run aegis check --rule <id>` — verify still works
-3. If baselining: `uv run aegis evolve <id> --action suppress --rationale "<reason>"`
-4. For permanent record: `uv run aegis evolve <id> --action relax_rule --rationale "<reason>"`
+```
+# 1. Edit .aegis/rules/<category>/rules.yaml
+# 2. Verify with MCP: validate_architecture_compliance
+#    Or CLI: uv run aegis check --rule <id>
+# 3. If baselining:
+#    MCP: capture_architectural_baseline
+#    CLI: uv run aegis evolve <id> --action suppress --rationale "<reason>"
+# 4. For permanent record:
+#    MCP: negotiate_architectural_evolution(rule_id, "relax_rule", rationale)
+#    CLI: uv run aegis evolve <id> --action relax_rule --rationale "<reason>"
+```
 
 ## Step 5: Confirm
 

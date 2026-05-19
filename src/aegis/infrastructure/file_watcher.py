@@ -64,9 +64,7 @@ class FileWatcher:
                 added = current_paths - known_paths
                 removed = known_paths - current_paths
                 modified = {
-                    p
-                    for p in current_paths & known_paths
-                    if current[p] != known.get(p)
+                    p for p in current_paths & known_paths if current[p] != known.get(p)
                 }
 
                 if added or removed or modified:

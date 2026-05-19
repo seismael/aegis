@@ -427,7 +427,9 @@ class TestEvaluateFile:
         regex_analyzer = MagicMock(spec=RegexAnalyzerInterface)
         regex_analyzer.analyze_file.return_value = [
             ArchitecturalViolation(
-                file=str(f), line=1, rule_id="r1",
+                file=str(f),
+                line=1,
+                rule_id="r1",
                 description="no print",
             )
         ]
@@ -458,7 +460,9 @@ class TestEvaluateFile:
         # Rule with excludes that covers the file
         rules = [
             Rule(
-                id="r1", engine_type=EngineType.REGEX, description="x",
+                id="r1",
+                engine_type=EngineType.REGEX,
+                description="x",
                 excludes=["main.py"],
             )
         ]
@@ -486,3 +490,76 @@ class TestEvaluateFile:
         service.evaluate_file(str(f), rules, root_dir=str(tmp_path))
         ts_analyzer.analyze_file.assert_called_once()
         regex_analyzer.analyze_file.assert_called_once()
+
+
+class TestEvaluateCodeString:
+    """Tests for EvaluationService.evaluate_code_string — in-memory evaluation."""
+
+    def _make_service(self, ts_analyzer=None, regex_analyzer=None):
+        return EvaluationService(
+            tree_sitter_analyzer=ts_analyzer or MagicMock(spec=RuleAnalyzerInterface),
+            graph_analyzer=MagicMock(spec=GraphAnalyzerInterface),
+            regex_analyzer=regex_analyzer or MagicMock(spec=RegexAnalyzerInterface),
+            diff_provider=MagicMock(spec=DiffProviderInterface),
+        )
+
+    def test_empty_code_returns_empty(self):
+        """Empty code string returns empty list."""
+        service = self._make_service()
+        rules = [Rule(id="r1", description="test", language="py")]
+        result = service.evaluate_code_string("", "py", rules)
+        assert result == []
+
+    def test_empty_rules_returns_empty(self):
+        """Empty rules list returns empty list."""
+        service = self._make_service()
+        result = service.evaluate_code_string("def f(): pass", "py", [])
+        assert result == []
+
+    def test_no_matching_rules(self):
+        """Language mismatch returns empty list."""
+        service = self._make_service()
+        rules = [Rule(id="r1", description="test", language="rs")]
+        result = service.evaluate_code_string("def f(): pass", "py", rules)
+        assert result == []
+
+    def test_regex_violation_detected(self):
+        """Regex analyzer detects violation in code string."""
+        from aegis.domain.evaluation.ports import ArchitecturalViolation
+
+        regex_analyzer = MagicMock(spec=RegexAnalyzerInterface)
+        regex_analyzer.analyze_file.return_value = [
+            ArchitecturalViolation(
+                file="memory.py", line=1, rule_id="r1", description="no print"
+            )
+        ]
+        service = self._make_service(regex_analyzer=regex_analyzer)
+        rules = [
+            Rule(
+                id="r1",
+                description="no print",
+                engine_type=EngineType.REGEX,
+                language="py",
+            )
+        ]
+        violations = service.evaluate_code_string("print('x')", "py", rules)
+        assert len(violations) == 1
+        assert violations[0].rule_id == "r1"
+
+    def test_synthetic_path_extension_resolution(self):
+        """Analyzer receives synthetic path with correct extension per language."""
+        ts_analyzer = MagicMock(spec=RuleAnalyzerInterface)
+        ts_analyzer.analyze_file.return_value = []
+        service = self._make_service(ts_analyzer=ts_analyzer)
+        rules = [
+            Rule(
+                id="r1",
+                description="test",
+                engine_type=EngineType.TREE_SITTER,
+                language="tsx",
+            )
+        ]
+        service.evaluate_code_string("const x: number = 1;", "tsx", rules)
+        # Verify the synthetic path passed to analyzer ends in .tsx
+        call_args = ts_analyzer.analyze_file.call_args[0]
+        assert call_args[0] == "memory.tsx"
