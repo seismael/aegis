@@ -1,0 +1,61 @@
+name: "Aegis Governance Check"
+description: >
+  Run Aegis architectural compliance checks in CI.
+  Fails the pipeline if governance violations are detected.
+
+inputs:
+  phase:
+    description: "Evaluation phase (pre-commit, pre-push, ci, nightly, on-demand)"
+    required: false
+    default: "ci"
+  category:
+    description: "Filter by rule category"
+    required: false
+    default: ""
+  rule:
+    description: "Filter by specific rule ID"
+    required: false
+    default: ""
+  strict:
+    description: "Treat WARN/REPORT violations as blocking"
+    required: false
+    default: "false"
+  working-directory:
+    description: "Repository subdirectory containing .aegis/"
+    required: false
+    default: "."
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Aegis
+      shell: bash
+      run: |
+        if command -v uv &> /dev/null; then
+          uv tool install aegis
+        elif command -v pipx &> /dev/null; then
+          pipx install aegis
+        else
+          pip install aegis
+        fi
+
+    - name: Verify initialization
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        if [ ! -d ".aegis" ]; then
+          echo "::warning::Aegis not initialized in ${{ inputs.working-directory }}. Run 'aegis init' first."
+        fi
+
+    - name: Run governance check
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        ARGS=""
+        ARGS="$ARGS --exit-code"
+        ARGS="$ARGS --phase ${{ inputs.phase }}"
+        [ -n "${{ inputs.category }}" ] && ARGS="$ARGS --category ${{ inputs.category }}"
+        [ -n "${{ inputs.rule }}" ] && ARGS="$ARGS --rule ${{ inputs.rule }}"
+        [ "${{ inputs.strict }}" = "true" ] && ARGS="$ARGS --strict"
+
+        aegis check $ARGS

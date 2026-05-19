@@ -1,0 +1,60 @@
+# Aegis Architectural Governance — reusable workflow
+#
+# Call this from your own workflow to enforce architectural compliance:
+#
+#   jobs:
+#     governance:
+#       uses: ./.github/workflows/aegis-governance.yml
+#       with:
+#         phase: ci
+#
+# Or inline via the composite action:
+#
+#   - uses: ./.github/actions/aegis-ci
+#     with:
+#       phase: pre-commit
+#       strict: true
+
+name: "Aegis Governance"
+
+on:
+  workflow_call:
+    inputs:
+      phase:
+        description: "Evaluation phase"
+        required: false
+        type: string
+        default: "ci"
+      category:
+        description: "Filter by rule category"
+        required: false
+        type: string
+        default: ""
+      strict:
+        description: "Treat WARN/REPORT as blocking"
+        required: false
+        type: boolean
+        default: false
+      working-directory:
+        description: "Repository subdirectory"
+        required: false
+        type: string
+        default: "."
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: ./.github/actions/aegis-ci
+        with:
+          phase: ${{ inputs.phase }}
+          category: ${{ inputs.category }}
+          strict: ${{ inputs.strict }}
+          working-directory: ${{ inputs.working-directory }}
