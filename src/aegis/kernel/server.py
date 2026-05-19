@@ -125,8 +125,13 @@ class AegisKernel:
         self.mcp.tool()(self.remove_rule_pack)
         self.mcp.tool()(self.reset_rule_packs)
         self.mcp.tool()(self.create_custom_pack)
+        self.mcp.tool()(self.hypothesize_workspace_architecture)
         self.mcp.tool()(self.get_relevant_rules)
         self.mcp.tool()(self.propose_architectural_steering)
+        self.mcp.tool()(self.apply_auto_fixes)
+        self.mcp.tool()(self.update_rule_packs)
+        self.mcp.tool()(self.list_evaluation_phases)
+        self.mcp.tool()(self.get_phase_mapping)
 
     async def propose_architectural_steering(self, task_description: str) -> str:
         """
@@ -165,14 +170,14 @@ class AegisKernel:
 
         plan = "# Aegis Architectural Flight Plan\n\n"
         plan += f"**Task:** {task_description}\n\n"
-        plan += "## 🛡️ Critical Invariants to Respect\n"
+        plan += "## Critical Invariants to Respect\n"
         if unique_rules:
             for r in unique_rules:
                 plan += f"- **{r.id}**: {r.description}\n"
         else:
             plan += "- No high-specific structural rules detected.\n"
 
-        plan += "\n## 🏛️ Project Guidelines\n"
+        plan += "\n## Project Guidelines\n"
         if "WARN: SPEC.md not found" not in spec:
             # Extract first 5 lines of spec as guidance
             lines = spec.splitlines()[:10]
@@ -183,7 +188,7 @@ class AegisKernel:
                 " principles established in the codebase.\n"
             )
 
-        plan += "\n## 🚀 Execution Directive\n"
+        plan += "\n## Execution Directive\n"
         plan += "1. Ensure all new logic is encapsulated in appropriate layers.\n"
         plan += "2. Run `validate_architecture_compliance --staged-only` frequently.\n"
         plan += "3. If in doubt, query `get_rule_rationale` for existing laws."
@@ -242,6 +247,96 @@ class AegisKernel:
             f" Rules in {rules_dir}/. Use `/aegis-init` to customize."
         )
 
+    async def hypothesize_workspace_architecture(self) -> str:
+        """
+        Scans the workspace to deduce the tech stack and C4 boundaries.
+        Call silently at the start of init before talking to the user
+        so the AI leads with data instead of asking questions.
+        """
+        root = self._workspace_root
+        try:
+            files = set(os.listdir(root))
+        except OSError:
+            files = set()
+
+        # 1. Detect tech stack from standard markers
+        stack = []
+        markers = {
+            "pyproject.toml": "Python",
+            "requirements.txt": "Python",
+            "Pipfile": "Python",
+            "package.json": "Node.js/TypeScript",
+            "yarn.lock": "Node.js/TypeScript",
+            "Cargo.toml": "Rust",
+            "go.mod": "Go",
+            "go.sum": "Go",
+            "Gemfile": "Ruby",
+            "pom.xml": "Java",
+            "build.gradle": "Java",
+            "Dockerfile": "Docker",
+            "docker-compose.yml": "Docker Compose",
+            ".github/workflows/": "GitHub Actions",
+        }
+        for marker, label in markers.items():
+            m_path = os.path.join(root, marker)
+            if marker in files or (marker.endswith("/") and os.path.isdir(m_path)):
+                if label not in stack:
+                    stack.append(label)
+
+        # 2. Detect architectural tiers using GraphAnalyzer
+        bounded_contexts = []
+        try:
+            analyzer = self._graph_analyzer
+            if analyzer is not None:
+                adjacency, _ = analyzer.build_import_graph(root)
+                if adjacency:
+                    # Root-level packages = potential bounded contexts
+                    seen = set()
+                    for mod in adjacency:
+                        top = mod.split(".")[0]
+                        if top not in seen and top != "__init__":
+                            seen.add(top)
+                    bounded_contexts = sorted(seen)[:15]
+        except Exception:
+            bounded_contexts = []
+
+        # 3. Build pack recommendations
+        recommendations = []
+        if "Python" in stack:
+            recommendations.extend([
+                "python-best-practices",
+                "security",
+                "testing",
+                "structure",
+                "style",
+            ])
+        if "Node.js/TypeScript" in stack:
+            recommendations.append("javascript-typescript")
+        if "Rust" in stack:
+            recommendations.append("rust")
+        if "Go" in stack:
+            recommendations.append("go")
+        if "Docker" in stack or "Docker Compose" in stack:
+            recommendations.append("infrastructure")
+
+        hypothesis_parts = []
+        hypothesis_parts.append("# Workspace Architecture Hypothesis\n")
+        stack_str = ", ".join(stack) if stack else "Unknown"
+        hypothesis_parts.append(f"**Detected stack:** {stack_str}\n")
+        if bounded_contexts:
+            hypothesis_parts.append(
+                f"**Detected bounded contexts:** `{'`, `'.join(bounded_contexts)}`\n"
+            )
+        rec_str = ", ".join(recommendations) if recommendations else "None"
+        hypothesis_parts.append(f"**Recommended packs:** {rec_str}\n")
+        if bounded_contexts:
+            hypothesis_parts.append(
+                "\n**Architecture insight:**"
+                " The project has multiple root-level modules."
+                " Consider enforcing layer isolation between them."
+            )
+        return "\n".join(hypothesis_parts)
+
     async def capture_architectural_baseline(self) -> str:
         """
         Captures current violations as baselined technical debt.
@@ -290,7 +385,18 @@ class AegisKernel:
         )
         self._evolution_service.log_decision(decision)
 
-        return f"Evolution decision for '{rule_id}' recorded: {action}."
+        result = f"Evolution decision for '{rule_id}' recorded: {action}."
+
+        if action == "suppress":
+            rules = self._load_rules()
+            target = [r for r in rules if r.id == rule_id]
+            if target and self.container.governance_service:
+                count = self.container.governance_service.capture_baseline(
+                    target, self._workspace_root
+                )
+                result += f" Suppressed {count} violations to baseline."
+
+        return result
 
     async def list_rule_packs(self) -> str:
         """
@@ -388,6 +494,122 @@ class AegisKernel:
         except ValueError as e:
             return error(ERR_READ_FAILED, str(e))
 
+    async def apply_auto_fixes(self) -> str:
+        """
+        Applies deterministic auto-fixes to fixable violations.
+        Supports: bare except blocks, print->logger, f-strings.
+        Returns a summary of what was fixed and what failed.
+        """
+        from aegis.domain.enforcement.fixer import (
+            apply_fixes,
+            list_fixable_rule_ids,
+        )
+
+        rules = self._load_rules()
+        if not rules:
+            return error(
+                ERR_NOT_INITIALIZED,
+                "No rules loaded — run initialize_project_governance first.",
+            )
+
+        fixable_ids = list_fixable_rule_ids()
+        fixable_rules = [r for r in rules if r.id in fixable_ids]
+        if not fixable_rules:
+            return "No fixable violations found."
+
+        rule_map = {r.id: r for r in rules}
+        if not self.container or not self.container.governance_service:
+            return error(
+                ERR_SERVICE_UNAVAILABLE,
+                "Governance service unavailable — container in degraded mode.",
+            )
+        violations = self.container.governance_service.get_active_violations(
+            fixable_rules, self._workspace_root
+        )
+        if not violations:
+            return "No fixable violations found."
+
+        results = apply_fixes(violations, rule_map)
+        fixed = [r for r in results if r.fixed]
+        failed = [r for r in results if not r.fixed]
+
+        lines = ["## Auto-Fix Results\n"]
+        if fixed:
+            lines.append(f"**Fixed:** {len(fixed)} violations\n")
+            for r in fixed:
+                lines.append(f"- {r.file}:{r.line} ({r.rule_id})")
+        if failed:
+            lines.append(f"\n**Failed:** {len(failed)} violations\n")
+            for r in failed:
+                lines.append(f"- {r.file}:{r.line} — {r.message}")
+        return "\n".join(lines) if (fixed or failed) else "No fixable violations found."
+
+    async def update_rule_packs(self, pack_name: str | None = None) -> str:
+        """
+        Updates installed rule pack(s) to the latest defaults.
+        Omit pack_name to update all installed packs.
+        Preserves custom overrides within each pack.
+        """
+        pm = self._rule_pack_manager
+        if pm is None:
+            return error(ERR_SERVICE_UNAVAILABLE, "Rule pack manager unavailable.")
+
+        updated = pm.update(pack_name)
+        if updated:
+            return f"Updated: {', '.join(updated)}"
+        return "All packs are up-to-date."
+
+    async def list_evaluation_phases(self) -> str:
+        """
+        Lists evaluation phases with rule counts for each phase.
+        Useful for understanding when rules are evaluated.
+        """
+        rules = self._load_rules()
+        if not rules:
+            return error(
+                ERR_NOT_INITIALIZED,
+                "No rules loaded — run initialize_project_governance first.",
+            )
+
+        if self.container is None:
+            return error(ERR_CONTAINER_NOT_INIT, "Container unavailable.")
+
+        from aegis.domain.policy.models import EvaluationPhase
+
+        phase_counts: dict[str, int] = {}
+        mapping = self.container.category_phase_mapping
+
+        for p in EvaluationPhase:
+            filtered = [
+                r
+                for r in rules
+                if r.phases is not None
+                and p in r.phases
+                or r.phases is None
+                and p in mapping.category_defaults.get(r.category, [])
+            ]
+            phase_counts[p.value] = len(filtered)
+
+        lines = ["## Evaluation Phases\n"]
+        for phase_name in sorted(phase_counts.keys()):
+            lines.append(f"- **{phase_name}:** {phase_counts[phase_name]} rules")
+        return "\n".join(lines)
+
+    async def get_phase_mapping(self) -> str:
+        """
+        Shows the current category-to-phase mapping.
+        Each rule category maps to one or more evaluation phases.
+        """
+        if self.container is None:
+            return error(ERR_CONTAINER_NOT_INIT, "Container unavailable.")
+
+        mapping = self.container.category_phase_mapping
+        lines = ["## Category -> Phase Mapping\n"]
+        for cat, phases in sorted(mapping.category_defaults.items()):
+            phase_str = ", ".join(p.value for p in phases)
+            lines.append(f"- **{cat.value}:** {phase_str}")
+        return "\n".join(lines)
+
     @property
     def _rule_pack_manager(self):
         if self.container is not None:
@@ -411,28 +633,30 @@ class AegisKernel:
 
         @self.mcp.prompt(
             name="evaluate-architecture",
-            description="Run full architecture compliance evaluation on the workspace",
+            description="Scan workspace for compliance issues and build scorecard",
         )
         def evaluate_architecture_prompt() -> str:
             return (
-                "You are an architectural governance agent. "
+                "You are an architectural governance auditor. "
                 "Run `validate_architecture_compliance` on the full workspace. "
-                "If violations are found, call `apply_architectural_remediation` "
-                "for structured fix instructions, then resolve each violation "
-                "one by one. Re-validate after each fix."
+                "If violations are found, group them by rule and severity, "
+                "then produce a scorecard showing the worst offenders. "
+                "Call `list_evaluation_phases` and `get_phase_mapping` to "
+                "contextualize when each rule is evaluated."
             )
 
         @self.mcp.prompt(
             name="remediate-violations",
-            description="Fix all active architectural violations step by step",
+            description="Fix violations: auto-fix then manual step-by-step remediation",
         )
         def remediate_violations_prompt() -> str:
             return (
-                "You are a remediation agent. Call `apply_architectural_remediation` "
-                "to get the current violation list with fix instructions. For each "
-                "violation: (1) read the affected file, (2) apply the suggested fix, "
-                "(3) re-run `validate_architecture_compliance` to confirm the fix "
-                "resolved it. Repeat until all violations are cleared."
+                "You are a remediation agent. First call `apply_auto_fixes` "
+                "to resolve deterministic violations automatically. "
+                "Then call `validate_architecture_compliance` to see what remains. "
+                "For remaining violations, call `apply_architectural_remediation` "
+                "for structured fix instructions, then resolve each violation "
+                "one by one. Re-validate after each fix until all are cleared."
             )
 
         @self.mcp.prompt(
@@ -446,6 +670,22 @@ class AegisKernel:
                 "Then read the rule definition from the `aegis://rules` resource. "
                 "Summarize what the rule enforces, why it exists, and how it has "
                 "evolved over time."
+            )
+
+        @self.mcp.prompt(
+            name="initialize-governance",
+            description="Initialize Aegis governance with auto-detection and baseline",
+        )
+        def initialize_governance_prompt() -> str:
+            return (
+                "You are setting up architectural governance. "
+                "First call `hypothesize_workspace_architecture` to detect"
+                " the tech stack and bounded contexts. "
+                "Present the findings to the user and suggest relevant rule packs. "
+                "If they agree, call `initialize_project_governance`, "
+                "then `install_rule_pack` for each recommended pack. "
+                "Finally call `capture_architectural_baseline` to mark"
+                " existing violations as accepted debt."
             )
 
         @self.mcp.prompt(
@@ -603,9 +843,11 @@ class AegisKernel:
             summary += f"- **Status:** {container_status}\n"
             summary += f"- **Workspace:** `{root}`\n"
             summary += f"- **Rules:** {len(rules)} loaded\n"
-            summary += f"- **Tools:** 11 built-in + {plugin_tools} plugin\n"
+            tm = getattr(self.mcp, '_tool_manager', None)
+            tool_count = len(tm._tools) if tm and hasattr(tm, '_tools') else 21
+            summary += f"- **Tools:** {tool_count} built-in + {plugin_tools} plugin\n"
             summary += "- **Resources:** 4 governance artifacts\n"
-            summary += "- **Prompts:** 4 workflow templates\n"
+            summary += "- **Prompts:** 5 workflow templates\n"
             summary += f"- **Violations:** {len(active)} active\n"
             summary += f"- **Plugins:** {plugin_count} loaded\n"
             return summary
@@ -701,6 +943,7 @@ class AegisKernel:
         """
         Returns structured fix instructions for each active violation.
         Call after validate_architecture_compliance returns violations.
+        For quick deterministic fixes, call apply_auto_fixes first.
         """
         if self.container is None:
             return error(

@@ -1,41 +1,43 @@
 ---
-description: Initializes Aegis governance for a project. Guides the user through tech-stack detection, rule-pack selection, and initial baseline.
+description: Initializes Aegis governance for a project. Leads with auto-discovery instead of asking questions.
 ---
 
 # Aegis Init
 
-Guide the user through a lightweight setup. One question at a time, use `aegis` CLI to drive real changes.
+You are the Aegis Principal Architect. Lead the discussion based on data — do NOT ask the user what they are building yet.
 
-## Step 1: Check existing state
+## Step 1: Auto-discovery
 
-Run `uv run aegis status --json 2>nul` and check if `.aegis/rules/` exists.
+Silently call `hypothesize_workspace_architecture` via MCP. If MCP is unavailable, fall back to scanning for `pyproject.toml`, `package.json`, `Cargo.toml`, `go.mod`, `Dockerfile`, and `.github/workflows/` manually.
 
+Check if `.aegis/rules/` already exists:
 - **Already initialized** → "Aegis is already set up. Use `/aegis-evaluate` or `/aegis-rule-add` to refine governance."
-- **Not initialized** → Run `uv run aegis init`. Then proceed.
+- **Not initialized** → Continue to Step 2.
 
-## Step 2: Tech-stack suggestion
+## Step 2: The reveal
 
-Scan the repo for `pyproject.toml`, `package.json`, `Cargo.toml`, `go.mod`, `Dockerfile`, `.github/workflows/`. Present a compact summary and recommend 2-4 packs:
+Present the hypothesis findings as a confident lead:
 
-> "I see a **Python** project with **Docker** and **GitHub Actions**. Recommended packs:"
-> - `python-best-practices` — Python idioms
+> "I have scanned the workspace and detected a **Python** stack with modules `api`, `services`, and `db`. To protect this architecture, I recommend installing:"
+> - `structure` — enforce layer boundaries between modules
 > - `security` — zero-tolerance security rules
 > - `testing` — test conventions
-> - `dependencies` — supply-chain hygiene
+> - `style` — code consistency
 
-Ask: "Shall I install these, pick different ones, or skip?"
+Do not list all 17 packs. Only suggest packs relevant to the detected stack.
 
-If user agrees, run `uv run aegis rules install <pack>` for each. To customize, list all packs via `uv run aegis rules list`.
+## Step 3: Install
 
-## Step 3: Baseline
+If user agrees, run `uv run aegis init` then `uv run aegis rules install <pack>` for each pack.
+If user wants to customize, list all packs via `uv run aegis rules list`.
 
-After packs installed:
+## Step 4: Baseline
 
-> "I'll scan the workspace and baseline existing violations so only NEW violations are flagged."
+> "I will scan the workspace and capture existing violations as accepted debt so only NEW violations are flagged."
 
-Run `uv run aegis baseline`. Show the result:
-> "Captured N violations as accepted technical debt. N rules active across M packs."
+Run `uv run aegis baseline`. Report the result:
+> "Captured N violations as accepted technical debt across X rules."
 
-## Step 4: Wrap up
+## Step 5: Wrap up
 
 > "Aegis is set up. Run `/aegis-evaluate` for a compliance scorecard, or `/aegis-rule-add` to create custom rules."

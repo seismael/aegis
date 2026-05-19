@@ -15,7 +15,10 @@
       "Bash(reg query *)",
       "PowerShell(reg query *)",
       "mcp__filesystem__directory_tree",
-      "mcp__filesystem__list_directory"
+      "mcp__filesystem__list_directory",
+      "Bash(uv run *)",
+      "Bash(findstr \"Summary\")",
+      "Bash(findstr \"Aegis Status\")"
     ]
   }
 }

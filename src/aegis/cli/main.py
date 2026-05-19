@@ -6,7 +6,6 @@ from collections import Counter
 
 import typer
 from rich.console import Console
-from rich.prompt import Confirm, Prompt
 from rich.table import Table
 
 from aegis.core.container.app import Container
@@ -161,23 +160,23 @@ class AegisCLI:
 
         @rules_cmd.command("reset")
         def rules_reset(
-            yes: bool = typer.Option(False, "--yes", "-y", help="Skip confirmation"),
+            yes: bool = typer.Option(
+                False, "--yes", "-y", help="Confirm removal of all packs"
+            ),
         ):
             """Remove all installed packs (preserves custom root-level rules)."""
+            if not yes:
+                self.console.print(
+                    "[red]Error: --yes flag required"
+                    " to confirm removal of all packs.[/red]"
+                )
+                raise typer.Exit(code=1)
+
             pm = self.container.rule_pack_manager
             installed = pm.list_installed()
             if not installed:
                 self.console.print("[yellow]No packs installed.[/yellow]")
                 return
-
-            if not yes:
-                names = ", ".join(installed.keys())
-                result = Confirm.ask(
-                    f"Remove all {len(installed)} installed pack(s): {names}?"
-                )
-                if not result:
-                    self.console.print("[dim]Cancelled.[/dim]")
-                    return
 
             pm.reset()
             self.console.print(
@@ -738,32 +737,24 @@ class AegisCLI:
             self.console.print(f"[red]Error: Rule '{rule_id}' not found.[/red]")
             return
 
-        if action is not None or rationale is not None:
-            if action not in ("suppress", "relax_rule", "refactor_required", None):
-                self.console.print(
-                    f"[red]Error: Invalid action '{action}'. "
-                    "Choose suppress, relax_rule, or refactor_required.[/red]"
-                )
-                return
-            if action is None:
-                self.console.print(
-                    "[red]Error: --action is required"
-                    " when --rationale is provided.[/red]"
-                )
-                return
-            if not rationale:
-                self.console.print(
-                    "[red]Error: --rationale is required"
-                    " when --action is provided.[/red]"
-                )
-                return
-        else:
-            action = Prompt.ask(
-                "Consensus Action?",
-                choices=["suppress", "relax_rule", "refactor_required"],
-                default="suppress",
+        if action not in ("suppress", "relax_rule", "refactor_required", None):
+            self.console.print(
+                f"[red]Error: Invalid action '{action}'. "
+                "Choose suppress, relax_rule, or refactor_required.[/red]"
             )
-            rationale = Prompt.ask("Decision Rationale")
+            return
+        if action is None:
+            self.console.print(
+                "[red]Error: --action is required"
+                " (suppress, relax_rule, or refactor_required).[/red]"
+            )
+            return
+        if not rationale:
+            self.console.print(
+                "[red]Error: --rationale is required"
+                " when --action is provided.[/red]"
+            )
+            return
 
         decision = EvolutionDecision(
             rule_id=rule_id, action=action, rationale=rationale
@@ -792,7 +783,12 @@ class AegisCLI:
 
         self.console.print("\nOK Decision recorded in evolution_log.json")
 
-    def setup_hooks(self):
+    def setup_hooks(
+        self,
+        force: bool = typer.Option(
+            False, "--force", "-f", help="Overwrite existing hook without prompt"
+        ),
+    ):
         """Installs a Git pre-commit hook that runs Aegis governance checks."""
         self.console.print("[bold blue]Aegis Git Hook Integration[/bold blue]")
 
@@ -818,11 +814,12 @@ class AegisCLI:
             "fi\n"
         )
 
-        if os.path.exists(hook_path):
-            if not Confirm.ask(
-                f"Hook already exists at {hook_path}. Overwrite with Aegis example?"
-            ):
-                return
+        if os.path.exists(hook_path) and not force:
+            self.console.print(
+                f"[yellow]Hook already exists at {hook_path}."
+                f" Use --force to overwrite.[/yellow]"
+            )
+            return
 
         with open(hook_path, "w", encoding="utf-8") as f:
             f.write(hook_content)

@@ -154,7 +154,7 @@ class TestAegisCLI:
             assert "mock prompt" in f.read()
 
     def test_evolve_prompts_for_input(self, tmp_path):
-        """evolve interactively collects action + rationale and logs decision."""
+        """evolve requires --action and --rationale flags."""
         container = self._mock_container()
         rules_dir = os.path.join(str(tmp_path), ".aegis")
         os.makedirs(rules_dir, exist_ok=True)
@@ -166,8 +166,7 @@ class TestAegisCLI:
         cli = self._cli(container)
         result = runner.invoke(
             cli.app,
-            ["evolve", "r1"],
-            input="suppress\nlegacy debt\n",
+            ["evolve", "r1", "--action", "suppress", "--rationale", "legacy debt"],
         )
         assert result.exit_code == 0
         assert "Decision recorded" in result.stdout
