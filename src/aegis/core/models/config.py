@@ -13,3 +13,24 @@ class AegisConfig(BaseModel):
             "Category-level phase overrides, e.g. {'security': ['ci', 'nightly']}"
         ),
     )
+    category_overrides: dict[str, list[str]] | None = Field(
+        default=None,
+        description=(
+            "Per-category phase assignment applied after phase_defaults,"
+            " e.g. {'style': ['pre-commit']}"
+        ),
+    )
+    auto_baseline: bool = Field(
+        default=False,
+        description=(
+            "Automatically capture all violations into the baseline"
+            " on each check invocation"
+        ),
+    )
+    max_violations: int = Field(
+        default=0,
+        description=(
+            "Warn when active violations exceed this threshold."
+            " 0 = no limit."
+        ),
+    )

@@ -72,19 +72,6 @@ class PrintToLoggerFixer(RuleFixer):
         return None
 
 
-class FstringFixer(RuleFixer):
-    """Replace simple `.format(arg)` calls with f-strings."""
-
-    rule_id = "bp-fstring-usage"
-
-    _PATTERN = re.compile(r'("[^"]*\{[^}]*\}[^"]*")\.\s*format\s*\(([^)]*)\)')
-
-    def fix_line(self, _line: str, _rule: Rule) -> str | None:
-        # Only handles the simplest cases: "literal {x}".format(x=y)
-        # Complex cases are left for manual refactoring
-        return None  # Too complex for reliable auto-fix — skip
-
-
 # ---------------------------------------------------------------------------
 # Registry
 # ---------------------------------------------------------------------------

@@ -15,7 +15,7 @@ Run these two commands in parallel:
 
 If `aegis check` fails or returns nothing:
 - "No active violations. Try `--strict` to include all report-level items."
-- "Filter by category: `aegis check --category security`"
+- "Filter by category: `uv run aegis check --category security`"
 
 Parse `- SEVERITY file:line (rule-id)` lines from `check`, and cross-reference rule descriptions from `status --json` (`response.rules[]`).
 
@@ -46,8 +46,8 @@ Offer 2-3 ordered suggestions:
 For each suggestion, offer concrete actions:
 
 > "`bp-use-pathlib` has 21 violations in `server.py`. Shall I:
-> - [A] Run `aegis apply --rule bp-use-pathlib` to generate remediation prompts?
-> - [B] Baseline them: `aegis evolve bp-use-pathlib --action suppress --rationale "accepted debt"`?
+> - [A] Run `uv run aegis apply --rule bp-use-pathlib` to generate remediation prompts?
+> - [B] Baseline them: `uv run aegis evolve bp-use-pathlib --action suppress --rationale "accepted debt"`?
 > - [C] Ignore for now."
 
 Let the user pick or say done.

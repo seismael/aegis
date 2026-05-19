@@ -38,7 +38,7 @@ class AegisCLI:
         if not self.container.governance_service:
             self.console.print(
                 "[red]Error: Governance service unavailable"
-                " — container running in degraded mode."
+                " - container running in degraded mode."
                 " Check .aegis/ permissions or run 'aegis init'.[/red]"
             )
             raise typer.Exit(code=1)
@@ -341,7 +341,12 @@ class AegisCLI:
             help="Evaluation phase: pre-commit, pre-push, ci, nightly, on-demand",
         ),
         category: str | None = typer.Option(
-            None, "--category", help="Filter by rule category"
+            None, "--category",
+            help=(
+                "Filter by rule category: architecture, security, testing,"
+                " style, structure, design, best-practices, tools,"
+                " performance, documentation, dependencies, general"
+            ),
         ),
     ):
         """Performs a gated compliance check. Non-zero exit on blocking violations."""
@@ -366,11 +371,19 @@ class AegisCLI:
         rules = [r for r in all_rules if r.id == rule] if rule else all_rules
         rule_map = {r.id: r for r in rules}
 
+        # Auto-baseline: capture all violations before checking so known
+        # debt is exempt from the report
+        if self.container._aegis_config.auto_baseline:
+            if self.container.governance_service:
+                self.container.governance_service.capture_baseline(
+                    all_rules, self.container.workspace_root
+                )
+
         if staged:
             if not self.container.evaluation_service:
                 self.console.print(
                     "[red]Error: Evaluation service unavailable"
-                    " — container running in degraded mode.[/red]"
+                    " - container running in degraded mode.[/red]"
                 )
                 raise typer.Exit(code=1)
             violations = self.container.evaluation_service.evaluate_changes(
@@ -378,7 +391,7 @@ class AegisCLI:
             )
             bm = self.container.baseline_manager or (
                 self.console.print(
-                    "[yellow]Warning: Baseline manager unavailable —"
+                    "[yellow]Warning: Baseline manager unavailable  -"
                     " skipping exemption check.[/yellow]"
                 )
                 or None
@@ -392,6 +405,14 @@ class AegisCLI:
             self._require_governance()
             active = self.container.governance_service.get_active_violations(
                 rules, self.container.workspace_root
+            )
+
+        # Warn if active violations exceed configured threshold
+        max_v = self.container._aegis_config.max_violations
+        if isinstance(max_v, int) and max_v > 0 and len(active) > max_v:
+            self.console.print(
+                f"[yellow]Warning: {len(active)} active violations"
+                f" exceeds threshold of {max_v}.[/yellow]"
             )
 
         if not active:
@@ -424,6 +445,11 @@ class AegisCLI:
                 f"- [{style}]{mode.upper()}[/{style}] {v.file}:{v.line} ({v.rule_id})"
             )
 
+        self.console.print(
+            f"\n[bold]Summary:[/bold] {len(active)} total,"
+            f" {len(blocking)} blocking."
+        )
+
         if blocking:
             self.console.print(
                 "\n[bold red]Blocked:"
@@ -451,7 +477,7 @@ class AegisCLI:
         if not bm:
             self.console.print(
                 "[red]Error: Baseline manager unavailable"
-                " — container running in degraded mode.[/red]"
+                " - container running in degraded mode.[/red]"
             )
             return
 
@@ -500,7 +526,12 @@ class AegisCLI:
         )
         self.console.print(f"[green]Successfully baselined {count} violations.[/green]")
 
-    def status(self, json_output: bool = typer.Option(False, "--json")):
+    def status(
+        self,
+        json_output: bool = typer.Option(
+            False, "--json", help="Output governance state as JSON"
+        ),
+    ):
         """Provides a summary of the current governance state."""
         rules = self.container.load_rules()
         baseline = (
@@ -553,7 +584,7 @@ class AegisCLI:
                 f"{name}: {count}" for name, count in sorted(engine_counts.items())
             )
             self.console.print(
-                f"[bold]Aegis Status[/bold] — "
+                f"[bold]Aegis Status[/bold] - "
                 f"{len(rules)} rules, "
                 f"{len(active_violations)} active, "
                 f"{len(baseline)} baselined"
@@ -665,7 +696,7 @@ class AegisCLI:
         if failed:
             for r in failed:
                 self.console.print(
-                    f"  [red]FAIL[/red] {r.file}:{r.line} — {r.message}"
+                    f"  [red]FAIL[/red] {r.file}:{r.line} - {r.message}"
                 )
 
         count = len(fixed)
@@ -742,7 +773,7 @@ class AegisCLI:
         else:
             self.console.print(
                 "[red]Error: Evolution service unavailable"
-                " — decision not recorded.[/red]"
+                " - decision not recorded.[/red]"
             )
             return
 
@@ -762,7 +793,7 @@ class AegisCLI:
         self.console.print("\nOK Decision recorded in evolution_log.json")
 
     def setup_hooks(self):
-        """Demonstrates how to wire Aegis into Git hooks as an optional capability."""
+        """Installs a Git pre-commit hook that runs Aegis governance checks."""
         self.console.print("[bold blue]Aegis Git Hook Integration[/bold blue]")
 
         git_dir = os.path.join(self.container.workspace_root, ".git")
@@ -878,7 +909,7 @@ class AegisCLI:
         bm = self.container.baseline_manager
 
         self.console.print(
-            f"[bold blue]Aegis Watch[/bold blue] — monitoring {root}"
+            f"[bold blue]Aegis Watch[/bold blue] - monitoring {root}"
             f" ({len(rules)} rules, {interval}s interval)\n"
             "[dim]Press Ctrl+C to stop[/dim]"
         )
@@ -914,8 +945,8 @@ class AegisCLI:
                     self.console.print(json.dumps(event))
                 elif active:
                     self.console.print(
-                        f"[dim]{now}[/dim] [bold yellow]✗[/bold yellow] {fp}"
-                        f" — [red]{len(active)} violation(s)[/red]"
+                        f"[dim]{now}[/dim] [bold yellow]FAIL[/bold yellow] {fp}"
+                        f" - [red]{len(active)} violation(s)[/red]"
                     )
                     for v in active:
                         self.console.print(
@@ -924,7 +955,7 @@ class AegisCLI:
                         )
                 else:
                     self.console.print(
-                        f"[dim]{now}[/dim] [green]✓[/green] {fp}"
+                        f"[dim]{now}[/dim] [green]OK[/green] {fp}"
                     )
 
         try:

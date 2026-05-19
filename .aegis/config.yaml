@@ -1,1 +1,17 @@
 enforcement: warn
+phase_defaults:
+  style: [pre-commit]
+  documentation: [pre-commit, ci]
+  general: [pre-commit, ci]
+  architecture: [ci]
+  security: [ci, nightly, on-demand]
+  testing: [pre-commit, ci]
+  dependencies: [ci, nightly]
+  design: [ci, on-demand]
+  performance: [ci, nightly]
+  best-practices: [pre-commit, ci]
+  tools: [ci, on-demand]
+  structure: [pre-push, ci]
+category_overrides: {}
+auto_baseline: false
+max_violations: 1000

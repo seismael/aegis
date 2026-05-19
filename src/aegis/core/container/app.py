@@ -200,6 +200,14 @@ class Container:
                     base.category_defaults[cat] = [EvaluationPhase(p) for p in phases]
                 except (ValueError, TypeError):
                     continue
+        # category_overrides take precedence over phase_defaults
+        if self._aegis_config and self._aegis_config.category_overrides:
+            for cat_name, phases in self._aegis_config.category_overrides.items():
+                try:
+                    cat = RuleCategory(cat_name)
+                    base.category_defaults[cat] = [EvaluationPhase(p) for p in phases]
+                except (ValueError, TypeError):
+                    continue
         return base
 
     def load_rules_for_phase(

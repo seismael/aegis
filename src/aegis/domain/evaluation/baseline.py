@@ -148,7 +148,9 @@ class BaselineManager:
             counts[rid] = counts.get(rid, 0) + 1
         lines = [f"Total baselined violations: {len(baseline)}\n"]
         for rid in sorted(counts):
-            lines.append(f"  {rid}: {counts[rid]} entries")
+            c = counts[rid]
+            label = "entry" if c == 1 else "entries"
+            lines.append(f"  {rid}: {c} {label}")
         return "\n".join(lines)
 
     def expire_old(self, days: int, active_rule_ids: set | None = None) -> int:

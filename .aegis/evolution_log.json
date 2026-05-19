@@ -41,6 +41,13 @@
       "rationale": "Test data in regex analyzer fixture, not a real credential",
       "timestamp": "2026-05-18T21:29:05.897801",
       "metadata": {}
+    },
+    {
+      "rule_id": "style-line-length",
+      "action": "suppress",
+      "rationale": "test audit",
+      "timestamp": "2026-05-19T14:14:37.110854",
+      "metadata": {}
     }
   ]
 }

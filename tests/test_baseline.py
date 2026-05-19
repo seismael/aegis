@@ -384,7 +384,7 @@ class TestBaselineManager:
         summary = bm.show_baseline()
         assert "Total baselined violations: 3" in summary
         assert "r1: 2 entries" in summary
-        assert "r2: 1 entries" in summary
+        assert "r2: 1 entry" in summary
 
     def test_expire_old_removes_expired_entries(self, tmp_path):
         """expire_old removes entries older than the threshold."""

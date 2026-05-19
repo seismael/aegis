@@ -9,7 +9,7 @@ class EvolutionDecision(BaseModel):
     """
 
     rule_id: str
-    action: str  # e.g., "suppress", "relax_rule", "refactor"
+    action: str  # e.g., "suppress", "relax_rule", "refactor_required"
     rationale: str
     timestamp: datetime = Field(default_factory=datetime.now)
     metadata: dict = Field(default_factory=dict)
