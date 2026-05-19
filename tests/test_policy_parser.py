@@ -1,3 +1,5 @@
+import hashlib
+import os
 from unittest.mock import MagicMock, patch
 
 import yaml
@@ -282,6 +284,114 @@ class TestPolicyParser:
 
         assert len(rules) == 1
         assert rules[0].id == "org-rule"
+
+
+def _mock_response(text, status=200):
+    """Create a mock httpx response."""
+    resp = MagicMock()
+    resp.status_code = status
+    resp.text = text
+    resp.raise_for_status.return_value = None
+    return resp
+
+
+class TestRemotePolicySecurity:
+    """Tests for remote policy inheritance security hardening."""
+
+    def _write_rules(self, tmp_path, data):
+        import yaml as ymlib
+        f = tmp_path / "rules.yaml"
+        f.write_text(ymlib.dump(data), encoding="utf-8")
+        return str(f)
+
+    def test_http_url_rejected(self, tmp_path):
+        """Non-HTTPS URL raises ValueError."""
+        rules_file = self._write_rules(
+            tmp_path, {"extends": "http://insecure.example.com/rules.yaml"}
+        )
+        parser = PolicyParser()
+        rules = parser.parse_rules(rules_file)
+        assert rules == []  # gracefully degraded
+
+    def test_multiple_extends_urls(self, tmp_path):
+        """List of extends URLs fetches each one."""
+        rules_file = self._write_rules(
+            tmp_path,
+            {
+                "extends": [
+                    "https://org.example.com/base.yaml",
+                    "https://org.example.com/extra.yaml",
+                ]
+            },
+        )
+        with patch("httpx.get") as mock_get:
+            mock_get.side_effect = [
+                _mock_response(
+                    yaml.dump({
+                        "rules": [
+                            {"id": "r1", "description": "base", "query": "x"},
+                        ],
+                    })
+                ),
+                _mock_response(
+                    yaml.dump({
+                        "rules": [
+                            {"id": "r2", "description": "extra", "query": "y"},
+                        ],
+                    })
+                ),
+            ]
+            parser = PolicyParser()
+            rules = parser.parse_rules(rules_file)
+        assert len(rules) == 2
+        assert {r.id for r in rules} == {"r1", "r2"}
+
+    def test_cache_hits_avoid_network(self, tmp_path):
+        """Cached remote policy is used instead of fetching."""
+        cache_dir = str(tmp_path / ".aegis" / "cache")
+        import json
+        import time
+        os.makedirs(cache_dir, exist_ok=True)
+        url = "https://org.example.com/rules.yaml"
+        cache_key = hashlib.sha256(url.encode()).hexdigest()[:16]
+        cache_file = os.path.join(cache_dir, f"remote_{cache_key}.json")
+        with open(cache_file, "w", encoding="utf-8") as f:
+            rules = [{"id": "cached", "description": "cached", "query": "x"}]
+            json.dump({"ts": time.time(), "url": url, "rules": rules}, f)
+
+        rules_file = self._write_rules(tmp_path, {"extends": url})
+        with patch("httpx.get") as mock_get:
+            parser = PolicyParser(cache_dir=cache_dir)
+            rules = parser.parse_rules(rules_file)
+        mock_get.assert_not_called()
+        assert len(rules) == 1
+        assert rules[0].id == "cached"
+
+    def test_cache_expired_fetches_remote(self, tmp_path):
+        """Expired cache entry triggers a fresh fetch."""
+        cache_dir = str(tmp_path / ".aegis" / "cache")
+        import json
+        os.makedirs(cache_dir, exist_ok=True)
+        url = "https://org.example.com/rules.yaml"
+        cache_key = hashlib.sha256(url.encode()).hexdigest()[:16]
+        cache_file = os.path.join(cache_dir, f"remote_{cache_key}.json")
+        with open(cache_file, "w", encoding="utf-8") as f:
+            rules = [{"id": "stale", "description": "stale", "query": "x"}]
+            json.dump({"ts": 0, "url": url, "rules": rules}, f)
+
+        rules_file = self._write_rules(tmp_path, {"extends": url})
+        with patch("httpx.get") as mock_get:
+            mock_get.return_value = _mock_response(
+                yaml.dump({
+                    "rules": [
+                        {"id": "fresh", "description": "fresh", "query": "y"},
+                    ],
+                })
+            )
+            parser = PolicyParser(cache_dir=cache_dir)
+            rules = parser.parse_rules(rules_file)
+        mock_get.assert_called_once()
+        assert rules[0].id == "fresh"
 
 
 class TestPolicyParserDirectory:

@@ -1,3 +1,5 @@
+from datetime import UTC
+
 from aegis.domain.evaluation.baseline import BaselineManager
 from aegis.domain.evaluation.ports import ArchitecturalViolation
 from aegis.domain.policy.models import Rule, RuleCategory
@@ -348,3 +350,96 @@ class TestBaselineManager:
         assert bm.is_exempt(v)
         v2 = self._violation("b.py", 2, "r2")
         assert not bm.is_exempt(v2)
+
+    def test_save_baseline_sets_captured_at(self, tmp_path):
+        """save_baseline sets captured_at timestamp on all entries."""
+        bm = BaselineManager(str(tmp_path))
+        violations = [self._violation("a.py", 1, "r1")]
+        bm.save_baseline(violations)
+        raw = bm.load_baseline_raw()
+        assert len(raw) == 1
+        assert raw[0]["captured_at"] is not None
+        # Verify it's a valid ISO datetime string
+        from datetime import datetime
+        datetime.fromisoformat(raw[0]["captured_at"])
+
+    def test_add_to_baseline_sets_captured_at(self, tmp_path):
+        """add_to_baseline sets captured_at on new entries."""
+        bm = BaselineManager(str(tmp_path))
+        bm.add_to_baseline(self._violation("a.py", 1, "r1"))
+        raw = bm.load_baseline_raw()
+        assert raw[0]["captured_at"] is not None
+
+    def test_show_baseline_empty(self, tmp_path):
+        """show_baseline returns message when no entries."""
+        bm = BaselineManager(str(tmp_path))
+        assert bm.show_baseline() == "No baselined violations."
+
+    def test_show_baseline_with_entries(self, tmp_path):
+        """show_baseline returns summary by rule_id."""
+        bm = BaselineManager(str(tmp_path))
+        bm.add_to_baseline(self._violation("a.py", 1, "r1"))
+        bm.add_to_baseline(self._violation("b.py", 2, "r1"))
+        bm.add_to_baseline(self._violation("c.py", 3, "r2"))
+        summary = bm.show_baseline()
+        assert "Total baselined violations: 3" in summary
+        assert "r1: 2 entries" in summary
+        assert "r2: 1 entries" in summary
+
+    def test_expire_old_removes_expired_entries(self, tmp_path):
+        """expire_old removes entries older than the threshold."""
+        bm = BaselineManager(str(tmp_path))
+        from datetime import datetime, timedelta
+
+        old_ts = (datetime.now(UTC) - timedelta(days=100)).isoformat()
+        new_ts = datetime.now(UTC).isoformat()
+        raw = [
+            {"file": "old.py", "line": 1, "rule_id": "r1", "captured_at": old_ts},
+            {"file": "new.py", "line": 2, "rule_id": "r1", "captured_at": new_ts},
+        ]
+        import json
+        (tmp_path / "baseline.json").write_text(json.dumps(raw), encoding="utf-8")
+        bm.path = str(tmp_path / "baseline.json")
+
+        removed = bm.expire_old(days=30)
+        assert removed == 1
+        remaining = bm.load_baseline_raw()
+        assert len(remaining) == 1
+        assert remaining[0]["file"] == "new.py"
+
+    def test_expire_old_preserves_deleted_rules(self, tmp_path):
+        """expire_old keeps entries for rules not in active_rule_ids."""
+        bm = BaselineManager(str(tmp_path))
+        from datetime import datetime, timedelta
+
+        old_ts = (datetime.now(UTC) - timedelta(days=100)).isoformat()
+        raw = [
+            {"file": "dead.py", "line": 1,
+             "rule_id": "r_deleted", "captured_at": old_ts},
+            {"file": "active.py", "line": 2,
+             "rule_id": "r_active", "captured_at": old_ts},
+        ]
+        import json
+        (tmp_path / "baseline.json").write_text(json.dumps(raw), encoding="utf-8")
+        bm.path = str(tmp_path / "baseline.json")
+
+        removed = bm.expire_old(days=30, active_rule_ids={"r_active"})
+        # r_deleted preserved, r_active removed
+        assert removed == 1
+        remaining = bm.load_baseline_raw()
+        assert len(remaining) == 1
+        assert remaining[0]["rule_id"] == "r_deleted"
+
+    def test_expire_old_no_timestamp_kept(self, tmp_path):
+        """Entries without captured_at are preserved by expire_old."""
+        bm = BaselineManager(str(tmp_path))
+        raw = [
+            {"file": "no_ts.py", "line": 1, "rule_id": "r1"},
+        ]
+        import json
+        (tmp_path / "baseline.json").write_text(json.dumps(raw), encoding="utf-8")
+        bm.path = str(tmp_path / "baseline.json")
+
+        removed = bm.expire_old(days=1)
+        assert removed == 0
+        assert len(bm.load_baseline_raw()) == 1

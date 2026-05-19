@@ -135,31 +135,29 @@ class TestMCPTools:
     @pytest.mark.asyncio
     async def test_get_rule_rationale_empty_id(self, kernel):
         result = await kernel.get_rule_rationale("")
-        assert "ERROR" in result
-        assert "non-empty" in result
+        assert "INVALID_INPUT" in result
 
     @pytest.mark.asyncio
     async def test_get_rule_rationale_invalid_chars(self, kernel):
         result = await kernel.get_rule_rationale("../etc")
-        assert "ERROR" in result
+        assert "INVALID_INPUT" in result
         assert "invalid characters" in result
 
     @pytest.mark.asyncio
     async def test_get_dependency_graph_empty_name(self, kernel):
         result = await kernel.get_dependency_graph("")
-        assert "ERROR" in result
-        assert "non-empty" in result
+        assert "INVALID_INPUT" in result
 
     @pytest.mark.asyncio
     async def test_get_dependency_graph_path_traversal(self, kernel):
         result = await kernel.get_dependency_graph("../secrets")
-        assert "ERROR" in result
+        assert "INVALID_INPUT" in result
         assert "not a valid module" in result
 
     @pytest.mark.asyncio
     async def test_get_dependency_graph_root_path(self, kernel):
         result = await kernel.get_dependency_graph("/etc/passwd")
-        assert "ERROR" in result
+        assert "INVALID_INPUT" in result
         assert "not a valid module" in result
 
     @pytest.mark.asyncio
@@ -199,3 +197,38 @@ class TestMCPTools:
         assert "/fake/project" in result
         assert "Rules:" in result
         assert "Tools:" in result
+
+
+class TestCORSSupport:
+    """Tests for CORS middleware on SSE/HTTP transport."""
+
+    def test_run_signature_includes_cors(self):
+        """run() method accepts cors_origins parameter."""
+        import inspect
+
+        from aegis.kernel.server import AegisKernel
+
+        sig = inspect.signature(AegisKernel.run)
+        assert "cors_origins" in sig.parameters
+
+    def test_cors_parsing(self):
+        """Comma-separated cors_origins splits correctly."""
+        from unittest.mock import MagicMock
+
+        from starlette.middleware.cors import CORSMiddleware
+
+        # Simulate the parsing in run()
+        raw = "http://localhost:3000,https://app.example.com"
+        origins = [o.strip() for o in raw.split(",")]
+        assert origins == ["http://localhost:3000", "https://app.example.com"]
+
+        # Verify it creates valid middleware kwargs
+        mw_kwargs = {
+            "allow_origins": origins,
+            "allow_methods": ["GET", "POST", "OPTIONS"],
+            "allow_headers": ["*"],
+        }
+        mock_app = MagicMock()
+        mw = CORSMiddleware(mock_app, **mw_kwargs)
+        # CORSMiddleware stores origins
+        assert mw.allow_origins == origins

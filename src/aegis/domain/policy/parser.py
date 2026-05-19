@@ -1,4 +1,7 @@
+import hashlib
+import json
 import os
+import time
 from pathlib import Path
 
 import httpx
@@ -9,12 +12,66 @@ from aegis.domain.policy.models import Rule, RuleCategory
 
 logger = structlog.get_logger()
 
+_CACHE_TTL = 3600  # 1 hour cache for remote policies
+
+
+def _validate_url(url: str) -> None:
+    """Validate that a remote policy URL is secure."""
+    if not url.startswith("https://"):
+        raise ValueError(
+            f"Remote policy URL must use HTTPS for security: '{url}'"
+        )
+
+
+def _cache_path(cache_dir: str, url: str) -> str:
+    """Return a deterministic cache file path for a URL."""
+    h = hashlib.sha256(url.encode()).hexdigest()[:16]
+    return os.path.join(cache_dir, f"remote_{h}.json")
+
+
+def _fetch_remote(url: str, cache_dir: str | None = None) -> list[dict]:
+    """Fetch remote rules, with optional caching."""
+    # Check cache first
+    if cache_dir:
+        cp = _cache_path(cache_dir, url)
+        if os.path.exists(cp):
+            try:
+                with open(cp, encoding="utf-8") as f:
+                    cached = json.load(f)
+                age = time.time() - cached.get("ts", 0)
+                if age < _CACHE_TTL:
+                    logger.debug("Using cached remote policy", url=url)
+                    return cached.get("rules", [])
+            except (OSError, json.JSONDecodeError):
+                pass
+
+    _validate_url(url)
+    logger.info("Fetching remote governance policy", url=url)
+    response = httpx.get(url, timeout=10.0)
+    response.raise_for_status()
+    remote_data = yaml.safe_load(response.text)
+    rules = remote_data.get("rules", []) if remote_data else []
+
+    # Write to cache
+    if cache_dir:
+        os.makedirs(cache_dir, exist_ok=True)
+        try:
+            with open(cp, "w", encoding="utf-8") as f:
+                json.dump({"ts": time.time(), "url": url, "rules": rules}, f)
+        except OSError:
+            pass
+
+    return rules
+
 
 class PolicyParser:
     """
     Structured parser for architectural governance rules.
     Loads and validates rules from .aegis/rules/ directory with remote inheritance.
     """
+
+    def __init__(self, cache_dir: str | None = None):
+        self.cache_dir = cache_dir
 
     def parse_rules(self, rules_path: str) -> list[Rule]:
         """
@@ -36,18 +93,17 @@ class PolicyParser:
 
         # 1. Handle remote policy inheritance
         if "extends" in data:
-            remote_url = data["extends"]
-            try:
-                logger.info("Fetching remote governance policy", url=remote_url)
-                response = httpx.get(remote_url, timeout=10.0)
-                response.raise_for_status()
-                remote_data = yaml.safe_load(response.text)
-                if remote_data and "rules" in remote_data:
-                    rules_data.extend(remote_data["rules"])
-            except Exception as e:
-                logger.error(
-                    "Failed to fetch remote policy", url=remote_url, error=str(e)
-                )
+            extends = data["extends"]
+            # Support both single URL string and list of URLs
+            urls = extends if isinstance(extends, list) else [extends]
+            for url in urls:
+                try:
+                    rules_data.extend(_fetch_remote(url, self.cache_dir))
+                except Exception as e:
+                    logger.error(
+                        "Failed to fetch remote policy",
+                        url=url, error=str(e),
+                    )
 
         # 2. Merge local rules (local overrides remote)
         if "rules" in data:

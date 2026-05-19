@@ -23,7 +23,7 @@ class ToolAdapter(ABC):
 
     @property
     def aliases(self) -> list[str]:
-        """Alternative names this adapter is known by (e.g. 'opencode' for OpenDevin)."""
+        """Alternate names this adapter is known by (e.g. opencode for OpenDevin)."""
         return []
 
     @abstractmethod

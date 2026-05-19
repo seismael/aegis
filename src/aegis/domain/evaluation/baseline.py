@@ -1,5 +1,6 @@
 import json
 import os
+from datetime import UTC, datetime
 
 import structlog
 from pydantic import BaseModel
@@ -17,6 +18,7 @@ class BaselineViolation(BaseModel):
     line: int
     rule_id: str
     signature: str | None = None
+    captured_at: str | None = None
 
 
 class BaselineManager:
@@ -30,9 +32,11 @@ class BaselineManager:
         os.makedirs(directory, exist_ok=True)
 
     def save_baseline(self, violations: list[ArchitecturalViolation]) -> None:
+        now = datetime.now(UTC).isoformat()
         baseline = [
             BaselineViolation(
-                file=v.file, line=v.line, rule_id=v.rule_id, signature=v.signature
+                file=v.file, line=v.line, rule_id=v.rule_id,
+                signature=v.signature, captured_at=now,
             ).model_dump()
             for v in violations
         ]
@@ -48,11 +52,13 @@ class BaselineManager:
                 hint="Run 'aegis baseline --prune' to clean stale entries",
             )
 
+        now = datetime.now(UTC).isoformat()
         new_entry = BaselineViolation(
             file=violation.file,
             line=violation.line,
             rule_id=violation.rule_id,
             signature=violation.signature,
+            captured_at=now,
         ).model_dump()
 
         # Match by signature if available, otherwise fallback to file/line/rule
@@ -129,4 +135,54 @@ class BaselineManager:
         if before != after:
             with open(self.path, "w", encoding="utf-8") as f:
                 json.dump(baseline, f, indent=2)
+        return before - after
+
+    def show_baseline(self) -> str:
+        """Return a human-readable summary of the baseline ledger."""
+        baseline = self.load_baseline_raw()
+        if not baseline:
+            return "No baselined violations."
+        counts: dict[str, int] = {}
+        for b in baseline:
+            rid = b.get("rule_id", "unknown")
+            counts[rid] = counts.get(rid, 0) + 1
+        lines = [f"Total baselined violations: {len(baseline)}\n"]
+        for rid in sorted(counts):
+            lines.append(f"  {rid}: {counts[rid]} entries")
+        return "\n".join(lines)
+
+    def expire_old(self, days: int, active_rule_ids: set | None = None) -> int:
+        """Remove baseline entries older than N days.
+
+        Only applies age-based expiry to entries for currently active rules.
+        Entries for deleted/unknown rules are preserved regardless of age.
+        """
+        baseline = self.load_baseline_raw()
+        if not baseline:
+            return 0
+        before = len(baseline)
+        cutoff = datetime.now(UTC)
+        kept = []
+        for b in baseline:
+            if not isinstance(b, dict):
+                continue
+            # Preserve entries for deleted rules regardless of age
+            if active_rule_ids is not None and b.get("rule_id") not in active_rule_ids:
+                kept.append(b)
+                continue
+            captured = b.get("captured_at")
+            if captured:
+                try:
+                    captured_dt = datetime.fromisoformat(captured)
+                    age_days = (cutoff - captured_dt).days
+                    if age_days > days:
+                        continue  # expired
+                except (ValueError, TypeError):
+                    pass  # keep entries with unparseable timestamps
+            kept.append(b)
+
+        after = len(kept)
+        if before != after:
+            with open(self.path, "w", encoding="utf-8") as f:
+                json.dump(kept, f, indent=2)
         return before - after

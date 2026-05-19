@@ -50,12 +50,17 @@ class AegisCLI:
         self.app.command()(self.baseline)
         self.app.command()(self.status)
         self.app.command()(self.apply)
+        self.app.command()(self.fix)
         self.app.command()(self.evolve)
         self.app.command()(self.setup_hooks)
         self.app.command()(self.serve)
+        self.app.command()(self.watch)
         self.app.command()(self.self_check)
         self.app.add_typer(
             self._rules_app, name="rules", help="Manage governance rule packs"
+        )
+        self.app.add_typer(
+            self._plugin_app, name="plugin", help="Create and manage Aegis plugins"
         )
 
     @property
@@ -248,6 +253,34 @@ class AegisCLI:
 
         return rules_cmd
 
+    @property
+    def _plugin_app(self) -> typer.Typer:
+        """Sub-command group for plugin lifecycle management."""
+        plugin_cmd = typer.Typer(help="Create and manage Aegis plugins")
+
+        @plugin_cmd.command("create")
+        def plugin_create(
+            name: str = typer.Argument(
+                ..., help="Name for the new plugin (e.g. my-custom-analyzer)"
+            ),
+        ):
+            """Scaffold a new Aegis plugin in .aegis/plugins/."""
+            from aegis.core.plugins.scaffold import create_plugin_scaffold
+
+            plugin_dir = os.path.join(
+                self.container.workspace_root, ".aegis", "plugins"
+            )
+            try:
+                path = create_plugin_scaffold(plugin_dir, name)
+                self.console.print(
+                    f"[green]Plugin scaffold created: {path}[/green]"
+                )
+            except ValueError as e:
+                self.console.print(f"[red]{e}[/red]")
+                raise typer.Exit(code=1) from e
+
+        return plugin_cmd
+
     def install(
         self,
         tool: str | None = typer.Argument(
@@ -296,6 +329,11 @@ class AegisCLI:
         ),
         strict: bool = typer.Option(
             False, "--strict", help="Treat warnings/reports as blocking"
+        ),
+        exit_code: bool = typer.Option(
+            False,
+            "--exit-code",
+            help="Exit non-zero on ANY violation (for CI pipelines)",
         ),
         phase: str | None = typer.Option(
             None,
@@ -372,6 +410,10 @@ class AegisCLI:
             if r_obj and r_obj.mode in blocking_modes:
                 blocking.append(v)
 
+        # --exit-code: any active violation makes the pipeline fail
+        if exit_code and active:
+            blocking = list(active)  # mark ALL active violations as blocking
+
         for v in active:
             r_obj = rule_map.get(v.rule_id)
             mode = (
@@ -394,19 +436,57 @@ class AegisCLI:
         clear: bool = typer.Option(
             False, "--clear", help="Clear the existing baseline"
         ),
+        show: bool = typer.Option(
+            False, "--show", help="Display current baseline contents"
+        ),
+        prune: bool = typer.Option(
+            False, "--prune", help="Remove baseline entries for deleted rules"
+        ),
+        expire_days: int | None = typer.Option(
+            None, "--expire-days", help="Remove entries older than N days"
+        ),
     ):
         """Manages the architectural technical debt ledger."""
+        bm = self.container.baseline_manager
+        if not bm:
+            self.console.print(
+                "[red]Error: Baseline manager unavailable"
+                " — container running in degraded mode.[/red]"
+            )
+            return
+
         if clear:
-            bm = self.container.baseline_manager
-            if not bm:
-                self.console.print(
-                    "[red]Error: Baseline manager unavailable"
-                    " — container running in degraded mode.[/red]"
-                )
-                return
             if os.path.exists(bm.path):
                 os.remove(bm.path)
             self.console.print("[yellow]Baseline cleared.[/yellow]")
+            return
+
+        if show:
+            summary = bm.show_baseline()
+            self.console.print(summary)
+            return
+
+        if prune:
+            rules = self.container.load_rules()
+            active_ids = {r.id for r in rules}
+            removed = bm.prune_stale(active_ids)
+            self.console.print(
+                f"[green]Pruned {removed} stale baseline entries.[/green]"
+                if removed
+                else "[yellow]No stale entries to prune.[/yellow]"
+            )
+            return
+
+        if expire_days is not None:
+            rules = self.container.load_rules()
+            active_ids = {r.id for r in rules}
+            removed = bm.expire_old(expire_days, active_ids)
+            self.console.print(
+                f"[green]Expired {removed} baseline entries older "
+                f"than {expire_days} days.[/green]"
+                if removed
+                else "[yellow]No expired entries found.[/yellow]"
+            )
             return
 
         self._require_governance()
@@ -527,6 +607,77 @@ class AegisCLI:
             self.console.print(f"[green]Remediation prompt written to {output}[/green]")
         else:
             self.console.print(prompt)
+
+    def fix(
+        self,
+        dry_run: bool = typer.Option(
+            False, "--dry-run", help="Show what would be fixed without modifying files"
+        ),
+        rule: str | None = typer.Option(
+            None, "--rule", help="Specific rule to fix (omit for all fixable rules)"
+        ),
+    ):
+        """Apply auto-fixes to deterministic, fixable violations."""
+        from aegis.domain.enforcement.fixer import (
+            apply_fixes,
+            list_fixable_rule_ids,
+        )
+
+        all_rules = self.container.load_rules()
+        if not all_rules:
+            self.console.print("[red]Error: No rules found.[/red]")
+            raise typer.Exit(code=1)
+
+        fixable_ids = list_fixable_rule_ids()
+        if rule:
+            if rule not in fixable_ids:
+                self.console.print(
+                    f"[yellow]Rule '{rule}' has no auto-fix registered.[/yellow]"
+                )
+                return
+            rules = [r for r in all_rules if r.id == rule]
+        else:
+            rules = [r for r in all_rules if r.id in fixable_ids]
+
+        if not rules:
+            self.console.print("[yellow]No fixable rules found.[/yellow]")
+            return
+
+        rule_map = {r.id: r for r in all_rules}
+        self._require_governance()
+        violations = self.container.governance_service.get_active_violations(
+            rules, self.container.workspace_root
+        )
+
+        if not violations:
+            self.console.print("[green]No fixable violations found.[/green]")
+            return
+
+        results = apply_fixes(violations, rule_map, dry_run=dry_run)
+        fixed = [r for r in results if r.fixed]
+        failed = [r for r in results if not r.fixed]
+
+        if fixed:
+            for r in fixed:
+                self.console.print(
+                    f"  [green]FIXED[/green] {r.file}:{r.line} ({r.rule_id})"
+                )
+        if failed:
+            for r in failed:
+                self.console.print(
+                    f"  [red]FAIL[/red] {r.file}:{r.line} — {r.message}"
+                )
+
+        count = len(fixed)
+        if dry_run:
+            self.console.print(
+                f"\n[bold yellow]Dry-run:"
+                f" {count} violations would be fixed.[/bold yellow]"
+            )
+        else:
+            self.console.print(
+                f"\n[bold green]Auto-fixed {len(fixed)} violations.[/bold green]"
+            )
 
     def evolve(
         self,
@@ -659,6 +810,10 @@ class AegisCLI:
         ),
         host: str = typer.Option("127.0.0.1", "--host", help="Bind host (SSE/HTTP)"),
         port: int = typer.Option(8000, "--port", help="Bind port (SSE/HTTP)"),
+        cors_origins: str | None = typer.Option(
+            None, "--cors-origins",
+            help="Comma-separated CORS origins (SSE/HTTP only)",
+        ),
     ):
         """Starts the Aegis MCP server as a long-running process."""
         from aegis.kernel.server import AegisKernel
@@ -668,7 +823,114 @@ class AegisCLI:
             f"(transport={transport}, host={host}, port={port})"
         )
         kernel = AegisKernel()
-        kernel.run(transport=transport, host=host, port=port)
+        kernel.run(
+            transport=transport, host=host, port=port, cors_origins=cors_origins
+        )
+
+    def watch(
+        self,
+        interval: float = typer.Option(
+            2.0, "--interval", "-i", help="Poll interval in seconds"
+        ),
+        phase: str | None = typer.Option(
+            None, "--phase", help="Filter by evaluation phase"
+        ),
+        category: str | None = typer.Option(
+            None, "--category", "-c", help="Filter by rule category"
+        ),
+        rule: str | None = typer.Option(
+            None, "--rule", "-r", help="Filter by single rule ID"
+        ),
+        json_output: bool = typer.Option(
+            False, "--json", help="Output changes as JSON lines"
+        ),
+    ):
+        """Watch workspace for file changes and auto-evaluate compliance."""
+        from datetime import datetime
+
+        from aegis.domain.evaluation.service import EvaluationService
+        from aegis.infrastructure.file_watcher import watch_files
+
+        root = self.container.workspace_root
+        rules = self.container.load_rules()
+        if not rules:
+            self.console.print("[red]Error: No rules found.[/red]")
+            raise typer.Exit(code=1)
+
+        if phase or category:
+            from aegis.domain.policy.models import EvaluationPhase, RuleCategory
+            phase_enum = EvaluationPhase(phase) if phase else None
+            cat_enum = RuleCategory(category) if category else None
+            rules = EvaluationService.filter_rules_by_phase(
+                rules,
+                phase=phase_enum,
+                category=cat_enum,
+                phase_mapping=self.container.category_phase_mapping,
+            )
+
+        if rule:
+            rules = [r for r in rules if r.id == rule]
+            if not rules:
+                self.console.print(f"[red]Error: Rule '{rule}' not found.[/red]")
+                raise typer.Exit(code=1)
+
+        rules_map = {r.id: r for r in rules}
+        bm = self.container.baseline_manager
+
+        self.console.print(
+            f"[bold blue]Aegis Watch[/bold blue] — monitoring {root}"
+            f" ({len(rules)} rules, {interval}s interval)\n"
+            "[dim]Press Ctrl+C to stop[/dim]"
+        )
+
+        def _on_change(added: set[str], modified: set[str], removed: set[str]) -> None:
+            changed = (added | modified) - removed
+            if not changed:
+                return
+            now = datetime.now().strftime("%H:%M:%S")
+            for fp in sorted(changed):
+                violations = self.container.evaluation_service.evaluate_file(fp, rules)
+                active = (
+                    [
+                        v for v in violations
+                        if not bm.is_exempt(v, rules_map.get(v.rule_id))
+                    ]
+                    if bm
+                    else violations
+                )
+                if json_output:
+                    event = {
+                        "ts": now,
+                        "file": fp,
+                        "violations": [
+                            {
+                                "rule_id": v.rule_id,
+                                "severity": str(v.severity),
+                                "description": v.description,
+                            }
+                            for v in active
+                        ],
+                    }
+                    self.console.print(json.dumps(event))
+                elif active:
+                    self.console.print(
+                        f"[dim]{now}[/dim] [bold yellow]✗[/bold yellow] {fp}"
+                        f" — [red]{len(active)} violation(s)[/red]"
+                    )
+                    for v in active:
+                        self.console.print(
+                            f"  [red]{v.severity}[/red] {v.rule_id}:"
+                            f" {v.description} (line {v.line})"
+                        )
+                else:
+                    self.console.print(
+                        f"[dim]{now}[/dim] [green]✓[/green] {fp}"
+                    )
+
+        try:
+            watch_files(root, interval=interval, on_change=_on_change)
+        except KeyboardInterrupt:
+            self.console.print("\n[bold blue]Watch stopped.[/bold blue]")
 
     def self_check(self):
         """Enforces the self-governance invariant by auditing Aegis itself."""

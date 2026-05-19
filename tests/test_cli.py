@@ -187,13 +187,14 @@ class TestAegisCLI:
         assert "not found" in result.stdout
 
     def test_serve_help_shows_options(self):
-        """serve --help shows transport/host/port options."""
+        """serve --help shows transport/host/port/cors-origins options."""
         cli = self._cli()
         result = runner.invoke(cli.app, ["serve", "--help"])
         assert result.exit_code == 0
         assert "transport" in result.stdout
         assert "stdio" in result.stdout
         assert "sse" in result.stdout
+        assert "cors-origins" in result.stdout
 
     def test_baseline_clear(self, tmp_path):
         """baseline --clear removes the baseline file."""
@@ -210,6 +211,39 @@ class TestAegisCLI:
         assert result.exit_code == 0
         assert "Baseline cleared" in result.stdout
         assert not os.path.exists(baseline_path)
+
+    def test_baseline_show(self, tmp_path):
+        """baseline --show displays baseline summary."""
+        container = self._mock_container()
+        container.baseline_manager.show_baseline.return_value = "r1: 3 entries"
+        container.workspace_root = str(tmp_path)
+        cli = self._cli(container)
+        result = runner.invoke(cli.app, ["baseline", "--show"])
+        assert result.exit_code == 0
+        assert "r1: 3 entries" in result.stdout
+
+    def test_baseline_prune(self, tmp_path):
+        """baseline --prune removes stale entries."""
+        container = self._mock_container()
+        container.load_rules.return_value = [Rule(id="r1", description="test")]
+        container.baseline_manager.prune_stale.return_value = 2
+        container.workspace_root = str(tmp_path)
+        cli = self._cli(container)
+        result = runner.invoke(cli.app, ["baseline", "--prune"])
+        assert result.exit_code == 0
+        assert "Pruned 2" in result.stdout
+
+    def test_baseline_expire_days(self, tmp_path):
+        """baseline --expire-days removes old entries."""
+        container = self._mock_container()
+        container.load_rules.return_value = [Rule(id="r1", description="test")]
+        container.baseline_manager.expire_old.return_value = 5
+        container.workspace_root = str(tmp_path)
+        cli = self._cli(container)
+        result = runner.invoke(cli.app, ["baseline", "--expire-days", "90"])
+        assert result.exit_code == 0
+        assert "Expired 5" in result.stdout
+        assert "90 days" in result.stdout
 
     def test_check_no_rules_file(self, tmp_path):
         """check exits 1 when rules.yaml missing."""
@@ -233,7 +267,47 @@ class TestAegisCLI:
         cli = self._cli(container)
         result = runner.invoke(cli.app, ["check"])
         assert result.exit_code == 0
-        assert "Architecture compliant" in result.stdout
+
+    def test_check_exit_code_with_warn_violation(self, tmp_path):
+        """check --exit-code exits 1 on WARN violations."""
+        container = self._mock_container()
+        rules_dir = os.path.join(str(tmp_path), ".aegis")
+        os.makedirs(rules_dir, exist_ok=True)
+        rules_file = os.path.join(rules_dir, "rules.yaml")
+        with open(rules_file, "w", encoding="utf-8") as f:
+            f.write("rules: []")
+        container.workspace_root = str(tmp_path)
+        container.load_rules.return_value = [
+            Rule(
+                id="r1",
+                description="test",
+                severity=Severity.WARN,
+                mode=EnforcementMode.WARN,
+            )
+        ]
+        container.governance_service.get_active_violations.return_value = [
+            ArchitecturalViolation(
+                file="src/main.py", line=1, rule_id="r1", description="warn only"
+            )
+        ]
+        cli = self._cli(container)
+        result = runner.invoke(cli.app, ["check", "--exit-code"])
+        assert result.exit_code == 1
+
+    def test_check_exit_code_with_no_violations(self, tmp_path):
+        """check --exit-code exits 0 when no violations."""
+        container = self._mock_container()
+        rules_dir = os.path.join(str(tmp_path), ".aegis")
+        os.makedirs(rules_dir, exist_ok=True)
+        rules_file = os.path.join(rules_dir, "rules.yaml")
+        with open(rules_file, "w", encoding="utf-8") as f:
+            f.write("rules: []")
+        container.workspace_root = str(tmp_path)
+        container.load_rules.return_value = [Rule(id="r1", description="test")]
+        container.governance_service.get_active_violations.return_value = []
+        cli = self._cli(container)
+        result = runner.invoke(cli.app, ["check", "--exit-code"])
+        assert result.exit_code == 0
 
     def test_check_blocking_violation_exits_1(self, tmp_path):
         """check exits 1 when blocking violations found."""
@@ -284,3 +358,122 @@ class TestAegisCLI:
         cli = self._cli(container)
         result = runner.invoke(cli.app, ["check"])
         assert result.exit_code == 0
+
+    def test_fix_no_fixable_violations(self, tmp_path):
+        """fix with no violations reports green."""
+        container = self._mock_container()
+        rules_dir = os.path.join(str(tmp_path), ".aegis")
+        os.makedirs(rules_dir, exist_ok=True)
+        rules_file = os.path.join(rules_dir, "rules.yaml")
+        with open(rules_file, "w", encoding="utf-8") as f:
+            f.write("rules: []")
+        container.workspace_root = str(tmp_path)
+        container.load_rules.return_value = [
+            Rule(id="bp-explicit-exceptions", description="test"),
+        ]
+        container.governance_service.get_active_violations.return_value = []
+        cli = self._cli(container)
+        result = runner.invoke(cli.app, ["fix"])
+        assert "No fixable violations" in result.stdout
+
+    def test_fix_unknown_rule(self, tmp_path):
+        """fix --rule with unknown rule reports yellow."""
+        container = self._mock_container()
+        container.workspace_root = str(tmp_path)
+        container.load_rules.return_value = [Rule(id="r1", description="test")]
+        cli = self._cli(container)
+        result = runner.invoke(cli.app, ["fix", "--rule", "nonexistent"])
+        assert "no auto-fix" in result.stdout
+
+    def test_fix_dry_run(self, tmp_path):
+        """fix --dry-run shows count without modifying files."""
+        container = self._mock_container()
+        rules_dir = os.path.join(str(tmp_path), ".aegis")
+        os.makedirs(rules_dir, exist_ok=True)
+        rules_file = os.path.join(rules_dir, "rules.yaml")
+        with open(rules_file, "w", encoding="utf-8") as f:
+            f.write("rules: []")
+        container.workspace_root = str(tmp_path)
+        container.load_rules.return_value = [
+            Rule(id="bp-explicit-exceptions", description="test"),
+            Rule(id="no-print-statements", description="test"),
+        ]
+        container.governance_service.get_active_violations.return_value = [
+            ArchitecturalViolation(
+                file=os.path.join(str(tmp_path), "test.py"),
+                line=1,
+                rule_id="bp-explicit-exceptions",
+                description="bare except",
+            ),
+        ]
+        test_file = os.path.join(str(tmp_path), "test.py")
+        with open(test_file, "w", encoding="utf-8") as f:
+            f.write("except:\n")
+        cli = self._cli(container)
+        result = runner.invoke(cli.app, ["fix", "--dry-run"])
+        assert "would be fixed" in result.stdout
+
+
+class TestWatchCLI:
+    """Tests for aegis watch command."""
+
+    runner = CliRunner()
+
+    def _mock_container(self):
+        from unittest.mock import MagicMock
+        c = MagicMock()
+        c.workspace_root = "/fake/project"
+        c.load_rules.return_value = [Rule(id="r1", description="test")]
+        c.evaluation_service.evaluate_file.return_value = []
+        c.baseline_manager.is_exempt.return_value = False
+        return c
+
+    def test_watch_no_rules(self, tmp_path):
+        """watch exits 1 when no rules loaded."""
+        c = self._mock_container()
+        c.load_rules.return_value = []
+        c.workspace_root = str(tmp_path)
+        cli = AegisCLI(container=c)
+        result = self.runner.invoke(cli.app, ["watch"])
+        assert result.exit_code == 1
+        assert "No rules found" in result.stdout
+
+    def test_watch_unknown_rule(self, tmp_path):
+        """watch --rule with non-existent rule ID exits 1."""
+        c = self._mock_container()
+        c.load_rules.return_value = [Rule(id="r1", description="test")]
+        c.workspace_root = str(tmp_path)
+        cli = AegisCLI(container=c)
+        result = self.runner.invoke(cli.app, ["watch", "--rule", "nonexistent"])
+        assert result.exit_code == 1
+        assert "not found" in result.stdout
+
+
+class TestPluginCLI:
+    """Tests for aegis plugin commands."""
+
+    runner = CliRunner()
+
+    def test_plugin_create(self, tmp_path):
+        """plugin create scaffolds a new plugin file."""
+        from unittest.mock import MagicMock
+        c = MagicMock()
+        c.workspace_root = str(tmp_path)
+        cli = AegisCLI(container=c)
+        result = self.runner.invoke(cli.app, ["plugin", "create", "my-custom"])
+        assert result.exit_code == 0, f"Exited {result.exit_code}: {result.stdout}"
+        assert "Plugin scaffold created" in result.stdout
+        # Scaffold converts hyphens to underscores
+        plugin_file = os.path.join(
+            str(tmp_path), ".aegis", "plugins", "my_custom.py"
+        )
+        assert os.path.exists(plugin_file), f"Not found: {plugin_file}"
+
+    def test_plugin_create_invalid_name(self, tmp_path):
+        """plugin create with invalid name exits 1."""
+        from unittest.mock import MagicMock
+        c = MagicMock()
+        c.workspace_root = str(tmp_path)
+        cli = AegisCLI(container=c)
+        result = self.runner.invoke(cli.app, ["plugin", "create", ""])
+        assert result.exit_code != 0

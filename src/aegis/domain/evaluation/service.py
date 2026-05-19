@@ -168,6 +168,38 @@ class EvaluationService:
 
         return [r for r in rules if _matches(r)]
 
+    def evaluate_file(
+        self,
+        file_path: str,
+        rules: list[Rule],
+        root_dir: str | None = None,
+    ) -> list[ArchitecturalViolation]:
+        """Evaluate a single file against applicable rules."""
+        file_violations: list[ArchitecturalViolation] = []
+        try:
+            with open(file_path, encoding="utf-8") as f:
+                content = f.read()
+        except (UnicodeDecodeError, OSError):
+            return file_violations
+
+        ts_rules = [r for r in rules if r.engine_type == EngineType.TREE_SITTER]
+        regex_rules = [r for r in rules if r.engine_type == EngineType.REGEX]
+
+        if ts_rules:
+            file_violations.extend(
+                self.tree_sitter_analyzer.analyze_file(file_path, content, ts_rules)
+            )
+        if regex_rules:
+            file_violations.extend(
+                self.regex_analyzer.analyze_file(file_path, content, regex_rules)
+            )
+        for extra in self.extra_analyzers:
+            file_violations.extend(extra.analyze_file(file_path, content, rules))
+
+        root_dir = root_dir or os.path.dirname(file_path)
+        self._normalize_violation_paths(file_violations, root_dir)
+        return ScopeFilter.filter_violations(file_violations, rules)
+
     def evaluate_changes(
         self,
         rules: list[Rule],

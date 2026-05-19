@@ -162,8 +162,7 @@ class TestMCPErrorHandling:
         k = AegisKernel()
         k.container = None
         result = await k.validate_architecture_compliance()
-        assert "ERROR" in result
-        assert "container" in result
+        assert "CONTAINER_NOT_INIT" in result
 
     @pytest.mark.asyncio
     async def test_apply_remediation_no_container(self):
@@ -173,8 +172,7 @@ class TestMCPErrorHandling:
         k = AegisKernel()
         k.container = None
         result = await k.apply_architectural_remediation()
-        assert "ERROR" in result
-        assert "container" in result
+        assert "CONTAINER_NOT_INIT" in result
 
     @pytest.mark.asyncio
     async def test_get_rule_rationale_no_container(self):

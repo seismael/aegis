@@ -72,7 +72,9 @@ class Container:
         # Evaluation service (requires baseline manager)
         self.evaluation_service = self._build_evaluation_service()
 
-        self.policy_parser = PolicyParser()
+        self.policy_parser = PolicyParser(
+            cache_dir=os.path.join(self.workspace_root, ".aegis", "cache")
+        )
         self._rule_pack_manager: RulePackManager | None = None
         self._cached_rules: list | None = None
 

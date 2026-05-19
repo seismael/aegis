@@ -56,7 +56,7 @@ class TestMCPResources:
         """Missing rules.yaml returns ERROR."""
         with patch("aegis.kernel.server.os.path.exists", return_value=False):
             results = await kernel.mcp.read_resource("aegis://rules")
-        assert "ERROR" in results[0].content
+        assert "FILE_NOT_FOUND" in results[0].content
 
     @pytest.mark.asyncio
     async def test_baseline_resource_not_found(self, kernel):
@@ -129,7 +129,7 @@ class TestMCPResources:
             with patch("aegis.kernel.server.os.path.exists", return_value=True):
                 with patch("aegis.kernel.server.open", side_effect=OSError("denied")):
                     results = await kernel.mcp.read_resource("aegis://rules")
-        assert "ERROR" in results[0].content
+        assert "READ_FAILED" in results[0].content
 
     @pytest.mark.asyncio
     async def test_baseline_resource_read_error(self, kernel):
@@ -137,7 +137,7 @@ class TestMCPResources:
         with patch("aegis.kernel.server.os.path.exists", return_value=True):
             with patch("aegis.kernel.server.open", side_effect=OSError("denied")):
                 results = await kernel.mcp.read_resource("aegis://baseline")
-        assert "ERROR" in results[0].content
+        assert "READ_FAILED" in results[0].content
 
     @pytest.mark.asyncio
     async def test_evolution_resource_read_error(self, kernel):
@@ -145,7 +145,7 @@ class TestMCPResources:
         with patch("aegis.kernel.server.os.path.exists", return_value=True):
             with patch("aegis.kernel.server.open", side_effect=OSError("denied")):
                 results = await kernel.mcp.read_resource("aegis://evolution")
-        assert "ERROR" in results[0].content
+        assert "READ_FAILED" in results[0].content
 
     @pytest.mark.asyncio
     async def test_spec_resource_read_error(self, kernel):
@@ -153,7 +153,7 @@ class TestMCPResources:
         with patch("aegis.kernel.server.os.path.exists", return_value=True):
             with patch("aegis.kernel.server.open", side_effect=OSError("denied")):
                 results = await kernel.mcp.read_resource("aegis://spec")
-        assert "ERROR" in results[0].content
+        assert "READ_FAILED" in results[0].content
 
     @pytest.mark.asyncio
     async def test_baseline_resource_content_returned(self, kernel):

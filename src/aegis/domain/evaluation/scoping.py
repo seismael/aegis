@@ -102,3 +102,35 @@ class ScopeFilter:
             filtered.append(v)
 
         return filtered
+
+    @staticmethod
+    def filter_rules_for_file(path: str, rules: list[Rule]) -> list[Rule]:
+        """
+        Returns the subset of rules whose scoping patterns match the given file path.
+
+        A rule is relevant if *applies_to* (if set) matches the path and *excludes*
+        (if set) does NOT match.
+        """
+        pp = PurePosixPath(path.replace("\\", "/"))
+        matching: list[Rule] = []
+
+        for rule in rules:
+            if rule.applies_to:
+                allowed = any(
+                    ScopeFilter._path_matches_pattern(pp, p)
+                    for p in rule.applies_to
+                )
+                if not allowed:
+                    continue
+
+            if rule.excludes:
+                excluded = any(
+                    ScopeFilter._path_matches_pattern(pp, p)
+                    for p in rule.excludes
+                )
+                if excluded:
+                    continue
+
+            matching.append(rule)
+
+        return matching

@@ -6,6 +6,16 @@ import yaml
 from mcp.server.fastmcp import FastMCP
 
 from aegis.core.container.app import Container
+from aegis.domain.enforcement.errors import (
+    ERR_CONTAINER_NOT_INIT,
+    ERR_FILE_NOT_FOUND,
+    ERR_INVALID_INPUT,
+    ERR_NOT_INITIALIZED,
+    ERR_READ_FAILED,
+    ERR_SERVICE_UNAVAILABLE,
+    error,
+    warn,
+)
 from aegis.domain.enforcement.remediation import RemediationPromptSynthesizer
 from aegis.infrastructure.graph_analyzer import GraphAnalyzer
 
@@ -120,11 +130,14 @@ class AegisKernel:
 
     async def propose_architectural_steering(self, task_description: str) -> str:
         """
-        Generates a pre-emptive architectural flight plan for a given task.
-        AI agents call this at START of a task to align with project goals.
+        Call at START of a task. Returns relevant rules, SPEC.md guidance,
+        and execution directives for the given task description.
         """
         if self.container is None:
-            return "ERROR: Kernel not initialized."
+            return error(
+                ERR_CONTAINER_NOT_INIT, "Kernel not initialized.",
+                hint="Initialize the container first.",
+            )
 
         # 1. Fetch relevant docs
         spec = await self.get_architecture_spec()
@@ -179,11 +192,14 @@ class AegisKernel:
 
     async def get_relevant_rules(self, path: str) -> str:
         """
-        Returns all architectural laws applicable to a given path.
-        AI agents call this BEFORE editing a file to respect project invariants.
+        Returns all architectural laws applicable to a given file path.
+        Call BEFORE editing a file to avoid violating project invariants.
         """
         if self.container is None:
-            return "ERROR: Kernel not initialized."
+            return error(
+                ERR_CONTAINER_NOT_INIT, "Kernel not initialized.",
+                hint="Initialize the container first.",
+            )
 
         all_rules = self._load_rules()
         if not all_rules:
@@ -208,11 +224,14 @@ class AegisKernel:
 
     async def initialize_project_governance(self) -> str:
         """
-        Project-Level Capability: Bootstraps Aegis governance for the current repo.
-        Creates .aegis/ directory, rules/ dir with default packs, and configuration.
+        Bootstraps Aegis governance for the current repo.
+        Creates .aegis/ directory, default rule packs, and config. Idempotent.
         """
         if self.container is None:
-            return "ERROR: Kernel not initialized."
+            return error(
+                ERR_CONTAINER_NOT_INIT, "Kernel not initialized.",
+                hint="Initialize the container first.",
+            )
 
         from aegis.domain.governance.service import GovernanceService
 
@@ -225,22 +244,25 @@ class AegisKernel:
 
     async def capture_architectural_baseline(self) -> str:
         """
-        Project-Level Capability: Captures current violations as technical debt.
-        Ensures a clean enforcement gate by 'grandfathering' existing drift.
+        Captures current violations as baselined technical debt.
+        Run after init so only NEW violations are reported.
         """
         if self.container is None:
-            return "ERROR: Kernel not initialized."
+            return error(
+                ERR_CONTAINER_NOT_INIT, "Kernel not initialized.",
+                hint="Initialize the container first.",
+            )
 
         rules = self._load_rules()
         if not rules:
-            return (
-                "ERROR: Project not initialized."
-                " Call `initialize_project_governance` first."
+            return error(
+                ERR_NOT_INITIALIZED,
+                "Project not initialized. Call initialize_project_governance first.",
             )
         if not self.container.governance_service:
             return (
-                "ERROR: Governance service unavailable"
-                " — container running in degraded mode."
+                error(ERR_SERVICE_UNAVAILABLE,
+                      "Governance service unavailable — container in degraded mode.")
             )
         count = self.container.governance_service.capture_baseline(
             rules, self._workspace_root
@@ -251,11 +273,15 @@ class AegisKernel:
         self, rule_id: str, action: str, rationale: str
     ) -> str:
         """
-        Project-Level Capability: Records a consensus decision to evolve a rule.
-        Valid actions: 'suppress', 'relax_rule', 'refactor_required'.
+        Records a consensus decision to evolve a rule.
+        action: 'suppress' | 'relax_rule' | 'refactor_required'.
+        suppress captures current violations to baseline.
         """
         if self.container is None:
-            return "ERROR: Kernel not initialized."
+            return error(
+                ERR_CONTAINER_NOT_INIT, "Kernel not initialized.",
+                hint="Initialize the container first.",
+            )
 
         from aegis.core.models.evolution import EvolutionDecision
 
@@ -268,12 +294,11 @@ class AegisKernel:
 
     async def list_rule_packs(self) -> str:
         """
-        Rule Pack Management: Lists available, installed, and custom rule packs.
-        Use --verbose via CLI for per-pack rule counts.
+        Lists available, installed, and custom rule packs with descriptions.
         """
         pm = self._rule_pack_manager
         if pm is None:
-            return "ERROR: Rule pack manager unavailable."
+            return error(ERR_SERVICE_UNAVAILABLE, "Rule pack manager unavailable.")
 
         installed = pm.list_installed()
         available = pm.list_available()
@@ -299,69 +324,69 @@ class AegisKernel:
 
     async def install_rule_pack(self, pack_name: str) -> str:
         """
-        Rule Pack Management: Installs a rule pack from Aegis defaults.
-        Copies pack files into .aegis/rules/<pack>/ and updates manifest.
+        Installs a rule pack from Aegis defaults into .aegis/rules/<pack>/.
         """
         pm = self._rule_pack_manager
         if pm is None:
-            return "ERROR: Rule pack manager unavailable."
+            return error(ERR_SERVICE_UNAVAILABLE, "Rule pack manager unavailable.")
 
         try:
             pm.install(pack_name)
             return f"Installed '{pack_name}' rule pack successfully."
         except ValueError as e:
-            return f"ERROR: {e}"
+            return error(ERR_INVALID_INPUT, str(e))
 
     async def remove_rule_pack(self, pack_name: str) -> str:
         """
-        Rule Pack Management: Removes an installed rule pack.
-        Deletes pack directory and removes manifest entry.
+        Removes an installed rule pack and its manifest entry.
         """
         pm = self._rule_pack_manager
         if pm is None:
-            return "ERROR: Rule pack manager unavailable."
+            return error(ERR_SERVICE_UNAVAILABLE, "Rule pack manager unavailable.")
 
         try:
             pm.remove(pack_name)
             return f"Removed '{pack_name}' rule pack successfully."
         except ValueError as e:
-            return f"ERROR: {e}"
+            return error(ERR_INVALID_INPUT, str(e))
 
     async def reset_rule_packs(self) -> str:
         """
-        Rule Pack Management: Removes all installed rule packs.
-        Preserves custom root-level YAML rule files.
+        Removes all installed rule packs. Preserves custom root-level rule files.
         """
         pm = self._rule_pack_manager
         if pm is None:
-            return "ERROR: Rule pack manager unavailable."
+            return error(ERR_SERVICE_UNAVAILABLE, "Rule pack manager unavailable.")
 
         pm.reset()
         return "All rule packs removed. Custom rules preserved."
 
     async def create_custom_pack(self, pack_name: str, rules_yaml: str) -> str:
         """
-        Rule Pack Management: Creates a custom rule pack from YAML rule definitions.
-        Provide rules as a YAML string (list of rule dicts).
+        Creates a custom rule pack from YAML rule definitions.
+        rules_yaml must be a YAML list of rule objects (or a dict with a "rules" key).
         """
         pm = self._rule_pack_manager
         if pm is None:
-            return "ERROR: Rule pack manager unavailable."
+            return error(ERR_SERVICE_UNAVAILABLE, "Rule pack manager unavailable.")
 
         try:
             data = yaml.safe_load(rules_yaml)
             rules = data if isinstance(data, list) else data.get("rules", [])
         except yaml.YAMLError as e:
-            return f"ERROR: Invalid YAML — {e}"
+            return error(ERR_INVALID_INPUT, f"Invalid YAML — {e}")
 
         if not isinstance(rules, list):
-            return "ERROR: rules_yaml must contain a list of rule definitions."
+            return error(
+                ERR_INVALID_INPUT,
+                "rules_yaml must contain a list of rule definitions.",
+            )
 
         try:
             path = pm.create(pack_name, rules)
             return f"Created custom pack '{pack_name}' at {path}."
         except ValueError as e:
-            return f"ERROR: {e}"
+            return error(ERR_READ_FAILED, str(e))
 
     @property
     def _rule_pack_manager(self):
@@ -374,15 +399,14 @@ class AegisKernel:
 
         @self.mcp.prompt(
             name="start-new-task",
-            description="Initialize a new task with proactive architectural steering",
+            description="Start a new task with architectural context and rules",
         )
         def start_new_task_prompt(description: str) -> str:
             return (
                 f"I am starting the following task: {description}. "
                 "Call `propose_architectural_steering` with this description "
-                "to generate an Architectural Flight Plan. Then read the "
-                "`aegis://rules` resource to align your implementation strategy "
-                "with the project's structural invariants."
+                "to get relevant rules and guidance. Then read the `aegis://rules` "
+                "resource to align your implementation with project invariants."
             )
 
         @self.mcp.prompt(
@@ -441,7 +465,7 @@ class AegisKernel:
 
         @self.mcp.resource(
             "aegis://rules",
-            description="Architectural governance rules (rules/ dir or rules.yaml)",
+            description="All active governance rules with queries, severity, and scope",
         )
         async def get_rules_resource() -> str:
             rules_dir = os.path.join(self._workspace_root, ".aegis", "rules")
@@ -461,23 +485,25 @@ class AegisKernel:
                         except OSError as e:
                             parts.append(f"# --- {rel} ---\nERROR: {e}")
                 return (
-                    "\n\n".join(parts) if parts else "WARN: rules/ directory is empty."
+                    "\n\n".join(parts) if parts else warn("rules/ directory is empty.")
                 )
             if os.path.exists(rules_file):
                 try:
                     with open(rules_file, encoding="utf-8") as f:
                         return f.read()
                 except OSError as e:
-                    return f"ERROR: reading rules.yaml — {e}"
-            return "ERROR: No rules found. Run `aegis init` to create governance rules."
+                    return error(ERR_READ_FAILED, f"reading rules.yaml — {e}")
+            return error(ERR_FILE_NOT_FOUND,
+                         "No rules found. Run `aegis init` to create governance rules.")
 
         @self.mcp.resource(
-            "aegis://baseline", description="Architectural debt ledger (baseline.json)"
+            "aegis://baseline",
+            description="Known technical debt exempted from active reporting",
         )
         async def get_baseline_resource() -> str:
             path = os.path.join(self._workspace_root, ".aegis", "baseline.json")
             if not os.path.exists(path):
-                return "WARN: baseline.json not found — no debt ledger established."
+                return warn("baseline.json not found — no debt ledger established.")
             try:
                 with open(path, encoding="utf-8") as f:
                     return f.read()
@@ -485,18 +511,18 @@ class AegisKernel:
                 self.logger.error(
                     "Failed to read baseline resource", path=path, error=str(e)
                 )
-                return f"ERROR: reading baseline.json — {e}"
+                return error(ERR_READ_FAILED, f"reading baseline.json — {e}")
 
         @self.mcp.resource(
             "aegis://evolution",
-            description="Rule evolution history (evolution_log.json)",
+            description="Logged rule evolution decisions with timestamps",
         )
         async def get_evolution_resource() -> str:
             path = os.path.join(self._workspace_root, ".aegis", "evolution_log.json")
             if not os.path.exists(path):
                 return (
-                    "WARN: evolution_log.json not found"
-                    " — no evolution history recorded."
+                    warn("evolution_log.json not found"
+                         " — no evolution history recorded.")
                 )
             try:
                 with open(path, encoding="utf-8") as f:
@@ -505,7 +531,7 @@ class AegisKernel:
                 self.logger.error(
                     "Failed to read evolution resource", path=path, error=str(e)
                 )
-                return f"ERROR: reading evolution_log.json — {e}"
+                return error(ERR_READ_FAILED, f"reading evolution_log.json — {e}")
 
         @self.mcp.resource(
             "aegis://spec", description="Architecture specification (SPEC.md)"
@@ -513,7 +539,7 @@ class AegisKernel:
         async def get_spec_resource() -> str:
             path = os.path.join(self._workspace_root, "SPEC.md")
             if not os.path.exists(path):
-                return "WARN: SPEC.md not found — architecture is undefined."
+                return warn("SPEC.md not found — architecture is undefined.")
             try:
                 with open(path, encoding="utf-8") as f:
                     return f.read()
@@ -521,7 +547,7 @@ class AegisKernel:
                 self.logger.error(
                     "Failed to read spec resource", path=path, error=str(e)
                 )
-                return f"ERROR: reading SPEC.md — {e}"
+                return error(ERR_READ_FAILED, f"reading SPEC.md — {e}")
 
     def _register_plugin_tools(self):
         if self.container is None:
@@ -541,21 +567,21 @@ class AegisKernel:
             self.logger.info("Registered custom MCP tool", tool=name)
 
     async def get_architecture_spec(self) -> str:
-        """Retrieves the current project architectural specification (SPEC.md)."""
+        """Returns the project's SPEC.md content, or a WARN if not found."""
         try:
             spec_path = os.path.join(self._workspace_root, "SPEC.md")
             if not os.path.exists(spec_path):
-                return "WARN: SPEC.md not found. Architecture is currently undefined."
+                return warn("SPEC.md not found. Architecture is currently undefined.")
             with open(spec_path, encoding="utf-8") as f:
                 return f.read()
         except Exception as e:
             self.logger.error("Failed to read spec", error=str(e))
-            return f"ERROR: reading specification — {str(e)}"
+            return error(ERR_READ_FAILED, f"reading specification — {e}")
 
     async def server_status(self) -> str:
         """
-        Returns server health and capability overview.
-        Lists registered tools, resources, and prompts with counts.
+        Returns server health: version, container status, rule count,
+        tool/resource/prompt counts, active violations, loaded plugins.
         """
         try:
             root = self._workspace_root
@@ -585,7 +611,7 @@ class AegisKernel:
             return summary
         except Exception as e:
             self.logger.error("Status check failed", error=str(e))
-            return f"ERROR: status check failed — {str(e)}"
+            return error(ERR_SERVICE_UNAVAILABLE, "status check failed", hint=str(e))
 
     async def validate_architecture_compliance(
         self,
@@ -594,12 +620,17 @@ class AegisKernel:
         category: str | None = None,
     ) -> str:
         """
-        Validates code against the architectural matrix.
-        Returns a scorecard of NEW violations for the agent to resolve.
-        Optionally filter by evaluation phase and/or rule category.
+        Validates the workspace against all active rules.
+        Returns PASS or a list of violations with file, line, severity, and rule ID.
+        staged_only: only check git-staged changes.
+        phase: filter by 'pre-commit'|'pre-push'|'ci'|'nightly'|'on-demand'.
+        category: filter by rule category.
         """
         if self.container is None:
-            return "ERROR: Kernel not fully initialized — container unavailable."
+            return error(
+                ERR_CONTAINER_NOT_INIT,
+                "Kernel not fully initialized — container unavailable.",
+            )
 
         root = self._workspace_root
         rules = self._load_rules()
@@ -617,16 +648,17 @@ class AegisKernel:
                 phase_mapping=self.container.category_phase_mapping,
             )
         if not rules:
-            return (
-                "ERROR: Aegis is not initialized"
-                " — run `/aegis-init` to establish governance."
+            return error(
+                ERR_NOT_INITIALIZED,
+                "Aegis is not initialized — run initialize_project_governance first.",
             )
 
         if staged_only:
             if not self._evaluation_service:
                 return (
-                    "ERROR: Evaluation service unavailable"
-                    " — container running in degraded mode."
+                    error(ERR_SERVICE_UNAVAILABLE,
+                          "Evaluation service unavailable"
+                      " — container in degraded mode.")
                 )
             violations = self._evaluation_service.evaluate_changes(rules, root_dir=root)
             rules_map = {r.id: r for r in rules}
@@ -639,8 +671,9 @@ class AegisKernel:
         else:
             if not self.container.governance_service:
                 return (
-                    "ERROR: Governance service unavailable"
-                    " — container running in degraded mode."
+                    error(ERR_SERVICE_UNAVAILABLE,
+                          "Governance service unavailable"
+                          " — container running in degraded mode.")
                 )
             active = self.container.governance_service.get_active_violations(
                 rules, root
@@ -666,18 +699,21 @@ class AegisKernel:
 
     async def apply_architectural_remediation(self) -> str:
         """
-        MCP Tool: Called when a compliance check fails.
-        Returns a highly structured prompt instructing the AI how to fix the code.
+        Returns structured fix instructions for each active violation.
+        Call after validate_architecture_compliance returns violations.
         """
         if self.container is None:
-            return "ERROR: Kernel not fully initialized — container unavailable."
+            return error(
+                ERR_CONTAINER_NOT_INIT,
+                "Kernel not fully initialized — container unavailable.",
+            )
 
         rules = self._load_rules()
         rules_map = {r.id: r for r in rules}
         if not self.container.governance_service:
             return (
-                "ERROR: Governance service unavailable"
-                " — container running in degraded mode."
+                error(ERR_SERVICE_UNAVAILABLE,
+                      "Governance service unavailable — container in degraded mode.")
             )
         active = self.container.governance_service.get_active_violations(
             rules, self._workspace_root
@@ -687,26 +723,30 @@ class AegisKernel:
             return "PASS: Architecture is compliant. No remediation needed."
 
         if self.remediation_synthesizer is None:
-            return "ERROR: Remediation synthesizer unavailable."
+            return error(
+                ERR_SERVICE_UNAVAILABLE, "Remediation synthesizer unavailable."
+            )
 
         return self.remediation_synthesizer.generate_remediation(active, rules_map)
 
     async def get_rule_rationale(self, rule_id: str) -> str:
         """
-        Fetches the human consensus history for a given rule.
-        Returns the rationale and evolution decisions from evolution_log.json.
+        Returns the rule's description, rationale, severity, and evolution history.
         """
         if not rule_id or not rule_id.strip():
-            return "ERROR: rule_id must be a non-empty string."
+            return error(ERR_INVALID_INPUT, "rule_id must be a non-empty string.")
 
         if not re.match(r"^[a-zA-Z0-9_-]+$", rule_id):
-            return f"ERROR: rule_id '{rule_id}' contains invalid characters."
+            return error(
+                ERR_INVALID_INPUT,
+                f"rule_id '{rule_id}' contains invalid characters.",
+            )
 
         all_rules = self._load_rules()
         rule = next((r for r in all_rules if r.id == rule_id), None)
 
         if not rule:
-            return f"WARN: rule '{rule_id}' not found in the governance matrix."
+            return warn(f"rule '{rule_id}' not found in the governance matrix.")
 
         result = f"## Rule: {rule.id}\n"
         result += f"**Description:** {rule.description}\n"
@@ -734,15 +774,18 @@ class AegisKernel:
 
     async def get_dependency_graph(self, node_name: str) -> str:
         """
-        Returns the import dependencies for a given module name.
+        Returns imports and reverse-dependencies for a given module name.
         Shows what the module imports and what imports it.
         """
         if not node_name or not node_name.strip():
-            return "ERROR: node_name must be a non-empty string."
+            return error(ERR_INVALID_INPUT, "node_name must be a non-empty string.")
 
         # Prevent path traversal in module name
         if ".." in node_name or node_name.startswith("/") or node_name.startswith("\\"):
-            return f"ERROR: node_name '{node_name}' is not a valid module name."
+            return error(
+                ERR_INVALID_INPUT,
+                f"node_name '{node_name}' is not a valid module name.",
+            )
 
         # Build the full dependency graph
         analyzer = self._graph_analyzer or GraphAnalyzer()
@@ -750,8 +793,8 @@ class AegisKernel:
 
         if not adjacency:
             return (
-                "WARN: no Python modules found in the workspace "
-                "or unable to parse dependency graph."
+                warn("no Python modules found in the workspace "
+                     "or unable to parse dependency graph.")
             )
 
         # Find the requested node (fuzzy match: any node containing the name)
@@ -759,8 +802,8 @@ class AegisKernel:
 
         if not matched:
             return (
-                f"WARN: module '{node_name}' not found in the dependency graph.\n"
-                f"Available roots: {', '.join(sorted(adjacency.keys())[:10])}"
+                warn(f"module '{node_name}' not found in the dependency graph.\n"
+                     f"Available roots: {', '.join(sorted(adjacency.keys())[:10])}")
             )
 
         result = f"## Dependency Graph: `{node_name}`\n\n"
@@ -786,7 +829,13 @@ class AegisKernel:
 
         return result
 
-    def run(self, transport: str = "stdio", host: str = "127.0.0.1", port: int = 8000):
+    def run(
+        self,
+        transport: str = "stdio",
+        host: str = "127.0.0.1",
+        port: int = 8000,
+        cors_origins: str | None = None,
+    ):
         """
         Runs the MCP server with the given transport.
 
@@ -794,6 +843,7 @@ class AegisKernel:
             transport: One of "stdio", "sse", or "streamable-http".
             host: Host to bind (SSE/HTTP only).
             port: Port to bind (SSE/HTTP only).
+            cors_origins: Comma-separated CORS origins (SSE/HTTP only).
         """
         if transport == "stdio":
             self.mcp.run()
@@ -805,6 +855,18 @@ class AegisKernel:
                 if transport == "sse"
                 else self.mcp.streamable_http_app()
             )
+
+            if cors_origins:
+                from starlette.middleware.cors import CORSMiddleware
+
+                origins = [o.strip() for o in cors_origins.split(",")]
+                app = CORSMiddleware(
+                    app,
+                    allow_origins=origins,
+                    allow_methods=["GET", "POST", "OPTIONS"],
+                    allow_headers=["*"],
+                )
+
             uvicorn.run(app, host=host, port=port, log_level="warning")
         else:
             raise ValueError(f"Unsupported transport: {transport}")

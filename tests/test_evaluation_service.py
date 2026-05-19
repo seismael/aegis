@@ -407,3 +407,82 @@ class TestEvaluationService:
             assert root == os.getcwd()
         except ValueError:
             pass  # os.path.commonpath raises on some Python versions
+
+
+class TestEvaluateFile:
+    """Tests for EvaluationService.evaluate_file."""
+
+    def _make_service(self, ts_analyzer=None, regex_analyzer=None):
+        return EvaluationService(
+            tree_sitter_analyzer=ts_analyzer or MagicMock(spec=RuleAnalyzerInterface),
+            graph_analyzer=MagicMock(spec=GraphAnalyzerInterface),
+            regex_analyzer=regex_analyzer or MagicMock(spec=RegexAnalyzerInterface),
+            diff_provider=MagicMock(spec=DiffProviderInterface),
+        )
+
+    def test_evaluate_file_returns_violations(self, tmp_path):
+        """evaluate_file returns violations from analyzers."""
+        f = tmp_path / "main.py"
+        f.write_text("print('hello')\n", encoding="utf-8")
+        regex_analyzer = MagicMock(spec=RegexAnalyzerInterface)
+        regex_analyzer.analyze_file.return_value = [
+            ArchitecturalViolation(
+                file=str(f), line=1, rule_id="r1",
+                description="no print",
+            )
+        ]
+        service = self._make_service(regex_analyzer=regex_analyzer)
+        rules = [Rule(id="r1", engine_type=EngineType.REGEX, description="no print")]
+        violations = service.evaluate_file(str(f), rules, root_dir=str(tmp_path))
+        assert len(violations) == 1
+        assert violations[0].rule_id == "r1"
+
+    def test_evaluate_file_nonexistent(self, tmp_path):
+        """evaluate_file returns empty list for unreadable file."""
+        service = self._make_service()
+        rules = [Rule(id="r1", description="test")]
+        violations = service.evaluate_file(
+            str(tmp_path / "nonexistent.py"), rules, root_dir=str(tmp_path)
+        )
+        assert violations == []
+
+    def test_evaluate_file_scope_filter_applied(self, tmp_path):
+        """evaluate_file applies ScopeFilter excludes."""
+        f = tmp_path / "main.py"
+        f.write_text("x = 1\n", encoding="utf-8")
+        regex_analyzer = MagicMock(spec=RegexAnalyzerInterface)
+        regex_analyzer.analyze_file.return_value = [
+            ArchitecturalViolation(file=str(f), line=1, rule_id="r1", description="x")
+        ]
+        service = self._make_service(regex_analyzer=regex_analyzer)
+        # Rule with excludes that covers the file
+        rules = [
+            Rule(
+                id="r1", engine_type=EngineType.REGEX, description="x",
+                excludes=["main.py"],
+            )
+        ]
+        violations = service.evaluate_file(str(f), rules, root_dir=str(tmp_path))
+        assert violations == []
+
+    def test_evaluate_file_uses_both_ts_and_regex(self, tmp_path):
+        """evaluate_file calls both ts and regex analyzers."""
+        f = tmp_path / "main.py"
+        f.write_text("x = 1\n", encoding="utf-8")
+        ts_analyzer = MagicMock(spec=RuleAnalyzerInterface)
+        ts_analyzer.analyze_file.return_value = []
+        regex_analyzer = MagicMock(spec=RegexAnalyzerInterface)
+        regex_analyzer.analyze_file.return_value = []
+        service = EvaluationService(
+            tree_sitter_analyzer=ts_analyzer,
+            graph_analyzer=MagicMock(spec=GraphAnalyzerInterface),
+            regex_analyzer=regex_analyzer,
+            diff_provider=MagicMock(spec=DiffProviderInterface),
+        )
+        rules = [
+            Rule(id="t1", engine_type=EngineType.TREE_SITTER, description="ts"),
+            Rule(id="r1", engine_type=EngineType.REGEX, description="re"),
+        ]
+        service.evaluate_file(str(f), rules, root_dir=str(tmp_path))
+        ts_analyzer.analyze_file.assert_called_once()
+        regex_analyzer.analyze_file.assert_called_once()
