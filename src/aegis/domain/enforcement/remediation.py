@@ -2,7 +2,10 @@ import os
 
 import structlog
 
-from aegis.domain.enforcement.ports import RemediationProviderInterface
+from aegis.domain.enforcement.ports import (
+    RemediationProviderInterface,
+    RemediationResult,
+)
 from aegis.domain.evaluation.ports import ArchitecturalViolation, RuleAnalyzerInterface
 from aegis.domain.policy.models import Rule
 
@@ -21,9 +24,18 @@ class RemediationPromptSynthesizer(RemediationProviderInterface):
 
     def generate_remediation(
         self, violations: list[ArchitecturalViolation], rules_map: dict[str, Rule]
-    ) -> str:
+    ) -> RemediationResult:
         if not violations:
-            return "No remediation required. Architecture is compliant."
+            return RemediationResult(
+                summary="No remediation required. Architecture is compliant.",
+                violations_count=0,
+                handoff_prompt="No remediation required.",
+            )
+
+        # Innovation: Generate machine-readable diffs for fixable violations
+        from aegis.domain.enforcement.fixer import _REGISTRY as fixer_registry
+
+        proposals = fixer_registry.generate_fix_proposals(violations, rules_map)
 
         payload = (
             "**AEGIS ARCHITECTURAL GOVERNANCE INTERVENTION**\n\n"
@@ -70,6 +82,13 @@ class RemediationPromptSynthesizer(RemediationProviderInterface):
                 payload += context
                 payload += "\n```\n"
 
+            # Check if we have a machine-readable proposal for this file
+            proposal = next((p for p in proposals if p.file == v.file), None)
+            if proposal and proposal.diff:
+                payload += "\n**Suggested Fix (Unified Diff):**\n```diff\n"
+                payload += proposal.diff
+                payload += "\n```\n"
+
             payload += "\n"
 
         payload += (
@@ -79,11 +98,16 @@ class RemediationPromptSynthesizer(RemediationProviderInterface):
             "preserving all existing business logic.\n"
             "3. Do not modify formatting or comments outside the "
             "targeted scope.\n"
-            "4. Call the `validate_architecture_compliance` MCP tool "
+            "4. Call the `validate_workspace` Meta-Tool "
             "again to verify your fix."
         )
 
-        return payload
+        return RemediationResult(
+            summary=f"Found {len(violations)} architectural violations.",
+            violations_count=len(violations),
+            proposals=proposals,
+            handoff_prompt=payload,
+        )
 
     def _fetch_code_context(
         self, filepath: str, line: int, context_lines: int = 5

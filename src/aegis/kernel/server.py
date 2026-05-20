@@ -17,6 +17,9 @@ from aegis.domain.enforcement.errors import (
     error,
     warn,
 )
+from aegis.domain.enforcement.ports import (
+    RemediationResult,
+)
 from aegis.domain.enforcement.remediation import RemediationPromptSynthesizer
 from aegis.infrastructure.graph_analyzer import GraphAnalyzer
 from aegis.kernel.models import (
@@ -150,11 +153,11 @@ class AegisKernel:
         report = "# Aegis Architectural Alignment\n\n"
 
         if intent:
-            steering = await self.propose_architectural_steering(intent)
+            steering = await self._propose_architectural_steering(intent)
             report += steering + "\n\n"
 
         if file_path:
-            context = await self.get_active_context(file_path)
+            context = await self._get_active_context(file_path)
             report += "## Targeted File Context\n" + context + "\n"
 
         return report
@@ -174,17 +177,20 @@ class AegisKernel:
         auto_fix: If True, applies deterministic fixes before reporting.
         """
         if auto_fix:
-            await self.apply_auto_fixes()
+            await self._apply_auto_fixes()
 
-        compliance = await self.validate_architecture_compliance(
+        compliance_json = await self._validate_architecture_compliance(
             staged_only=(scope == "staged"), phase=phase, category=category
         )
 
-        if "FAIL: ARCHITECTURAL DRIFT" in compliance:
-            remediation = await self.apply_architectural_remediation()
-            return compliance + "\n\n" + remediation
+        # Parse the JSON string from internal method
+        data = json.loads(compliance_json)
+        if not data.get("passed"):
+            remediation = await self._apply_architectural_remediation()
+            # remediation is now a RemediationResult (pydantic)
+            return compliance_json + "\n\n" + remediation.handoff_prompt
 
-        return compliance
+        return compliance_json
 
     async def evolve_ruleset(
         self,
@@ -195,26 +201,26 @@ class AegisKernel:
     ) -> str:
         """
         Meta-Tool: Manage the project's architectural laws and technical debt.
-        action: 'init' (bootstrap), 'baseline' (grandfather debt), 
+        action: 'init' (bootstrap), 'baseline' (grandfather debt),
                 'install_pack' (add rule set), 'remove_pack', 'suppress' (evolve rule).
         target: Pack name or Rule ID for specific actions.
         rationale: Human reasoning for evolution/suppression decisions.
         rules_yaml: YAML string for creating custom rule packs.
         """
         if action == "init":
-            return await self.initialize_project_governance()
+            return await self._initialize_project_governance()
         if action == "baseline":
-            return await self.capture_architectural_baseline()
+            return await self._capture_architectural_baseline()
         if action == "install_pack" and target:
-            return await self.install_rule_pack(target)
+            return await self._install_rule_pack(target)
         if action == "remove_pack" and target:
-            return await self.remove_rule_pack(target)
+            return await self._remove_rule_pack(target)
         if action == "suppress" and target and rationale:
-            return await self.negotiate_architectural_evolution(
+            return await self._negotiate_architectural_evolution(
                 target, "suppress", rationale
             )
         if action == "create_pack" and target and rules_yaml:
-            return await self.create_custom_pack(target, rules_yaml)
+            return await self._create_custom_pack(target, rules_yaml)
 
         return f"ERROR: Unsupported or incomplete evolution action: {action}."
 
@@ -223,21 +229,21 @@ class AegisKernel:
     ) -> str:
         """
         Meta-Tool: Introspect project health, dependencies, and rule rationale.
-        query_type: 'status' (health), 'dependency' (graph), 'rationale' (rule history), 'list_packs'.
+        query_type: 'status', 'dependency', 'rationale', 'list_packs'.
         target: Module name for dependency graph or Rule ID for rationale.
         """
         if query_type == "status":
-            return await self.server_status()
+            return await self._server_status()
         if query_type == "dependency" and target:
-            return await self.get_dependency_graph(target)
+            return await self._get_dependency_graph(target)
         if query_type == "rationale" and target:
-            return await self.get_rule_rationale(target)
+            return await self._get_rule_rationale(target)
         if query_type == "list_packs":
-            return await self.list_rule_packs()
+            return await self._list_rule_packs()
 
         return f"ERROR: Unsupported or incomplete knowledge query: {query_type}."
 
-    async def propose_architectural_steering(self, task_description: str) -> str:
+    async def _propose_architectural_steering(self, task_description: str) -> str:
         """
         Creates an architectural flight plan for a task description.
 
@@ -253,7 +259,7 @@ class AegisKernel:
                 hint="Initialize the container first.",
             )
 
-        spec = await self.get_architecture_spec()
+        spec = await self._get_architecture_spec()
 
         keywords = ["domain", "service", "adapter", "api", "model", "cli"]
         potential_paths = [kw for kw in keywords if kw in task_description.lower()]
@@ -301,7 +307,7 @@ class AegisKernel:
 
         return plan
 
-    async def get_relevant_rules(self, path: str) -> str:
+    async def _get_relevant_rules(self, path: str) -> str:
         """
         Returns structured JSON of all rules applicable to a given file path.
         Call BEFORE editing a file to avoid violating project invariants.
@@ -352,7 +358,7 @@ class AegisKernel:
         )
         return result.model_dump_json()
 
-    async def get_active_context(self, file_path: str) -> str:
+    async def _get_active_context(self, file_path: str) -> str:
         """
         Returns structured JSON of the 4-5 most relevant rules for a specific file.
         Uses path-based scoping and dependency graph proximity.
@@ -411,14 +417,12 @@ class AegisKernel:
             total_rules=len(rules_list),
             rules=rules_list,
             message=(
-                None
-                if rules_list
-                else f"No matching rules found for `{file_path}`."
+                None if rules_list else f"No matching rules found for `{file_path}`."
             ),
         )
         return result.model_dump_json()
 
-    async def evaluate_code_delta(self, code_string: str, language: str) -> str:
+    async def _evaluate_code_delta(self, code_string: str, language: str) -> str:
         """
         Evaluates a code string in-memory against applicable rules.
         Returns structured JSON with violations and pass/fail status.
@@ -464,7 +468,7 @@ class AegisKernel:
         )
         return result.model_dump_json()
 
-    async def initialize_project_governance(self) -> str:
+    async def _initialize_project_governance(self) -> str:
         """
         Bootstraps Aegis governance for the current repo.
         Creates .aegis/ directory, default rule packs, and config. Idempotent.
@@ -485,7 +489,7 @@ class AegisKernel:
             f" Rules in {rules_dir}/. Use `/aegis-init` to customize."
         )
 
-    async def hypothesize_workspace_architecture(self) -> str:
+    async def _hypothesize_workspace_architecture(self) -> str:
         """
         Scans the workspace to deduce the tech stack and C4 boundaries.
         Call silently at the start of init before talking to the user
@@ -577,7 +581,7 @@ class AegisKernel:
             )
         return "\n".join(hypothesis_parts)
 
-    async def capture_architectural_baseline(self) -> str:
+    async def _capture_architectural_baseline(self) -> str:
         """
         Captures current violations as baselined technical debt.
         Run after init so only NEW violations are reported.
@@ -605,7 +609,7 @@ class AegisKernel:
         )
         return f"Successfully baselined {count} violations as legacy technical debt."
 
-    async def negotiate_architectural_evolution(
+    async def _negotiate_architectural_evolution(
         self, rule_id: str, action: str, rationale: str
     ) -> str:
         """
@@ -640,7 +644,7 @@ class AegisKernel:
 
         return result
 
-    async def list_rule_packs(self) -> str:
+    async def _list_rule_packs(self) -> str:
         """
         Lists available, installed, and custom rule packs with descriptions.
         Returns structured JSON with separate installed/available/custom arrays.
@@ -662,18 +666,19 @@ class AegisKernel:
             )
             for name, meta in available.items()
         ]
-        custom_list = [
-            {"name": name, "installed": True} for name in custom
-        ]
+        custom_list = [{"name": name, "installed": True} for name in custom]
 
-        return json.dumps({
-            "packs": [p.model_dump() for p in packs],
-            "custom": custom_list,
-            "summary": f"{len(installed_names)} installed, "
-                       f"{len(available)} available, {len(custom)} custom",
-        }, indent=2)
+        return json.dumps(
+            {
+                "packs": [p.model_dump() for p in packs],
+                "custom": custom_list,
+                "summary": f"{len(installed_names)} installed, "
+                f"{len(available)} available, {len(custom)} custom",
+            },
+            indent=2,
+        )
 
-    async def install_rule_pack(self, pack_name: str) -> str:
+    async def _install_rule_pack(self, pack_name: str) -> str:
         """
         Installs a rule pack from Aegis defaults into .aegis/rules/<pack>/.
         """
@@ -687,7 +692,7 @@ class AegisKernel:
         except ValueError as e:
             return error(ERR_INVALID_INPUT, str(e))
 
-    async def remove_rule_pack(self, pack_name: str) -> str:
+    async def _remove_rule_pack(self, pack_name: str) -> str:
         """
         Removes an installed rule pack and its manifest entry.
         """
@@ -701,7 +706,7 @@ class AegisKernel:
         except ValueError as e:
             return error(ERR_INVALID_INPUT, str(e))
 
-    async def reset_rule_packs(self) -> str:
+    async def _reset_rule_packs(self) -> str:
         """
         Removes all installed rule packs. Preserves custom root-level rule files.
         """
@@ -712,7 +717,7 @@ class AegisKernel:
         pm.reset()
         return "All rule packs removed. Custom rules preserved."
 
-    async def create_custom_pack(self, pack_name: str, rules_yaml: str) -> str:
+    async def _create_custom_pack(self, pack_name: str, rules_yaml: str) -> str:
         """
         Creates a custom rule pack from YAML rule definitions.
         rules_yaml must be a YAML list of rule objects (or a dict with a "rules" key).
@@ -739,7 +744,7 @@ class AegisKernel:
         except ValueError as e:
             return error(ERR_READ_FAILED, str(e))
 
-    async def apply_auto_fixes(self) -> str:
+    async def _apply_auto_fixes(self) -> str:
         """
         Applies deterministic auto-fixes to fixable violations.
         Supports: bare except blocks, print->logger, f-strings.
@@ -789,7 +794,7 @@ class AegisKernel:
                 lines.append(f"- {r.file}:{r.line} — {r.message}")
         return "\n".join(lines) if (fixed or failed) else "No fixable violations found."
 
-    async def update_rule_packs(self, pack_name: str | None = None) -> str:
+    async def _update_rule_packs(self, pack_name: str | None = None) -> str:
         """
         Updates installed rule pack(s) to the latest defaults.
         Omit pack_name to update all installed packs.
@@ -804,7 +809,7 @@ class AegisKernel:
             return f"Updated: {', '.join(updated)}"
         return "All packs are up-to-date."
 
-    async def list_evaluation_phases(self) -> str:
+    async def _list_evaluation_phases(self) -> str:
         """
         Lists evaluation phases with rule counts for each phase.
         Useful for understanding when rules are evaluated.
@@ -840,7 +845,7 @@ class AegisKernel:
             lines.append(f"- **{phase_name}:** {phase_counts[phase_name]} rules")
         return "\n".join(lines)
 
-    async def get_phase_mapping(self) -> str:
+    async def _get_phase_mapping(self) -> str:
         """
         Shows the current category-to-phase mapping.
         Each rule category maps to one or more evaluation phases.
@@ -1041,19 +1046,15 @@ class AegisKernel:
             baseline_count = 0
             if self._evaluation_service and self._baseline_manager:
                 try:
-                    active = (
-                        self.container.governance_service.get_active_violations(
-                            rules, self._workspace_root
-                        )
+                    active = self.container.governance_service.get_active_violations(
+                        rules, self._workspace_root
                     )
                     raw = self._baseline_manager.load_baseline_raw()
                     baseline_count = len(raw)
                 except Exception:
                     pass
 
-            block_count = sum(
-                1 for v in active if v.severity in ("HIGH", "CRITICAL")
-            )
+            block_count = sum(1 for v in active if v.severity in ("HIGH", "CRITICAL"))
             top_rules = [
                 RuleInfo(
                     id=r.id,
@@ -1076,7 +1077,9 @@ class AegisKernel:
                 status=(
                     "clean"
                     if not active
-                    else "violations" if block_count == 0 else "degraded"
+                    else "violations"
+                    if block_count == 0
+                    else "degraded"
                 ),
                 workspace=self._workspace_root,
             )
@@ -1115,7 +1118,7 @@ class AegisKernel:
                 self.mcp.tool()(tool_fn)
             self.logger.info("Registered custom MCP tool", tool=name)
 
-    async def get_architecture_spec(self) -> str:
+    async def _get_architecture_spec(self) -> str:
         """Reads SPEC.md from the workspace root.
 
         Note: this reads an existing file, it does not generate one.
@@ -1131,7 +1134,7 @@ class AegisKernel:
             self.logger.error("Failed to read spec", error=str(e))
             return error(ERR_READ_FAILED, f"reading specification — {e}")
 
-    async def server_status(self) -> str:
+    async def _server_status(self) -> str:
         """
         Returns server health as structured JSON: version, container status,
         rule count, tool/resource/prompt counts, active violations, loaded plugins.
@@ -1169,7 +1172,7 @@ class AegisKernel:
             self.logger.error("Status check failed", error=str(e))
             return error(ERR_SERVICE_UNAVAILABLE, "status check failed", hint=str(e))
 
-    async def validate_architecture_compliance(
+    async def _validate_architecture_compliance(
         self,
         staged_only: bool = False,
         phase: str | None = None,
@@ -1266,7 +1269,7 @@ class AegisKernel:
         )
         return result.model_dump_json()
 
-    async def apply_architectural_remediation(self) -> str:
+    async def _apply_architectural_remediation(self) -> RemediationResult:
         """
         Returns structured fix instructions for each active violation.
         Call after validate_architecture_compliance returns violations.
@@ -1298,7 +1301,11 @@ class AegisKernel:
                 pass
 
         if not active:
-            return "PASS: Architecture is compliant. No remediation needed."
+            return RemediationResult(
+                summary="Architecture is compliant.",
+                violations_count=0,
+                handoff_prompt="PASS: Architecture is compliant. No remediation needed.",
+            )
 
         if self.remediation_synthesizer is None:
             return error(
@@ -1307,7 +1314,7 @@ class AegisKernel:
 
         return self.remediation_synthesizer.generate_remediation(active, rules_map)
 
-    async def get_rule_rationale(self, rule_id: str) -> str:
+    async def _get_rule_rationale(self, rule_id: str) -> str:
         """
         Returns the rule's description, rationale, severity, and evolution history.
         """
@@ -1350,7 +1357,7 @@ class AegisKernel:
 
         return result
 
-    async def get_dependency_graph(self, node_name: str) -> str:
+    async def _get_dependency_graph(self, node_name: str) -> str:
         """
         Returns structured JSON of imports and reverse-dependencies for a module.
         Shows what the module imports, what imports it, and circular dependencies.

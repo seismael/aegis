@@ -23,7 +23,7 @@ class TestRemediationPromptSynthesizer:
     def test_empty_violations_returns_ok(self):
         synth = RemediationPromptSynthesizer()
         result = synth.generate_remediation([], {})
-        assert "No remediation required" in result
+        assert "No remediation required" in result.handoff_prompt
 
     def test_single_violation_includes_details(self):
         synth = RemediationPromptSynthesizer()
@@ -37,12 +37,12 @@ class TestRemediationPromptSynthesizer:
             self._make_violation("src/main.py", 5, "no-test", "Loose function")
         ]
         result = synth.generate_remediation(violations, {"no-test": rule})
-        assert "src/main.py" in result
-        assert "Line 5" in result
-        assert "no-test" in result
-        assert "Loose function" in result
-        assert "block" in result
-        assert "Execution Directive" in result
+        assert "src/main.py" in result.handoff_prompt
+        assert "Line 5" in result.handoff_prompt
+        assert "no-test" in result.handoff_prompt
+        assert "Loose function" in result.handoff_prompt
+        assert "block" in result.handoff_prompt
+        assert "Execution Directive" in result.handoff_prompt
 
     def test_multiple_violations_all_listed(self):
         synth = RemediationPromptSynthesizer()
@@ -65,12 +65,12 @@ class TestRemediationPromptSynthesizer:
             self._make_violation("b.py", 10, "r2", "Violation 2"),
         ]
         result = synth.generate_remediation(violations, rules_map)
-        assert violations[0].file in result
-        assert violations[1].file in result
-        assert "Violation 1" in result
-        assert "Violation 2" in result
-        assert "warn" in result
-        assert "block" in result
+        assert violations[0].file in result.handoff_prompt
+        assert violations[1].file in result.handoff_prompt
+        assert "Violation 1" in result.handoff_prompt
+        assert "Violation 2" in result.handoff_prompt
+        assert "warn" in result.handoff_prompt
+        assert "block" in result.handoff_prompt
 
     def test_rationale_included_when_present(self):
         synth = RemediationPromptSynthesizer()
@@ -83,8 +83,8 @@ class TestRemediationPromptSynthesizer:
         )
         violations = [self._make_violation("domain/main.py", 3, "r1", "Infra import")]
         result = synth.generate_remediation(violations, {"r1": rule})
-        assert "Hexagonal architecture" in result
-        assert "Architectural Rationale" in result
+        assert "Hexagonal architecture" in result.handoff_prompt
+        assert "Architectural Rationale" in result.handoff_prompt
 
     def test_code_context_included_for_existing_file(self, tmp_path):
         """Violations with valid files get code context in remediation."""
@@ -99,8 +99,8 @@ class TestRemediationPromptSynthesizer:
         )
         violations = [self._make_violation(str(f), 3, "r1", "Bad code")]
         result = synth.generate_remediation(violations, {"r1": rule})
-        assert "Code Context" in result
-        assert "line3" in result
+        assert "Code Context" in result.handoff_prompt
+        assert "line3" in result.handoff_prompt
 
     def test_code_context_omitted_for_missing_file(self):
         """Violations with non-existent files get no code context."""
@@ -113,7 +113,7 @@ class TestRemediationPromptSynthesizer:
         )
         violations = [self._make_violation("/nonexistent/path.py", 3, "r1", "Bad")]
         result = synth.generate_remediation(violations, {"r1": rule})
-        assert "Code Context" not in result
+        assert "Code Context" not in result.handoff_prompt
 
     def test_fetch_code_context_file_not_found(self, tmp_path):
         """_fetch_code_context returns empty string for missing file."""
@@ -168,9 +168,9 @@ class TestRemediationPromptSynthesizer:
         )
         violations = [self._make_violation(str(f), 4, "no-print", "Used print")]
         result = synth.generate_remediation(violations, {"no-print": rule})
-        assert "Code Context" in result
-        assert "print('evil')" in result
-        assert "Execution Directive" in result
+        assert "Code Context" in result.handoff_prompt
+        assert "print('evil')" in result.handoff_prompt
+        assert "Execution Directive" in result.handoff_prompt
 
     def test_rationale_omitted_when_missing(self):
         synth = RemediationPromptSynthesizer()
@@ -182,7 +182,7 @@ class TestRemediationPromptSynthesizer:
         )
         violations = [self._make_violation("domain/main.py", 3, "r1", "Infra import")]
         result = synth.generate_remediation(violations, {"r1": rule})
-        assert "Architectural Rationale" not in result
+        assert "Architectural Rationale" not in result.handoff_prompt
 
     def test_security_violation_gets_critical_tag(self):
         synth = RemediationPromptSynthesizer()
@@ -197,8 +197,8 @@ class TestRemediationPromptSynthesizer:
             self._make_violation("config.py", 5, "sec-1", "Hardcoded AWS key")
         ]
         result = synth.generate_remediation(violations, {"sec-1": rule})
-        assert "CRITICAL SECURITY VULNERABILITY" in result
-        assert "secure coding practices" in result
+        assert "CRITICAL SECURITY VULNERABILITY" in result.handoff_prompt
+        assert "secure coding practices" in result.handoff_prompt
 
     def test_architecture_violation_no_security_tag(self):
         synth = RemediationPromptSynthesizer()
@@ -213,8 +213,8 @@ class TestRemediationPromptSynthesizer:
             self._make_violation("domain/main.py", 10, "arch-1", "Infra import")
         ]
         result = synth.generate_remediation(violations, {"arch-1": rule})
-        assert "CRITICAL SECURITY VULNERABILITY" not in result
-        assert "Violation in" in result
+        assert "CRITICAL SECURITY VULNERABILITY" not in result.handoff_prompt
+        assert "Violation in" in result.handoff_prompt
 
     def test_mixed_security_and_architecture_violations(self):
         synth = RemediationPromptSynthesizer()
@@ -239,7 +239,9 @@ class TestRemediationPromptSynthesizer:
             self._make_violation("domain/main.py", 10, "arch-1", "Infra import"),
         ]
         result = synth.generate_remediation(violations, rules_map)
-        assert "CRITICAL SECURITY VULNERABILITY" in result
-        assert "Violation in" in result
+        assert "CRITICAL SECURITY VULNERABILITY" in result.handoff_prompt
+        assert "Violation in" in result.handoff_prompt
         # Security violation should appear first
-        assert result.index("CRITICAL SECURITY") < result.rindex("Violation in")
+        assert result.handoff_prompt.index(
+            "CRITICAL SECURITY"
+        ) < result.handoff_prompt.rindex("Violation in")

@@ -53,6 +53,7 @@ class RuleCategory(StrEnum):
     DEPENDENCIES = "dependencies"
     INFRASTRUCTURE = "infrastructure"
     GENERAL = "general"
+    SEMANTIC = "semantic"
 
 
 class EngineType(StrEnum):
@@ -115,6 +116,10 @@ class CategoryPhaseMapping(BaseModel):
                 EvaluationPhase.ON_DEMAND,
             ],
             RuleCategory.TOOLS: [
+                EvaluationPhase.CI,
+                EvaluationPhase.ON_DEMAND,
+            ],
+            RuleCategory.SEMANTIC: [
                 EvaluationPhase.CI,
                 EvaluationPhase.ON_DEMAND,
             ],

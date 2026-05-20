@@ -6,9 +6,13 @@ Uses line-level regex replacement to fix common, deterministic violations.
 import re
 from abc import ABC, abstractmethod
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from aegis.domain.evaluation.ports import ArchitecturalViolation
 from aegis.domain.policy.models import Rule
+
+if TYPE_CHECKING:
+    from aegis.domain.enforcement.ports import FixProposal
 
 
 class FixResult:
@@ -91,6 +95,71 @@ class FixerRegistry:
 
     def list_ids(self) -> list[str]:
         return list(self._fixers.keys())
+
+    def generate_fix_proposals(
+        self,
+        violations: list[ArchitecturalViolation],
+        rules_map: dict[str, Rule],
+    ) -> list["FixProposal"]:
+        """
+        Innovation: Generates machine-readable diffs/proposals for violations.
+        Does NOT modify any files.
+        """
+        from difflib import unified_diff
+
+        from aegis.domain.enforcement.ports import FixProposal
+
+        proposals: list[FixProposal] = []
+
+        by_file: dict[str, list[ArchitecturalViolation]] = {}
+        for v in violations:
+            if self.get(v.rule_id) is not None:
+                by_file.setdefault(v.file, []).append(v)
+
+        for filepath, file_violations in by_file.items():
+            path = Path(filepath)
+            if not path.exists():
+                continue
+
+            try:
+                original_content = path.read_text(encoding="utf-8")
+                lines = original_content.splitlines(keepends=True)
+                fixed_lines = list(lines)
+            except OSError:
+                continue
+
+            modified = False
+            for v in sorted(file_violations, key=lambda x: x.line, reverse=True):
+                fixer = self.get(v.rule_id)
+                rule = rules_map.get(v.rule_id)
+                if not fixer or not rule:
+                    continue
+
+                idx = v.line - 1
+                if 0 <= idx < len(fixed_lines):
+                    fixed = fixer.fix_line(fixed_lines[idx], rule)
+                    if fixed is not None:
+                        fixed_lines[idx] = fixed
+                        modified = True
+
+            if modified:
+                diff = "".join(
+                    unified_diff(
+                        lines,
+                        fixed_lines,
+                        fromfile=f"a/{filepath}",
+                        tofile=f"b/{filepath}",
+                    )
+                )
+                proposals.append(
+                    FixProposal(
+                        file=filepath,
+                        diff=diff,
+                        replacement_code="".join(fixed_lines),
+                    )
+                )
+
+        return proposals
 
     def apply_fixes(
         self,

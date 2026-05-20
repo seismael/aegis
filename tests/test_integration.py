@@ -161,7 +161,7 @@ class TestMCPErrorHandling:
 
         k = AegisKernel()
         k.container = None
-        result = await k.validate_architecture_compliance()
+        result = await k._validate_architecture_compliance()
         assert "CONTAINER_NOT_INIT" in result
 
     @pytest.mark.asyncio
@@ -171,7 +171,7 @@ class TestMCPErrorHandling:
 
         k = AegisKernel()
         k.container = None
-        result = await k.apply_architectural_remediation()
+        result = await k._apply_architectural_remediation()
         assert "CONTAINER_NOT_INIT" in result
 
     @pytest.mark.asyncio
@@ -181,7 +181,7 @@ class TestMCPErrorHandling:
 
         k = AegisKernel()
         k.container = None
-        result = await k.get_rule_rationale("r1")
+        result = await k._get_rule_rationale("r1")
         assert "not found" in result.lower()
 
     @pytest.mark.asyncio
@@ -191,7 +191,7 @@ class TestMCPErrorHandling:
 
         k = AegisKernel()
         k.container = None
-        result = await k.server_status()
+        result = await k._server_status()
         assert "degraded" in result
 
     @pytest.mark.asyncio
@@ -207,7 +207,7 @@ class TestMCPErrorHandling:
         mock_container.graph_analyzer = MagicMock()
         mock_container.graph_analyzer.build_import_graph.return_value = ({}, {})
         k.container = mock_container
-        result = await k.get_dependency_graph("main")
+        result = await k._get_dependency_graph("main")
         assert '"success": false' in result
         assert "No Python modules found" in result
 

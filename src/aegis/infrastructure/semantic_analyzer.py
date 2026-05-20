@@ -12,7 +12,6 @@ Example Semantic Rule:
 """
 
 import structlog
-from typing import Any
 
 from aegis.domain.evaluation.ports import (
     ArchitecturalViolation,
@@ -35,24 +34,25 @@ class SemanticAnalyzer(SemanticAnalyzerInterface):
         self, file_path: str, content: str, rules: list[Rule]
     ) -> list[ArchitecturalViolation]:
         violations: list[ArchitecturalViolation] = []
-        
+
         semantic_rules = [r for r in rules if r.engine_type == "semantic"]
         if not semantic_rules:
             return []
 
         for rule in semantic_rules:
             self.logger.debug(
-                "Simulating semantic evaluation", 
-                rule_id=rule.id, 
-                file=file_path
+                "Simulating semantic evaluation", rule_id=rule.id, file=file_path
             )
-            
+
             # PROOF OF CONCEPT: Simple keyword heuristic to simulate 'LLM Logic'
-            # In production, this would be: is_compliant = self.llm_judge(content, rule.query)
-            
+            # In production, this would be: 
+            # is_compliant = self.llm_judge(content, rule.query)
+
             trigger_keywords = (rule.metadata or {}).get("sim_triggers", [])
-            found_triggers = [k for k in trigger_keywords if k.lower() in content.lower()]
-            
+            found_triggers = [
+                k for k in trigger_keywords if k.lower() in content.lower()
+            ]
+
             if found_triggers:
                 violations.append(
                     ArchitecturalViolation(

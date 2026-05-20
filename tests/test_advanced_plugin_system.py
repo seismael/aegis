@@ -80,5 +80,5 @@ class TestAdvancedPluginArchitecture:
         )
 
         # Should use the custom remediation provided by the plugin
-        assert "surface area" in prompt
-        assert "Dead Module Detected" in prompt
+        assert "surface area" in prompt.handoff_prompt
+        assert "Dead Module Detected" in prompt.handoff_prompt

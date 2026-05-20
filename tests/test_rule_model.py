@@ -123,7 +123,7 @@ class TestExpandedRuleCategory:
         assert RuleCategory.GENERAL == "general"
 
     def test_total_count(self):
-        assert len(list(RuleCategory)) == 13
+        assert len(list(RuleCategory)) == 14
 
     def test_yaml_string_deserialization(self):
         rule = Rule.model_validate(

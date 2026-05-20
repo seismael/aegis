@@ -49,7 +49,7 @@ class TestMCPTools:
         import json
 
         kernel.container.load_rules.return_value = [Rule(id="r1", description="desc")]
-        raw = await kernel.validate_architecture_compliance(staged_only=False)
+        raw = await kernel._validate_architecture_compliance(staged_only=False)
         result = json.loads(raw)
         assert result["passed"] is True
         assert result["total_violations"] == 0
@@ -74,7 +74,7 @@ class TestMCPTools:
             )
         ]
 
-        raw = await kernel.validate_architecture_compliance(staged_only=False)
+        raw = await kernel._validate_architecture_compliance(staged_only=False)
         result = json.loads(raw)
         assert result["passed"] is False
         assert result["total_violations"] == 1
@@ -84,8 +84,8 @@ class TestMCPTools:
     async def test_apply_remediation_no_violations(self, kernel):
         kernel.container.load_rules.return_value = []
 
-        result = await kernel.apply_architectural_remediation()
-        assert "No remediation needed" in result
+        result = await kernel._apply_architectural_remediation()
+        assert "No remediation needed" in result.handoff_prompt
 
     @pytest.mark.asyncio
     async def test_apply_remediation_with_violations(self, kernel):
@@ -104,9 +104,9 @@ class TestMCPTools:
             )
         ]
 
-        result = await kernel.apply_architectural_remediation()
-        assert "INTERVENTION" in result
-        assert "src/main.py" in result
+        result = await kernel._apply_architectural_remediation()
+        assert "INTERVENTION" in result.handoff_prompt
+        assert "src/main.py" in result.handoff_prompt
 
     @pytest.mark.asyncio
     async def test_get_rule_rationale_found(self, kernel):
@@ -128,7 +128,7 @@ class TestMCPTools:
             ]
         )
 
-        result = await kernel.get_rule_rationale("r1")
+        result = await kernel._get_rule_rationale("r1")
         assert "r1" in result
         assert "Keep architecture clean." in result
         assert "suppress" in result
@@ -137,34 +137,34 @@ class TestMCPTools:
     async def test_get_rule_rationale_not_found(self, kernel):
         kernel.container.load_rules.return_value = []
 
-        result = await kernel.get_rule_rationale("nonexistent")
+        result = await kernel._get_rule_rationale("nonexistent")
         assert "not found" in result.lower()
 
     @pytest.mark.asyncio
     async def test_get_rule_rationale_empty_id(self, kernel):
-        result = await kernel.get_rule_rationale("")
+        result = await kernel._get_rule_rationale("")
         assert "INVALID_INPUT" in result
 
     @pytest.mark.asyncio
     async def test_get_rule_rationale_invalid_chars(self, kernel):
-        result = await kernel.get_rule_rationale("../etc")
+        result = await kernel._get_rule_rationale("../etc")
         assert "INVALID_INPUT" in result
         assert "invalid characters" in result
 
     @pytest.mark.asyncio
     async def test_get_dependency_graph_empty_name(self, kernel):
-        result = await kernel.get_dependency_graph("")
+        result = await kernel._get_dependency_graph("")
         assert "INVALID_INPUT" in result
 
     @pytest.mark.asyncio
     async def test_get_dependency_graph_path_traversal(self, kernel):
-        result = await kernel.get_dependency_graph("../secrets")
+        result = await kernel._get_dependency_graph("../secrets")
         assert "INVALID_INPUT" in result
         assert "not a valid module" in result
 
     @pytest.mark.asyncio
     async def test_get_dependency_graph_root_path(self, kernel):
-        result = await kernel.get_dependency_graph("/etc/passwd")
+        result = await kernel._get_dependency_graph("/etc/passwd")
         assert "INVALID_INPUT" in result
         assert "not a valid module" in result
 
@@ -177,7 +177,7 @@ class TestMCPTools:
         kernel.container.evaluation_service.evaluate_changes.return_value = []
         kernel.container.baseline_manager.is_exempt.return_value = False
 
-        raw = await kernel.validate_architecture_compliance(staged_only=True)
+        raw = await kernel._validate_architecture_compliance(staged_only=True)
         result = json.loads(raw)
         assert result["passed"] is True
         kernel.container.evaluation_service.evaluate_changes.assert_called_once()
@@ -189,7 +189,7 @@ class TestMCPTools:
 
         kernel.container.load_rules.return_value = [Rule(id="r1", description="desc")]
 
-        raw = await kernel.validate_architecture_compliance(staged_only=False)
+        raw = await kernel._validate_architecture_compliance(staged_only=False)
         result = json.loads(raw)
         assert result["passed"] is True
         kernel.container.governance_service.get_active_violations.assert_called_once()
@@ -205,10 +205,10 @@ class TestMCPTools:
         kernel.container.custom_mcp_tools = []
         kernel.container.loaded_plugins = []
 
-        result = await kernel.validate_architecture_compliance()
+        result = await kernel._validate_architecture_compliance()
         assert "not initialized" in result
 
-        result = json.loads(await kernel.server_status())
+        result = json.loads(await kernel._server_status())
         assert result["status"] in ("ready", "degraded")
         assert result["workspace"] == "/fake/project"
 
@@ -224,7 +224,7 @@ class TestMCPTools:
         kernel.container.graph_analyzer = MagicMock()
         kernel.container.graph_analyzer.build_import_graph.return_value = ({}, {})
 
-        result = json.loads(await kernel.get_active_context("src/core/main.py"))
+        result = json.loads(await kernel._get_active_context("src/core/main.py"))
         assert result["total_rules"] == 2
         rule_ids = {r["id"] for r in result["rules"]}
         assert "r1" in rule_ids
@@ -237,7 +237,7 @@ class TestMCPTools:
 
         kernel.container.load_rules.return_value = []
 
-        result = json.loads(await kernel.get_active_context("src/main.py"))
+        result = json.loads(await kernel._get_active_context("src/main.py"))
         assert result["total_rules"] == 0
 
     @pytest.mark.asyncio
@@ -245,7 +245,7 @@ class TestMCPTools:
         """get_active_context returns error when container is None."""
         kernel.container = None
 
-        result = await kernel.get_active_context("src/main.py")
+        result = await kernel._get_active_context("src/main.py")
         assert "CONTAINER_NOT_INIT" in result
 
     @pytest.mark.asyncio
@@ -258,7 +258,7 @@ class TestMCPTools:
         ]
         kernel.container.evaluation_service.evaluate_code_string.return_value = []
 
-        result = json.loads(await kernel.evaluate_code_delta("def f(): pass", "py"))
+        result = json.loads(await kernel._evaluate_code_delta("def f(): pass", "py"))
         assert result["passed"] is True
         assert result["total_violations"] == 0
 
@@ -282,7 +282,7 @@ class TestMCPTools:
             )
         ]
 
-        result = json.loads(await kernel.evaluate_code_delta("print('x')", "py"))
+        result = json.loads(await kernel._evaluate_code_delta("print('x')", "py"))
         assert result["passed"] is False
         assert result["violations"][0]["rule_id"] == "r1"
         assert result["violations"][0]["description"] == "no print"
@@ -290,13 +290,13 @@ class TestMCPTools:
     @pytest.mark.asyncio
     async def test_evaluate_code_delta_empty_string(self, kernel):
         """evaluate_code_delta returns INVALID_INPUT for empty code."""
-        result = await kernel.evaluate_code_delta("", "py")
+        result = await kernel._evaluate_code_delta("", "py")
         assert "INVALID_INPUT" in result
 
     @pytest.mark.asyncio
     async def test_evaluate_code_delta_empty_language(self, kernel):
         """evaluate_code_delta returns INVALID_INPUT for empty language."""
-        result = await kernel.evaluate_code_delta("def f(): pass", "")
+        result = await kernel._evaluate_code_delta("def f(): pass", "")
         assert "INVALID_INPUT" in result
 
     @pytest.mark.asyncio
@@ -304,7 +304,7 @@ class TestMCPTools:
         """evaluate_code_delta returns NOT_INITIALIZED when no rules."""
         kernel.container.load_rules.return_value = []
 
-        result = await kernel.evaluate_code_delta("def f(): pass", "py")
+        result = await kernel._evaluate_code_delta("def f(): pass", "py")
         assert "NOT_INITIALIZED" in result
 
     @pytest.mark.asyncio
@@ -315,7 +315,7 @@ class TestMCPTools:
         ]
         kernel.container.evaluation_service = None
 
-        result = await kernel.evaluate_code_delta("def f(): pass", "py")
+        result = await kernel._evaluate_code_delta("def f(): pass", "py")
         assert "SERVICE_UNAVAILABLE" in result
 
     @pytest.mark.asyncio
@@ -331,7 +331,7 @@ class TestMCPTools:
             "fail"
         )
 
-        result = json.loads(await kernel.get_active_context("src/core/main.py"))
+        result = json.loads(await kernel._get_active_context("src/core/main.py"))
         assert result["total_rules"] == 1
         assert result["rules"][0]["id"] == "r1"
 

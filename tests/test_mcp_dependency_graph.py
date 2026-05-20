@@ -29,7 +29,7 @@ class TestMCPDependencyGraph:
         mock_container.graph_analyzer = GraphAnalyzer()
         kernel.container = mock_container
 
-        result = await kernel.get_dependency_graph("main")
+        result = await kernel._get_dependency_graph("main")
         assert "main" in result
 
     @pytest.mark.asyncio
@@ -41,5 +41,5 @@ class TestMCPDependencyGraph:
         mock_container.graph_analyzer = GraphAnalyzer()
         kernel.container = mock_container
 
-        result = await kernel.get_dependency_graph("nonexistent")
+        result = await kernel._get_dependency_graph("nonexistent")
         assert "no python modules" in result.lower() or "not found" in result.lower()
