@@ -61,6 +61,7 @@ class EngineType(StrEnum):
     TREE_SITTER = "tree-sitter"
     GRAPH = "graph"
     REGEX = "regex"
+    SEMANTIC = "semantic"
 
 
 class CategoryPhaseMapping(BaseModel):

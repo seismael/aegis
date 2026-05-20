@@ -129,29 +129,113 @@ class AegisKernel:
         return None
 
     def _register_tools(self):
-        self.mcp.tool()(self.get_architecture_spec)
-        self.mcp.tool()(self.validate_architecture_compliance)
-        self.mcp.tool()(self.apply_architectural_remediation)
-        self.mcp.tool()(self.get_rule_rationale)
-        self.mcp.tool()(self.get_dependency_graph)
-        self.mcp.tool()(self.server_status)
-        self.mcp.tool()(self.initialize_project_governance)
-        self.mcp.tool()(self.capture_architectural_baseline)
-        self.mcp.tool()(self.negotiate_architectural_evolution)
-        self.mcp.tool()(self.list_rule_packs)
-        self.mcp.tool()(self.install_rule_pack)
-        self.mcp.tool()(self.remove_rule_pack)
-        self.mcp.tool()(self.reset_rule_packs)
-        self.mcp.tool()(self.create_custom_pack)
-        self.mcp.tool()(self.hypothesize_workspace_architecture)
-        self.mcp.tool()(self.get_relevant_rules)
-        self.mcp.tool()(self.propose_architectural_steering)
-        self.mcp.tool()(self.apply_auto_fixes)
-        self.mcp.tool()(self.update_rule_packs)
-        self.mcp.tool()(self.list_evaluation_phases)
-        self.mcp.tool()(self.get_phase_mapping)
-        self.mcp.tool()(self.get_active_context)
-        self.mcp.tool()(self.evaluate_code_delta)
+        """
+        Registers high-level Meta-Tools for AI agents.
+        Consolidates 22 granular tools into 4 intent-driven facades.
+        """
+        self.mcp.tool()(self.plan_architecture)
+        self.mcp.tool()(self.validate_workspace)
+        self.mcp.tool()(self.evolve_ruleset)
+        self.mcp.tool()(self.query_knowledge_graph)
+
+    async def plan_architecture(
+        self, intent: str | None = None, file_path: str | None = None
+    ) -> str:
+        """
+        Meta-Tool: Pre-emptive task alignment and rule discovery.
+        AI agents MUST call this at the START of a task or before editing a module.
+        intent: Description of the coding task (e.g. 'Add a new domain service').
+        file_path: Optional path to a specific file to get targeted rules.
+        """
+        report = "# Aegis Architectural Alignment\n\n"
+
+        if intent:
+            steering = await self.propose_architectural_steering(intent)
+            report += steering + "\n\n"
+
+        if file_path:
+            context = await self.get_active_context(file_path)
+            report += "## Targeted File Context\n" + context + "\n"
+
+        return report
+
+    async def validate_workspace(
+        self,
+        scope: str = "full",
+        phase: str | None = None,
+        category: str | None = None,
+        auto_fix: bool = False,
+    ) -> str:
+        """
+        Meta-Tool: Comprehensive compliance gate and remediation engine.
+        scope: 'full' (all files) or 'staged' (git staged changes only).
+        phase: Optional filter by lifecycle phase (pre-commit, ci, etc.).
+        category: Optional filter by rule category (security, architecture, etc.).
+        auto_fix: If True, applies deterministic fixes before reporting.
+        """
+        if auto_fix:
+            await self.apply_auto_fixes()
+
+        compliance = await self.validate_architecture_compliance(
+            staged_only=(scope == "staged"), phase=phase, category=category
+        )
+
+        if "FAIL: ARCHITECTURAL DRIFT" in compliance:
+            remediation = await self.apply_architectural_remediation()
+            return compliance + "\n\n" + remediation
+
+        return compliance
+
+    async def evolve_ruleset(
+        self,
+        action: str,
+        target: str | None = None,
+        rationale: str | None = None,
+        rules_yaml: str | None = None,
+    ) -> str:
+        """
+        Meta-Tool: Manage the project's architectural laws and technical debt.
+        action: 'init' (bootstrap), 'baseline' (grandfather debt), 
+                'install_pack' (add rule set), 'remove_pack', 'suppress' (evolve rule).
+        target: Pack name or Rule ID for specific actions.
+        rationale: Human reasoning for evolution/suppression decisions.
+        rules_yaml: YAML string for creating custom rule packs.
+        """
+        if action == "init":
+            return await self.initialize_project_governance()
+        if action == "baseline":
+            return await self.capture_architectural_baseline()
+        if action == "install_pack" and target:
+            return await self.install_rule_pack(target)
+        if action == "remove_pack" and target:
+            return await self.remove_rule_pack(target)
+        if action == "suppress" and target and rationale:
+            return await self.negotiate_architectural_evolution(
+                target, "suppress", rationale
+            )
+        if action == "create_pack" and target and rules_yaml:
+            return await self.create_custom_pack(target, rules_yaml)
+
+        return f"ERROR: Unsupported or incomplete evolution action: {action}."
+
+    async def query_knowledge_graph(
+        self, query_type: str, target: str | None = None
+    ) -> str:
+        """
+        Meta-Tool: Introspect project health, dependencies, and rule rationale.
+        query_type: 'status' (health), 'dependency' (graph), 'rationale' (rule history), 'list_packs'.
+        target: Module name for dependency graph or Rule ID for rationale.
+        """
+        if query_type == "status":
+            return await self.server_status()
+        if query_type == "dependency" and target:
+            return await self.get_dependency_graph(target)
+        if query_type == "rationale" and target:
+            return await self.get_rule_rationale(target)
+        if query_type == "list_packs":
+            return await self.list_rule_packs()
+
+        return f"ERROR: Unsupported or incomplete knowledge query: {query_type}."
 
     async def propose_architectural_steering(self, task_description: str) -> str:
         """

@@ -36,15 +36,13 @@ Aegis enforces a **Steering-First** methodology. You are mandated to use the fol
 
 ## 🔌 Integration Interface (MCP)
 
-Aegis leverages the **Model Context Protocol (MCP)** to provide seamless integration with development tools:
+Aegis leverages the **Model Context Protocol (MCP)** to provide an intent-driven interface for development tools:
 
-### Core Tools
-- `propose_architectural_steering`: Generate a pre-emptive flight plan for a task.
-- `get_relevant_rules`: Fetch laws for a specific file path before editing.
-- `validate_architecture_compliance`: Perform a hunk-aware or workspace scan.
-- `apply_architectural_remediation`: Receive structured fix instructions for violations.
-- `get_rule_rationale`: Trace the history and reasoning behind any law.
-- `get_dependency_graph`: Inspect module coupling and identify leaks.
+### Core Meta-Tools (V2.0)
+- `plan_architecture`: Innovation — Task alignment and proactive rule discovery. Call this **FIRST**.
+- `validate_workspace`: Comprehensive compliance gate and remediation engine.
+- `evolve_ruleset`: Manage architectural laws, rule packs, and technical debt.
+- `query_knowledge_graph`: Introspect project health, rationales, and dependencies.
 
 ### Governance Resources
 - `aegis://rules`: Inspect the full active rule matrix.

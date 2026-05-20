@@ -25,6 +25,7 @@ from aegis.infrastructure.ast_analyzer import TreeSitterAnalyzer
 from aegis.infrastructure.git_provider import GitDiffProvider
 from aegis.infrastructure.graph_analyzer import GraphAnalyzer
 from aegis.infrastructure.regex_analyzer import RegexAnalyzer
+from aegis.infrastructure.semantic_analyzer import SemanticAnalyzer
 
 logger = structlog.get_logger()
 
@@ -50,6 +51,7 @@ class Container:
         self.tree_sitter_analyzer = TreeSitterAnalyzer()
         self.graph_analyzer = GraphAnalyzer()
         self.regex_analyzer = RegexAnalyzer()
+        self.semantic_analyzer = SemanticAnalyzer()
 
         # Git provider (handles missing repo internally)
         self.diff_provider = self._try_init(
@@ -170,6 +172,7 @@ class Container:
                 self.graph_analyzer,
                 self.regex_analyzer,
                 self.diff_provider,
+                semantic_analyzer=self.semantic_analyzer,
                 extra_analyzers=self.plugin_registry.custom_analyzers,
             )
         except Exception as exc:

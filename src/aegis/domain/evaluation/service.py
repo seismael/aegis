@@ -9,6 +9,7 @@ from aegis.domain.evaluation.ports import (
     GraphAnalyzerInterface,
     RegexAnalyzerInterface,
     RuleAnalyzerInterface,
+    SemanticAnalyzerInterface,
 )
 from aegis.domain.evaluation.scoping import ScopeFilter
 from aegis.domain.policy.models import (
@@ -35,12 +36,14 @@ class EvaluationService:
         graph_analyzer: GraphAnalyzerInterface,
         regex_analyzer: RegexAnalyzerInterface,
         diff_provider: DiffProviderInterface,
+        semantic_analyzer: SemanticAnalyzerInterface | None = None,
         extra_analyzers: list[RuleAnalyzerInterface] | None = None,
     ):
         self.tree_sitter_analyzer = tree_sitter_analyzer
         self.graph_analyzer = graph_analyzer
         self.regex_analyzer = regex_analyzer
         self.diff_provider = diff_provider
+        self.semantic_analyzer = semantic_analyzer
         self.extra_analyzers = extra_analyzers or []
 
     def evaluate_workspace(
@@ -71,9 +74,10 @@ class EvaluationService:
         ts_rules = [r for r in rules if r.engine_type == EngineType.TREE_SITTER]
         regex_rules = [r for r in rules if r.engine_type == EngineType.REGEX]
         graph_rules = [r for r in rules if r.engine_type == EngineType.GRAPH]
+        semantic_rules = [r for r in rules if r.engine_type == EngineType.SEMANTIC]
 
-        # File-level analysis (tree-sitter + regex + extra analyzers)
-        if ts_rules or regex_rules or self.extra_analyzers:
+        # File-level analysis (tree-sitter + regex + semantic + extra)
+        if ts_rules or regex_rules or semantic_rules or self.extra_analyzers:
             for root, _, files in os.walk(root_dir):
                 for file in files:
                     file_path = os.path.join(root, file)
@@ -94,6 +98,12 @@ class EvaluationService:
                             all_violations.extend(
                                 self.regex_analyzer.analyze_file(
                                     file_path, content, regex_rules
+                                )
+                            )
+                        if semantic_rules and self.semantic_analyzer:
+                            all_violations.extend(
+                                self.semantic_analyzer.analyze_semantic(
+                                    file_path, content, semantic_rules
                                 )
                             )
                         for extra in self.extra_analyzers:
@@ -276,6 +286,7 @@ class EvaluationService:
         ts_rules = [r for r in rules if r.engine_type == EngineType.TREE_SITTER]
         regex_rules = [r for r in rules if r.engine_type == EngineType.REGEX]
         graph_rules = [r for r in rules if r.engine_type == EngineType.GRAPH]
+        semantic_rules = [r for r in rules if r.engine_type == EngineType.SEMANTIC]
 
         if graph_rules:
             logger.debug(
@@ -306,6 +317,12 @@ class EvaluationService:
                     file_violations.extend(
                         self.regex_analyzer.analyze_file(
                             file_path, content, regex_rules
+                        )
+                    )
+                if semantic_rules and self.semantic_analyzer:
+                    file_violations.extend(
+                        self.semantic_analyzer.analyze_semantic(
+                            file_path, content, semantic_rules
                         )
                     )
                 for extra in self.extra_analyzers:

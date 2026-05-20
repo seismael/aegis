@@ -57,6 +57,20 @@ class RegexAnalyzerInterface(ABC):
         pass
 
 
+class SemanticAnalyzerInterface(ABC):
+    """
+    Interface for intent-based semantic analysis.
+    Uses LLMs to evaluate rules that require high-level design context.
+    """
+
+    @abstractmethod
+    def analyze_semantic(
+        self, file_path: str, content: str, rules: list[Rule]
+    ) -> list[ArchitecturalViolation]:
+        """Evaluates semantic intent rules against file content."""
+        pass
+
+
 class DiffResult(ABC):
     """
     Represents the set of changes in a codebase.
