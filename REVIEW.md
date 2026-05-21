@@ -16,27 +16,23 @@ Currently, Aegis relies on the AI agent *choosing* to use its tools and *underst
 
 ## Significant Findings & Anti-Patterns
 
-### 1. The "Cognitive Overload" Anti-Pattern (Tool Bloat)
-**Observation:** The `AegisKernel` currently exposes **22 distinct MCP tools**. 
-**Agent UX Impact:** Large language models (LLMs) suffer from decision fatigue and reduced instruction adherence when presented with vast tool schemas. Providing 22 tools forces the agent to spend significant context tokens deciding *which* tool to use, rather than focusing on the coding task.
-**The Native Fix:** Implement an **Intent-Driven Facade**. Agents should interact with a single, hyper-intelligent endpoint: `consult_architect(intent: str, payload: dict)`. The Aegis kernel should handle the internal routing (e.g., deciding whether to run a Tree-sitter scan or a Graph analysis based on the intent). 
+### 1. The "Cognitive Overload" Anti-Pattern (Tool Bloat) [COMPLETED]
+**Observation:** The `AegisKernel` previously exposed **22 distinct MCP tools**. 
+**The Native Fix:** Implemented **Intent-Driven Meta-Tools**. Consolidated 22 granular tools into 4 high-level facades (`plan_architecture`, `validate_workspace`, `evolve_ruleset`, `query_knowledge_graph`).
 
-### 2. Syntactic vs. Semantic Asymmetry
-**Observation:** Agents reason semantically ("Is this module exposing PII?"), while Aegis enforces syntactically (Tree-sitter S-expressions).
-**Agent UX Impact:** When an agent is asked to author a new rule (via `aegis-rule-add`), it is forced to write flawless Tree-sitter queries. LLMs are notoriously unreliable at writing zero-shot AST queries without an iterative REPL environment, causing the rule-making loop to fail frequently.
+### 2. Syntactic vs. Semantic Asymmetry [COMPLETED]
+**Observation:** Agents reason semantically, while Aegis enforced syntactically.
 **The Native Fix:** 
-*   **Semantic Engine:** Introduce `engine_type: semantic`. Allow rules to be defined in pure natural language (e.g., `query: "Ensure no database calls are made from the presentation layer"`). Aegis would use an internal LLM-as-a-judge to evaluate these specific rules.
-*   **Auto-Compiler Tool:** For syntactic rules, agents should provide a "Pass snippet" and a "Fail snippet". Aegis should dynamically compile and test the Tree-sitter query internally, returning only the verified rule to the agent.
+*   **Semantic Engine:** Released `engine_type: semantic` and `SemanticAnalyzerInterface`.
+*   **Auto-Compiler Tool:** Added `test_rule` to `evolve_ruleset` allowing agents to verify queries against pass/fail snippets before codification.
 
-### 3. The "Opt-In" Vulnerability (Ambient vs. Explicit Context)
-**Observation:** Aegis relies on `OPERATIONS.md` and MCP Prompts to *instruct* the agent to call `get_relevant_rules` before editing.
-**Agent UX Impact:** If the context window rolls over, or the agent is distracted by a complex debugging task, it will "forget" to check the rules, leading to post-generation validation failures (reverting back to the legacy linter workflow).
-**The Native Fix:** Leverage MCP **Resource Subscriptions** and **Notifications**. When Aegis detects (via file-watcher or IDE integration) that the agent has opened a specific file, the MCP server should proactively push an `mcp.notifications.resources/updated` event containing the active context for that file. Governance becomes an ambient environment variable, not an explicit action.
+### 3. The "Opt-In" Vulnerability (Ambient vs. Explicit Context) [COMPLETED]
+**Observation:** Aegis relied on explicit discovery tools.
+**The Native Fix:** Implemented **Ambient Context Resources** (`aegis://context/{path}`). Agents are now instructed to subscribe to these resources for proactive, task-aware governance.
 
-### 4. Remediation Latency & "The Middleman" Problem
-**Observation:** When `validate_architecture_compliance` fails, it returns a text prompt instructing the agent *how* to fix the code.
-**Agent UX Impact:** The agent must read the instructions, re-write the code, and submit the changes. This is a highly inefficient loop for deterministic violations (like `import` boundary violations or regex style fixes).
-**The Native Fix:** Aegis should provide **Machine-Readable Diff Proposals**. Instead of just returning a prompt, `apply_architectural_remediation` should return standard unified diffs or MCP `TextEdit` objects that the agent can apply instantly, bypassing the need for the LLM to manually reason through the exact syntax of the fix.
+### 4. Remediation Latency & "The Middleman" Problem [COMPLETED]
+**Observation:** Remediation was a passive text prompt.
+**The Native Fix:** Upgraded to **Machine-Readable Diff Proposals**. `RemediationResult` now returns unified diffs for deterministic violations.
 
 ---
 

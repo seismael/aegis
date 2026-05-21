@@ -201,11 +201,12 @@ class AegisKernel:
     ) -> str:
         """
         Meta-Tool: Manage the project's architectural laws and technical debt.
-        action: 'init' (bootstrap), 'baseline' (grandfather debt),
-                'install_pack' (add rule set), 'remove_pack', 'suppress' (evolve rule).
-        target: Pack name or Rule ID for specific actions.
-        rationale: Human reasoning for evolution/suppression decisions.
-        rules_yaml: YAML string for creating custom rule packs.
+        action: 'init', 'baseline', 'install_pack', 'remove_pack', 
+                'suppress', 'create_pack', 'test_rule'.
+        target: Pack name, Rule ID, or Engine Type (for test_rule).
+        rationale: Human reasoning for decisions.
+        rules_yaml: YAML for creating/testing rules. 
+                   For 'test_rule', include 'pass' and 'fail' snippets.
         """
         if action == "init":
             return await self._initialize_project_governance()
@@ -221,6 +222,8 @@ class AegisKernel:
             )
         if action == "create_pack" and target and rules_yaml:
             return await self._create_custom_pack(target, rules_yaml)
+        if action == "test_rule" and target and rules_yaml:
+            return await self._test_architectural_rule(target, rules_yaml)
 
         return f"ERROR: Unsupported or incomplete evolution action: {action}."
 
@@ -744,6 +747,71 @@ class AegisKernel:
         except ValueError as e:
             return error(ERR_READ_FAILED, str(e))
 
+    async def _test_architectural_rule(self, engine_type: str, rules_yaml: str) -> str:
+        """
+        Innovation: Verifies a candidate rule against pass/fail snippets.
+        AI agents should use this to iterate on Tree-sitter or Regex queries.
+        rules_yaml should contain: query, language, pass_snippet, fail_snippet.
+        """
+        if self._evaluation_service is None:
+            return error(ERR_SERVICE_UNAVAILABLE, "Evaluation service unavailable.")
+
+        try:
+            data = yaml.safe_load(rules_yaml)
+            query = data.get("query")
+            lang = data.get("language", "py")
+            pass_snippet = data.get("pass_snippet", "")
+            fail_snippet = data.get("fail_snippet", "")
+        except yaml.YAMLError as e:
+            return error(ERR_INVALID_INPUT, f"Invalid YAML — {e}")
+
+        from aegis.domain.policy.models import EnforcementMode, EngineType, Rule, Severity
+
+        # Create temporary rule for testing
+        test_rule = Rule(
+            id="test-temp",
+            description="Verification test",
+            severity=Severity.LOW,
+            mode=EnforcementMode.REPORT,
+            engine_type=EngineType(engine_type),
+            query=query,
+            language=lang,
+        )
+
+        report = "# Aegis Rule Verification Report\n\n"
+        
+        # Test Pass Snippet
+        pass_violations = self._evaluation_service.evaluate_code_string(
+            pass_snippet, lang, [test_rule]
+        )
+        report += "### Test 1: Pass Snippet\n"
+        if not pass_violations:
+            report += "✅ SUCCESS: No violations detected (as expected).\n"
+        else:
+            report += f"❌ FAILED: Detected {len(pass_violations)} unexpected violations.\n"
+            for v in pass_violations:
+                report += f"  - Line {v.line}: {v.description}\n"
+
+        # Test Fail Snippet
+        fail_violations = self._evaluation_service.evaluate_code_string(
+            fail_snippet, lang, [test_rule]
+        )
+        report += "\n### Test 2: Fail Snippet\n"
+        if fail_violations:
+            report += f"✅ SUCCESS: Detected {len(fail_violations)} violations (as expected).\n"
+            for v in fail_violations:
+                report += f"  - Line {v.line}: {v.description}\n"
+        else:
+            report += "❌ FAILED: No violations detected in snippet that should fail.\n"
+
+        report += "\n**Conclusion:** "
+        if not pass_violations and fail_violations:
+            report += "Rule is VERIFIED. You can now codify it."
+        else:
+            report += "Rule needs REFINEMENT. The query does not match correctly."
+
+        return report
+
     async def _apply_auto_fixes(self) -> str:
         """
         Applies deterministic auto-fixes to fixable violations.
@@ -959,6 +1027,17 @@ class AegisKernel:
 
     def _register_resources(self):
         """Register static governance artifacts as MCP resources."""
+
+        @self.mcp.resource(
+            "aegis://context/{path}",
+            description="Ambient Architectural Context for a specific file path",
+        )
+        async def get_path_context_resource(path: str) -> str:
+            """
+            Proactive Discovery: Returns relevant rules for a specific file.
+            Agents can subscribe to this to receive ambient updates.
+            """
+            return await self._get_active_context(path)
 
         @self.mcp.resource(
             "aegis://rules",
