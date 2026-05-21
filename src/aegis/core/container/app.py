@@ -1,5 +1,6 @@
 import os
 from collections.abc import Callable
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import structlog
@@ -259,11 +260,8 @@ class Container:
         Scans upwards for pyproject.toml or .git to identify the project root.
         Defaults to CWD if nothing found.
         """
-        current = os.getcwd()
-        while current != os.path.dirname(current):
-            if os.path.exists(
-                os.path.join(current, "pyproject.toml")
-            ) or os.path.exists(os.path.join(current, ".git")):
-                return current
-            current = os.path.dirname(current)
-        return os.getcwd()
+        current = Path.cwd()
+        for parent in [current] + list(current.parents):
+            if (parent / "pyproject.toml").exists() or (parent / ".git").exists():
+                return str(parent)
+        return str(current)

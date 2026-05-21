@@ -162,7 +162,7 @@ class TestMCPErrorHandling:
         k = AegisKernel()
         k.container = None
         result = await k._validate_architecture_compliance()
-        assert "CONTAINER_NOT_INIT" in result
+        assert "Kernel not fully initialized" in result
 
     @pytest.mark.asyncio
     async def test_apply_remediation_no_container(self):

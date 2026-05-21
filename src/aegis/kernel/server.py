@@ -1,6 +1,7 @@
 import json
 import os
 import re
+from pathlib import Path
 
 import structlog
 import yaml
@@ -1197,29 +1198,25 @@ class AegisKernel:
             description="All active governance rules with queries, severity, and scope",
         )
         async def get_rules_resource() -> str:
-            rules_dir = os.path.join(self._workspace_root, ".aegis", "rules")
-            rules_file = os.path.join(self._workspace_root, ".aegis", "rules.yaml")
+            rules_dir = Path(self._workspace_root) / ".aegis" / "rules"
+            rules_file = Path(self._workspace_root) / ".aegis" / "rules.yaml"
 
-            if os.path.isdir(rules_dir):
+            if rules_dir.is_dir():
                 parts = []
-                for root, _dirs, files in os.walk(rules_dir):
-                    for f in sorted(files):
-                        if not f.endswith((".yaml", ".yml")) or f == "pack.yaml":
-                            continue
-                        fp = os.path.join(root, f)
-                        rel = os.path.relpath(fp, rules_dir)
-                        try:
-                            with open(fp, encoding="utf-8") as fh:
-                                parts.append(f"# --- {rel} ---\n{fh.read()}")
-                        except OSError as e:
-                            parts.append(f"# --- {rel} ---\nERROR: {e}")
+                for fp in sorted(rules_dir.rglob("*")):
+                    if not fp.is_file() or not fp.suffix in (".yaml", ".yml") or fp.name == "pack.yaml":
+                        continue
+                    rel = fp.relative_to(rules_dir)
+                    try:
+                        parts.append(f"# --- {rel} ---\n{fp.read_text(encoding='utf-8')}")
+                    except OSError as e:
+                        parts.append(f"# --- {rel} ---\nERROR: {e}")
                 return (
                     "\n\n".join(parts) if parts else warn("rules/ directory is empty.")
                 )
-            if os.path.exists(rules_file):
+            if rules_file.exists():
                 try:
-                    with open(rules_file, encoding="utf-8") as f:
-                        return f.read()
+                    return rules_file.read_text(encoding="utf-8")
                 except OSError as e:
                     return error(ERR_READ_FAILED, f"reading rules.yaml — {e}")
             return error(
