@@ -143,6 +143,7 @@ class AegisKernel:
         self.mcp.tool()(self.query_knowledge_graph)
         self.mcp.tool()(self.aegis_read_file)
         self.mcp.tool()(self.aegis_write_file)
+        self.mcp.tool()(self.aegis_run_command)
 
     async def plan_architecture(
         self,
@@ -215,7 +216,7 @@ class AegisKernel:
     ) -> str:
         """
         Meta-Tool: Manage the project's architectural laws and technical debt.
-        action: 'init', 'baseline', 'install_pack', 'remove_pack',
+        action: 'init', 'auto_init', 'baseline', 'install_pack', 'remove_pack',
                 'suppress', 'create_pack', 'test_rule'.
         target: Pack name, Rule ID, or Engine Type (for test_rule).
         rationale: Human reasoning for decisions.
@@ -224,6 +225,8 @@ class AegisKernel:
         """
         if action == "init":
             return await self._initialize_project_governance()
+        if action == "auto_init":
+            return await self._autonomous_inference_initialization()
         if action == "baseline":
             return await self._capture_architectural_baseline()
         if action == "install_pack" and target:
@@ -246,7 +249,7 @@ class AegisKernel:
     ) -> str:
         """
         Meta-Tool: Introspect project health, dependencies, and rule rationale.
-        query_type: 'status', 'dependency', 'rationale', 'list_packs'.
+        query_type: 'status', 'dependency', 'rationale', 'list_packs', 'dna'.
         target: Module name for dependency graph or Rule ID for rationale.
         """
         if query_type == "status":
@@ -257,42 +260,62 @@ class AegisKernel:
             return await self._get_rule_rationale(target)
         if query_type == "list_packs":
             return await self._list_rule_packs()
+        if query_type == "dna":
+            return await self._get_project_dna()
 
         return f"ERROR: Unsupported or incomplete knowledge query: {query_type}."
 
-    async def aegis_read_file(self, path: str) -> str:
+    async def aegis_read_file(
+        self, path: str, session_id: str = "default"
+    ) -> str:
         """
-        Hardened Proxy: Reads file content and injects ambient architectural DNA.
-        Ensures the agent is always aware of the local laws for the module.
+        Hardened Proxy: Reads file content and injects ambient micro-context.
+        Ensures the agent is aware of the local laws without token bloat.
         """
         if self.container is None:
             return "ERROR: Kernel not initialized."
 
         try:
             # 1. Get raw content (respecting VFS if staged)
-            content = self._evaluation_service._get_file_content(path)
+            content = self._evaluation_service._get_file_content(
+                path, session_id=session_id
+            )
 
-            # 2. Get Governance DNA
+            # 2. Get Governance DNA Micro-Context
             dna_raw = await self._get_active_context(path)
             dna = json.loads(dna_raw)
 
-            # 3. Construct DNA Header
-            header = "# === AEGIS GOVERNANCE DNA ===\n"
-            header += f"# CONTEXT: {path}\n"
+            # 3. Construct DNA Header (Micro-Context)
+            # Instead of dumping full descriptions, we just list active rule IDs.
+            # Full details are in aegis://dna which the agent has cached.
+            header = f"# [AEGIS CONTEXT: {path}]\n"
             if dna.get("rules"):
-                header += "# ACTIVE LAWS:\n"
-                for r in dna["rules"]:
-                    header += f"#   - {r['id']}: {r['description']}\n"
+                rule_ids = [r["id"] for r in dna["rules"]]
+                header += f"# ACTIVE LAWS: {', '.join(rule_ids)}\n"
+            else:
+                header += "# ACTIVE LAWS: None\n"
+
+            # Check quarantine status
+            if self.container.vfs and self.container.vfs.is_quarantined(
+                path, session_id=session_id
+            ):
+                header += (
+                    "# [WARNING: FILE IS QUARANTINED. "
+                    "FIX ARCHITECTURAL VIOLATIONS TO COMMIT.]\n"
+                )
+
             header += "# ============================\n\n"
 
             return header + content
         except Exception as e:
             return f"ERROR: Failed to read file — {e}"
 
-    async def aegis_write_file(self, path: str, content: str) -> str:
+    async def aegis_write_file(
+        self, path: str, content: str, session_id: str = "default"
+    ) -> str:
         """
         Hardened Proxy: Speculative write with absolute enforcement.
-        Blocks the write if it violates high-severity architectural laws.
+        Quarantines the write if it violates high-severity architectural laws.
         """
         if self.container is None:
             return "ERROR: Kernel not initialized."
@@ -304,12 +327,12 @@ class AegisKernel:
             return "ERROR: Governance Sandbox unavailable."
 
         # 1. Speculative Stage (In-Memory Only)
-        vfs.stage_change(path, content)
+        vfs.stage_change(path, content, session_id=session_id)
 
         # 2. In-Flight Validation
         rules = self._load_rules()
         violations = eval_service.evaluate_file(
-            path, rules, root_dir=self._workspace_root
+            path, rules, root_dir=self._workspace_root, session_id=session_id
         )
 
         # 3. Decision Gate
@@ -317,19 +340,19 @@ class AegisKernel:
         blocking = [v for v in violations if v.severity in ("HIGH", "CRITICAL")]
 
         if blocking:
-            # Rejection: Discard from VFS and return error
-            vfs.discard(path)
+            # Quarantine: Do not commit, but keep in VFS.
             remediation = await self._apply_architectural_remediation()
+            vfs.quarantine(path, remediation.handoff_prompt, session_id=session_id)
             return (
-                f"ABORTED: Architectural Violation detected in {path}. "
-                "The write operation has been blocked. "
-                "Refactor according to the following instructions:\n\n"
+                f"QUARANTINED: Architectural Violation detected in {path}. "
+                "The write operation is staged but BLOCKED from disk. "
+                "You must apply the following specific diff to release the quarantine:\n\n"
                 f"{remediation.handoff_prompt}"
             )
 
         # 4. Commit: Physically write to disk
         try:
-            if vfs.commit(path):
+            if vfs.commit(path, session_id=session_id):
                 msg = f"SUCCESS: File {path} written securely."
                 if violations:
                     msg += (
@@ -339,6 +362,62 @@ class AegisKernel:
             return f"ERROR: Failed to commit {path} to disk."
         except Exception as e:
             return f"ERROR: Disk IO failure — {e}"
+
+    async def aegis_run_command(self, command: str) -> str:
+        """
+        Safe Bash Execution Wrapper. Runs shell commands with post-execution architectural checks.
+        If the command introduces structural drift, changes are automatically reverted via git.
+        """
+        import subprocess
+
+        if self.container is None:
+            return "ERROR: Kernel not initialized."
+
+        try:
+            # 1. Execute Command
+            result = subprocess.run(
+                command,
+                shell=True,
+                cwd=self._workspace_root,
+                capture_output=True,
+                text=True,
+            )
+
+            output = f"Command exited with {result.returncode}.\n"
+            if result.stdout:
+                output += f"STDOUT:\n{result.stdout}\n"
+            if result.stderr:
+                output += f"STDERR:\n{result.stderr}\n"
+
+            # 2. Post-Execution Validation
+            compliance_json = await self._validate_architecture_compliance(
+                staged_only=False
+            )
+            data = json.loads(compliance_json)
+
+            # 3. Rollback Mechanism
+            if not data.get("passed"):
+                # Rollback changes to tracked files via git
+                subprocess.run(
+                    ["git", "checkout", "--", "."],
+                    cwd=self._workspace_root,
+                    capture_output=True,
+                )
+                remediation = await self._apply_architectural_remediation()
+                return (
+                    f"{output}\n\n"
+                    "ABORTED: The shell command introduced architectural drift. "
+                    "All changes have been automatically REVERTED.\n"
+                    "Refactor your approach to respect the invariants:\n\n"
+                    f"{remediation.handoff_prompt}"
+                )
+
+            return (
+                output
+                + "\nSUCCESS: Command executed and architecture remains compliant."
+            )
+        except Exception as e:
+            return f"ERROR: Failed to execute command — {e}"
 
     async def _propose_architectural_steering(self, task_description: str) -> str:
         """
@@ -635,6 +714,106 @@ class AegisKernel:
             f"Aegis governance initialized at {aegis_dir}."
             f" Rules in {rules_dir}/. Use `/aegis-init` to customize."
         )
+
+    async def _autonomous_inference_initialization(self) -> str:
+        """
+        Phase 2 Innovation: Zero-Config 'Lights Out' Initialization.
+        Hypothesizes stack, installs relevant packs, and baselines all debt automatically.
+        """
+        if self.container is None:
+            return error(ERR_CONTAINER_NOT_INIT, "Kernel not initialized.")
+
+        # 1. Hypothesize
+        hypothesis = await self._hypothesize_workspace_architecture()
+
+        # 2. Init base structure
+        from aegis.domain.governance.service import GovernanceService
+
+        GovernanceService.init_project_structure(self._workspace_root)
+
+        # 3. Extract recommendations from hypothesis and install them
+        installed = []
+        try:
+            for line in hypothesis.splitlines():
+                if line.startswith("**Recommended packs:**"):
+                    packs_str = line.replace("**Recommended packs:**", "").strip()
+                    if packs_str and packs_str != "None":
+                        recommended_packs = [p.strip() for p in packs_str.split(", ")]
+                        pm = self._rule_pack_manager
+                        if pm:
+                            for pack in recommended_packs:
+                                try:
+                                    pm.install(pack)
+                                    installed.append(pack)
+                                except ValueError:
+                                    pass  # Already installed or invalid
+        except Exception as e:
+            self.logger.warning("Autonomous pack inference failed", error=str(e))
+
+        # 4. Auto-Baseline
+        baseline_msg = await self._capture_architectural_baseline()
+
+        report = "# 🤖 Aegis Autonomous Initialization Complete\n\n"
+        report += (
+            "Aegis has successfully inferred your project structure and "
+            "established governance.\n\n"
+        )
+        report += hypothesis + "\n\n"
+        report += f"**Auto-Installed Packs:** {', '.join(installed) if installed else 'Default only'}\n"
+        report += f"**Debt Ledger:** {baseline_msg}\n\n"
+        report += "You are now running in an enforced Sandbox environment."
+
+        return report
+
+    async def _autonomous_inference_initialization(self) -> str:
+        """
+        Phase 2 Innovation: Zero-Config 'Lights Out' Initialization.
+        Hypothesizes stack, installs relevant packs, and baselines all debt automatically.
+        """
+        if self.container is None:
+            return error(ERR_CONTAINER_NOT_INIT, "Kernel not initialized.")
+
+        # 1. Hypothesize
+        hypothesis = await self._hypothesize_workspace_architecture()
+
+        # 2. Init base structure
+        from aegis.domain.governance.service import GovernanceService
+
+        GovernanceService.init_project_structure(self._workspace_root)
+
+        # 3. Extract recommendations from hypothesis and install them
+        installed = []
+        try:
+            for line in hypothesis.splitlines():
+                if line.startswith("**Recommended packs:**"):
+                    packs_str = line.replace("**Recommended packs:**", "").strip()
+                    if packs_str and packs_str != "None":
+                        recommended_packs = [p.strip() for p in packs_str.split(", ")]
+                        pm = self._rule_pack_manager
+                        if pm:
+                            for pack in recommended_packs:
+                                try:
+                                    pm.install(pack)
+                                    installed.append(pack)
+                                except ValueError:
+                                    pass  # Already installed or invalid
+        except Exception as e:
+            self.logger.warning("Autonomous pack inference failed", error=str(e))
+
+        # 4. Auto-Baseline
+        baseline_msg = await self._capture_architectural_baseline()
+
+        report = "# 🤖 Aegis Autonomous Initialization Complete\n\n"
+        report += (
+            "Aegis has successfully inferred your project structure and "
+            "established governance.\n\n"
+        )
+        report += hypothesis + "\n\n"
+        report += f"**Auto-Installed Packs:** {', '.join(installed) if installed else 'Default only'}\n"
+        report += f"**Debt Ledger:** {baseline_msg}\n\n"
+        report += "You are now running in an enforced Sandbox environment."
+
+        return report
 
     async def _hypothesize_workspace_architecture(self) -> str:
         """
@@ -1098,12 +1277,13 @@ class AegisKernel:
         def start_new_task_prompt(description: str) -> str:
             return (
                 f"I am starting the following task: {description}. "
-                "Call `propose_architectural_steering` with this description "
-                "to get relevant rules and guidance. Returns structured JSON "
-                "with rules array (id, description, severity, mode, rationale). "
-                "Also call `get_active_context` for file-specific rules before "
-                "editing each file. Then read the `aegis://rules` "
-                "resource to align your implementation with project invariants."
+                "Call the `plan_architecture` Meta-Tool with this description "
+                "to get an Architectural Flight Plan. Before editing any file, "
+                "call `plan_architecture(file_path=...)` to discover relevant "
+                "rules. You can also call `plan_architecture(code_string=...)` "
+                "to validate snippets mid-thought before writing to disk. "
+                "Finally, read the `aegis://dna` resource to embed the highly "
+                "compressed project manifesto into your context."
             )
 
         @self.mcp.prompt(
@@ -1192,6 +1372,13 @@ class AegisKernel:
             Agents can subscribe to this to receive ambient updates.
             """
             return await self._get_active_context(path)
+
+        @self.mcp.resource(
+            "aegis://dna",
+            description="High-density token-compressed manifesto of project invariants",
+        )
+        async def get_dna_resource() -> str:
+            return await self._get_project_dna()
 
         @self.mcp.resource(
             "aegis://rules",
@@ -1607,6 +1794,32 @@ class AegisKernel:
             result += "\nNo evolution history recorded for this rule."
 
         return result
+
+    async def _get_project_dna(self) -> str:
+        """
+        Returns a highly compressed, token-efficient 'Manifesto' of the project's invariants.
+        This provides ambient architectural awareness for AI agents without token bloat.
+        """
+        all_rules = self._load_rules()
+        if not all_rules:
+            return "NO ARCHITECTURAL DNA FOUND."
+
+        # Group rules by category for compression
+        categories = {}
+        for r in all_rules:
+            if r.category.value not in categories:
+                categories[r.category.value] = []
+            categories[r.category.value].append(r)
+
+        dna = "[AEGIS GOVERNANCE DNA]\n"
+        for cat, rules in sorted(categories.items()):
+            dna += f"[{cat.upper()}]\n"
+            for r in rules:
+                dna += (
+                    f"- {r.id} ({r.severity.value}/{r.mode.value}): {r.description}\n"
+                )
+
+        return dna
 
     async def _get_dependency_graph(self, node_name: str) -> str:
         """

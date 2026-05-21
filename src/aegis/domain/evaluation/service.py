@@ -145,13 +145,13 @@ class EvaluationService:
             if os.path.isabs(v.file):
                 try:
                     rel = os.path.relpath(v.file, root_dir)
-                    # Always use forward slashes for cross-platform baseline consistency
-                    v.file = rel.replace(os.sep, "/")
+                    # Force forward slashes for cross-platform baseline consistency
+                    v.file = rel.replace("\\", "/").replace(os.sep, "/")
                 except ValueError:
                     pass  # different drive, keep as-is
             else:
                 # Ensure existing relative paths also use forward slashes
-                v.file = v.file.replace(os.sep, "/")
+                v.file = v.file.replace("\\", "/").replace(os.sep, "/")
 
     @staticmethod
     def filter_rules_by_phase(
@@ -224,11 +224,12 @@ class EvaluationService:
         file_path: str,
         rules: list[Rule],
         root_dir: str | None = None,
+        session_id: str = "default",
     ) -> list[ArchitecturalViolation]:
         """Evaluate a single file against applicable rules."""
         file_violations: list[ArchitecturalViolation] = []
         try:
-            content = self._get_file_content(file_path)
+            content = self._get_file_content(file_path, session_id=session_id)
         except (UnicodeDecodeError, OSError, FileNotFoundError):
             return file_violations
 
@@ -257,6 +258,7 @@ class EvaluationService:
         phase: EvaluationPhase | None = None,
         category: RuleCategory | None = None,
         phase_mapping: CategoryPhaseMapping | None = None,
+        session_id: str = "default",
     ) -> list[ArchitecturalViolation]:
         """
         Performs a token-efficient analysis of only the changed lines in changed files.
@@ -292,11 +294,11 @@ class EvaluationService:
             try:
                 # In V3, we also check if the file is staged in our VFS
                 if not os.path.exists(file_path) and not (
-                    self.vfs and self.vfs.is_staged(file_path)
+                    self.vfs and self.vfs.is_staged(file_path, session_id=session_id)
                 ):
                     continue
 
-                content = self._get_file_content(file_path)
+                content = self._get_file_content(file_path, session_id=session_id)
 
                 file_violations: list[ArchitecturalViolation] = []
                 if ts_rules:
@@ -341,10 +343,10 @@ class EvaluationService:
 
         return ScopeFilter.filter_violations(all_violations, rules)
 
-    def _get_file_content(self, file_path: str) -> str:
+    def _get_file_content(self, file_path: str, session_id: str = "default") -> str:
         """Retrieves file content via VFS if available, otherwise from disk."""
         if self.vfs:
-            return self.vfs.read(file_path)
+            return self.vfs.read(file_path, session_id=session_id)
         with open(file_path, encoding="utf-8") as f:
             return f.read()
 
