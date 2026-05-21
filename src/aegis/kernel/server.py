@@ -265,9 +265,7 @@ class AegisKernel:
 
         return f"ERROR: Unsupported or incomplete knowledge query: {query_type}."
 
-    async def aegis_read_file(
-        self, path: str, session_id: str = "default"
-    ) -> str:
+    async def aegis_read_file(self, path: str, session_id: str = "default") -> str:
         """
         Hardened Proxy: Reads file content and injects ambient micro-context.
         Ensures the agent is aware of the local laws without token bloat.
@@ -366,8 +364,8 @@ class AegisKernel:
 
     async def aegis_run_command(self, command: str) -> str:
         """
-        Safe Bash Execution Wrapper. Runs shell commands with post-execution architectural checks.
-        If the command introduces structural drift, changes are automatically reverted via git.
+        Safe Bash Execution Wrapper. Runs shell commands with post-execution 
+        checks. If command introduces drift, changes are reverted via git.
         """
         import subprocess
 
@@ -715,56 +713,6 @@ class AegisKernel:
             f"Aegis governance initialized at {aegis_dir}."
             f" Rules in {rules_dir}/. Use `/aegis-init` to customize."
         )
-
-    async def _autonomous_inference_initialization(self) -> str:
-        """
-        Phase 2 Innovation: Zero-Config 'Lights Out' Initialization.
-        Hypothesizes stack, installs relevant packs, and baselines all debt automatically.
-        """
-        if self.container is None:
-            return error(ERR_CONTAINER_NOT_INIT, "Kernel not initialized.")
-
-        # 1. Hypothesize
-        hypothesis = await self._hypothesize_workspace_architecture()
-
-        # 2. Init base structure
-        from aegis.domain.governance.service import GovernanceService
-
-        GovernanceService.init_project_structure(self._workspace_root)
-
-        # 3. Extract recommendations from hypothesis and install them
-        installed = []
-        try:
-            for line in hypothesis.splitlines():
-                if line.startswith("**Recommended packs:**"):
-                    packs_str = line.replace("**Recommended packs:**", "").strip()
-                    if packs_str and packs_str != "None":
-                        recommended_packs = [p.strip() for p in packs_str.split(", ")]
-                        pm = self._rule_pack_manager
-                        if pm:
-                            for pack in recommended_packs:
-                                try:
-                                    pm.install(pack)
-                                    installed.append(pack)
-                                except ValueError:
-                                    pass  # Already installed or invalid
-        except Exception as e:
-            self.logger.warning("Autonomous pack inference failed", error=str(e))
-
-        # 4. Auto-Baseline
-        baseline_msg = await self._capture_architectural_baseline()
-
-        report = "# 🤖 Aegis Autonomous Initialization Complete\n\n"
-        report += (
-            "Aegis has successfully inferred your project structure and "
-            "established governance.\n\n"
-        )
-        report += hypothesis + "\n\n"
-        report += f"**Auto-Installed Packs:** {', '.join(installed) if installed else 'Default only'}\n"
-        report += f"**Debt Ledger:** {baseline_msg}\n\n"
-        report += "You are now running in an enforced Sandbox environment."
-
-        return report
 
     async def _autonomous_inference_initialization(self) -> str:
         """

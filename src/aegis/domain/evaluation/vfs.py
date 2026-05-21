@@ -36,7 +36,6 @@ class SpeculativeVFS:
     def stage_change(
         self, file_path: str, content: str, session_id: str = "default"
     ) -> str:
-
         """
         Stages a proposed change in the virtual overlay.
         Returns the normalized relative path.
