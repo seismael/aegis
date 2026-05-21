@@ -44,7 +44,8 @@ Aegis leverages the **Model Context Protocol (MCP)** to provide an intent-driven
 - `evolve_ruleset`: Manage architectural laws, rule packs, and technical debt.
 - `query_knowledge_graph`: Introspect project health, rationales, and dependencies.
 
-### Governance Resources
+### Governance Resources (Subscribe for Ambient Context)
+- `aegis://context/{path}`: Ambient Architectural Context for a specific file. **SUBSCRIBE** to this resource for real-time steering.
 - `aegis://rules`: Inspect the full active rule matrix.
 - `aegis://baseline`: Access the technical debt ledger.
 - `aegis://evolution`: Review the auditable history of architectural decisions.

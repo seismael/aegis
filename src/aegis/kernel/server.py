@@ -201,11 +201,11 @@ class AegisKernel:
     ) -> str:
         """
         Meta-Tool: Manage the project's architectural laws and technical debt.
-        action: 'init', 'baseline', 'install_pack', 'remove_pack', 
+        action: 'init', 'baseline', 'install_pack', 'remove_pack',
                 'suppress', 'create_pack', 'test_rule'.
         target: Pack name, Rule ID, or Engine Type (for test_rule).
         rationale: Human reasoning for decisions.
-        rules_yaml: YAML for creating/testing rules. 
+        rules_yaml: YAML for creating/testing rules.
                    For 'test_rule', include 'pass' and 'fail' snippets.
         """
         if action == "init":
@@ -765,7 +765,12 @@ class AegisKernel:
         except yaml.YAMLError as e:
             return error(ERR_INVALID_INPUT, f"Invalid YAML — {e}")
 
-        from aegis.domain.policy.models import EnforcementMode, EngineType, Rule, Severity
+        from aegis.domain.policy.models import (
+            EnforcementMode,
+            EngineType,
+            Rule,
+            Severity,
+        )
 
         # Create temporary rule for testing
         test_rule = Rule(
@@ -779,7 +784,7 @@ class AegisKernel:
         )
 
         report = "# Aegis Rule Verification Report\n\n"
-        
+
         # Test Pass Snippet
         pass_violations = self._evaluation_service.evaluate_code_string(
             pass_snippet, lang, [test_rule]
@@ -788,7 +793,10 @@ class AegisKernel:
         if not pass_violations:
             report += "✅ SUCCESS: No violations detected (as expected).\n"
         else:
-            report += f"❌ FAILED: Detected {len(pass_violations)} unexpected violations.\n"
+            report += (
+                f"❌ FAILED: Detected {len(pass_violations)} "
+                "unexpected violations.\n"
+            )
             for v in pass_violations:
                 report += f"  - Line {v.line}: {v.description}\n"
 
