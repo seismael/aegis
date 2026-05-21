@@ -794,8 +794,7 @@ class AegisKernel:
             report += "✅ SUCCESS: No violations detected (as expected).\n"
         else:
             report += (
-                f"❌ FAILED: Detected {len(pass_violations)} "
-                "unexpected violations.\n"
+                f"❌ FAILED: Detected {len(pass_violations)} unexpected violations.\n"
             )
             for v in pass_violations:
                 report += f"  - Line {v.line}: {v.description}\n"
@@ -806,7 +805,10 @@ class AegisKernel:
         )
         report += "\n### Test 2: Fail Snippet\n"
         if fail_violations:
-            report += f"✅ SUCCESS: Detected {len(fail_violations)} violations (as expected).\n"
+            report += (
+                f"✅ SUCCESS: Detected {len(fail_violations)} "
+                "violations (as expected).\n"
+            )
             for v in fail_violations:
                 report += f"  - Line {v.line}: {v.description}\n"
         else:
@@ -1391,7 +1393,9 @@ class AegisKernel:
             return RemediationResult(
                 summary="Architecture is compliant.",
                 violations_count=0,
-                handoff_prompt="PASS: Architecture is compliant. No remediation needed.",
+                handoff_prompt=(
+                    "PASS: Architecture is compliant. No remediation needed."
+                ),
             )
 
         if self.remediation_synthesizer is None:

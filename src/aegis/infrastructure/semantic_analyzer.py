@@ -45,7 +45,7 @@ class SemanticAnalyzer(SemanticAnalyzerInterface):
             )
 
             # PROOF OF CONCEPT: Simple keyword heuristic to simulate 'LLM Logic'
-            # In production, this would be: 
+            # In production, this would be:
             # is_compliant = self.llm_judge(content, rule.query)
 
             trigger_keywords = (rule.metadata or {}).get("sim_triggers", [])
