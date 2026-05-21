@@ -1444,7 +1444,10 @@ class AegisKernel:
             return RemediationResult(
                 summary="Governance service unavailable.",
                 violations_count=0,
-                handoff_prompt="ERROR: Governance service unavailable — container in degraded mode.",
+                handoff_prompt=(
+                    "ERROR: Governance service unavailable — "
+                    "container in degraded mode."
+                ),
             )
         active = self.container.governance_service.get_active_violations(
             rules, self._workspace_root
