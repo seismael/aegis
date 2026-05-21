@@ -1,0 +1,82 @@
+{
+  "checks": [
+    {
+      "violation_count": 135,
+      "timestamp": "2026-05-21T20:44:01.598599+00:00"
+    },
+    {
+      "violation_count": 161,
+      "timestamp": "2026-05-21T20:55:49.982379+00:00"
+    }
+  ],
+  "remediations": [
+    {
+      "rule_id": "style-consistent-quotes",
+      "timestamp": "2026-05-21T20:54:44.058778+00:00"
+    },
+    {
+      "rule_id": "bp-error-handling-depth",
+      "timestamp": "2026-05-21T20:54:44.074400+00:00"
+    },
+    {
+      "rule_id": "docs-module-docstring",
+      "timestamp": "2026-05-21T20:54:44.152568+00:00"
+    },
+    {
+      "rule_id": "strict-ood",
+      "timestamp": "2026-05-21T20:54:44.168185+00:00"
+    },
+    {
+      "rule_id": "bp-use-pathlib",
+      "timestamp": "2026-05-21T20:54:44.201182+00:00"
+    },
+    {
+      "rule_id": "style-no-trailing-whitespace",
+      "timestamp": "2026-05-21T20:54:44.216246+00:00"
+    },
+    {
+      "rule_id": "bp-context-managers",
+      "timestamp": "2026-05-21T20:54:44.231885+00:00"
+    },
+    {
+      "rule_id": "style-blank-lines",
+      "timestamp": "2026-05-21T20:54:44.247506+00:00"
+    },
+    {
+      "rule_id": "perf-string-concat",
+      "timestamp": "2026-05-21T20:54:44.263135+00:00"
+    },
+    {
+      "rule_id": "style-consistent-imports",
+      "timestamp": "2026-05-21T20:54:44.298295+00:00"
+    },
+    {
+      "rule_id": "perf-sync-io-async",
+      "timestamp": "2026-05-21T20:54:44.319840+00:00"
+    },
+    {
+      "rule_id": "perf-unbounded-append",
+      "timestamp": "2026-05-21T20:54:44.340926+00:00"
+    },
+    {
+      "rule_id": "perf-n-plus-1",
+      "timestamp": "2026-05-21T20:54:44.351013+00:00"
+    },
+    {
+      "rule_id": "design-factory-method",
+      "timestamp": "2026-05-21T20:54:44.382256+00:00"
+    },
+    {
+      "rule_id": "no-print-statements",
+      "timestamp": "2026-05-21T20:54:44.413522+00:00"
+    },
+    {
+      "rule_id": "perf-repeated-computation",
+      "timestamp": "2026-05-21T20:54:44.457197+00:00"
+    },
+    {
+      "rule_id": "dead-module-detection",
+      "timestamp": "2026-05-21T20:54:44.483380+00:00"
+    }
+  ]
+}
