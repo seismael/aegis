@@ -346,7 +346,8 @@ class AegisKernel:
             return (
                 f"QUARANTINED: Architectural Violation detected in {path}. "
                 "The write operation is staged but BLOCKED from disk. "
-                "You must apply the following specific diff to release the quarantine:\n\n"
+                "You must apply the following specific diff to "
+                "release the quarantine:\n\n"
                 f"{remediation.handoff_prompt}"
             )
 
