@@ -758,7 +758,8 @@ class AegisKernel:
             "established governance.\n\n"
         )
         report += hypothesis + "\n\n"
-        report += f"**Auto-Installed Packs:** {', '.join(installed) if installed else 'Default only'}\n"
+        installed_str = ", ".join(installed) if installed else "Default only"
+        report += f"**Auto-Installed Packs:** {installed_str}\n"
         report += f"**Debt Ledger:** {baseline_msg}\n\n"
         report += "You are now running in an enforced Sandbox environment."
 
@@ -1746,8 +1747,8 @@ class AegisKernel:
 
     async def _get_project_dna(self) -> str:
         """
-        Returns a highly compressed, token-efficient 'Manifesto' of the project's invariants.
-        This provides ambient architectural awareness for AI agents without token bloat.
+        Returns a compressed 'Manifesto' of the project's invariants.
+        Provides ambient architectural awareness for AI agents without token bloat.
         """
         all_rules = self._load_rules()
         if not all_rules:

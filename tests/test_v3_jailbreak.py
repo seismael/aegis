@@ -4,12 +4,13 @@ Empirically validates multi-tenancy, quarantine, micro-context, and shell bypass
 """
 
 import json
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from aegis.kernel.server import AegisKernel
-from aegis.domain.evaluation.vfs import SpeculativeVFS
+import pytest
+
 from aegis.domain.evaluation.ports import ArchitecturalViolation
+from aegis.domain.evaluation.vfs import SpeculativeVFS
+from aegis.kernel.server import AegisKernel
 
 
 @pytest.fixture

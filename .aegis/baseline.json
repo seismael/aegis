@@ -31484,5 +31484,376 @@
     "rule_id": "style-blank-lines",
     "signature": null,
     "captured_at": "2026-05-21T21:08:27.183931+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 800,
+    "rule_id": "bp-use-pathlib",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1377,
+    "rule_id": "bp-use-pathlib",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1394,
+    "rule_id": "bp-use-pathlib",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1466,
+    "rule_id": "bp-use-pathlib",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1502,
+    "rule_id": "bp-use-pathlib",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1380,
+    "rule_id": "bp-context-managers",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1399,
+    "rule_id": "bp-context-managers",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1469,
+    "rule_id": "bp-context-managers",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1504,
+    "rule_id": "bp-context-managers",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 965,
+    "rule_id": "bp-error-handling-depth",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1614,
+    "rule_id": "bp-error-handling-depth",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1679,
+    "rule_id": "bp-error-handling-depth",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 949,
+    "rule_id": "perf-repeated-computation",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1442,
+    "rule_id": "perf-repeated-computation",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1375,
+    "rule_id": "perf-sync-io-async",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1392,
+    "rule_id": "perf-sync-io-async",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1464,
+    "rule_id": "perf-sync-io-async",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 834,
+    "rule_id": "perf-unbounded-append",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1139,
+    "rule_id": "perf-unbounded-append",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1737,
+    "rule_id": "perf-string-concat",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1183,
+    "rule_id": "perf-n-plus-1",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1596,
+    "rule_id": "perf-n-plus-1",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1797,
+    "rule_id": "perf-n-plus-1",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1900,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 848,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 893,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 910,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 967,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 981,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1019,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1160,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1277,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1306,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1353,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1558,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1707,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1715,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1722,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1750,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1785,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1801,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1214,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1218,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1226,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1242,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1259,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1274,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1287,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1303,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1310,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1475,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1819,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1863,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-05-21T21:16:03.909842+00:00"
   }
 ]
