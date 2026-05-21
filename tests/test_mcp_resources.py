@@ -1,5 +1,4 @@
 from unittest.mock import MagicMock, patch
-from pathlib import Path
 
 import pytest
 
@@ -43,7 +42,9 @@ class TestMCPResources:
         # Use patch on Path.exists and Path.read_text
         with patch("aegis.kernel.server.Path.exists", return_value=True):
             with patch("aegis.kernel.server.Path.is_dir", return_value=False):
-                with patch("aegis.kernel.server.Path.read_text", return_value="rules: []"):
+                with patch(
+                    "aegis.kernel.server.Path.read_text", return_value="rules: []"
+                ):
                     results = await kernel.mcp.read_resource("aegis://rules")
         assert len(results) == 1
         content = results[0].content
@@ -68,7 +69,7 @@ class TestMCPResources:
             mock_file.name = "arch.yaml"
             mock_file.relative_to.return_value = "arch.yaml"
             mock_file.read_text.return_value = "rules: [- id: arch1]"
-            
+
             with patch("aegis.kernel.server.Path.rglob", return_value=[mock_file]):
                 results = await kernel.mcp.read_resource("aegis://rules")
         assert "arch1" in results[0].content
@@ -92,7 +93,7 @@ class TestMCPResources:
             mock_file.name = "bad.yaml"
             mock_file.relative_to.return_value = "bad.yaml"
             mock_file.read_text.side_effect = OSError("denied")
-            
+
             with patch("aegis.kernel.server.Path.rglob", return_value=[mock_file]):
                 results = await kernel.mcp.read_resource("aegis://rules")
         assert "ERROR" in results[0].content or "bad.yaml" in results[0].content
@@ -102,6 +103,8 @@ class TestMCPResources:
         """rules.yaml read error returns ERROR."""
         with patch("aegis.kernel.server.Path.is_dir", return_value=False):
             with patch("aegis.kernel.server.Path.exists", return_value=True):
-                with patch("aegis.kernel.server.Path.read_text", side_effect=OSError("denied")):
+                with patch(
+                    "aegis.kernel.server.Path.read_text", side_effect=OSError("denied")
+                ):
                     results = await kernel.mcp.read_resource("aegis://rules")
         assert "READ_FAILED" in results[0].content

@@ -1204,11 +1204,18 @@ class AegisKernel:
             if rules_dir.is_dir():
                 parts = []
                 for fp in sorted(rules_dir.rglob("*")):
-                    if not fp.is_file() or not fp.suffix in (".yaml", ".yml") or fp.name == "pack.yaml":
+                    if (
+                        not fp.is_file()
+                        or fp.suffix not in (".yaml", ".yml")
+                        or fp.name == "pack.yaml"
+                    ):
                         continue
                     rel = fp.relative_to(rules_dir)
                     try:
-                        parts.append(f"# --- {rel} ---\n{fp.read_text(encoding='utf-8')}")
+                        parts.append(
+                            f"# --- {rel} ---\n{fp.read_text(encoding='utf-8')}"
+                        )
+
                     except OSError as e:
                         parts.append(f"# --- {rel} ---\nERROR: {e}")
                 return (
