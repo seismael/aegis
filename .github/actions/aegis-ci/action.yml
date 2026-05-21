@@ -31,13 +31,7 @@ runs:
     - name: Install Aegis
       shell: bash
       run: |
-        if command -v uv &> /dev/null; then
-          uv tool install aegis
-        elif command -v pipx &> /dev/null; then
-          pipx install aegis
-        else
-          pip install aegis
-        fi
+        pip install .
 
     - name: Verify initialization
       shell: bash

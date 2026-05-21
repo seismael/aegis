@@ -22,7 +22,10 @@ class AegisInstaller:
     """
 
     def __init__(self, target_dir: str = "."):
+        from rich.console import Console
+
         self.target_dir = target_dir
+        self.console = Console()
         self.adapters: list[ToolAdapter] = [
             ClaudeAdapter(target_dir),
             AiderAdapter(target_dir),
@@ -32,10 +35,9 @@ class AegisInstaller:
 
     def install_global_capability(self, target_tool: str | None = None) -> None:
         """Installs the Aegis capability natively across all detected AI tools."""
-        from rich.console import Console
-        console = Console()
-
-        console.print("[bold blue]Installing Aegis Universal Capability...[/bold blue]")
+        self.console.print(
+            "[bold blue]Installing Aegis Universal Capability...[/bold blue]"
+        )
         to_install = self.adapters
         if target_tool:
             to_install = [
@@ -45,7 +47,7 @@ class AegisInstaller:
                 or any(target_tool.lower() == alias.lower() for alias in a.aliases)
             ]
             if not to_install:
-                console.print(
+                self.console.print(
                     f"[red]Error: Tool '{target_tool}' "
                     "not supported or not found.[/red]"
                 )
@@ -53,22 +55,24 @@ class AegisInstaller:
 
         installed_count = 0
 
-        for adapter in to_install:
+        for adapter in self.adapters:
             if adapter.is_present() or target_tool:
-                console.print(f"  - Integrating with [cyan]{adapter.name}[/cyan]...")
+                self.console.print(
+                    f"  - Integrating with [cyan]{adapter.name}[/cyan]..."
+                )
                 if adapter.install():
                     installed_count += 1
 
         if installed_count > 0:
-            console.print(
+            self.console.print(
                 "\n[bold green]Aegis Global Capability Setup Complete![/bold green]"
             )
-            console.print(
+            self.console.print(
                 "Your AI agents now natively possess the "
                 "[bold]Aegis Governance[/bold] capability."
             )
         else:
-            console.print(
+            self.console.print(
                 "\n[yellow]No AI tools detected. Standard MCP manifest "
                 "for manual registration.[/yellow]"
             )
