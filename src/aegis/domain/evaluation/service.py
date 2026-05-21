@@ -142,9 +142,15 @@ class EvaluationService:
         for v in violations:
             if os.path.isabs(v.file):
                 try:
-                    v.file = os.path.relpath(v.file, root_dir)
+                    rel = os.path.relpath(v.file, root_dir)
+                    # Always use forward slashes for cross-platform baseline consistency
+                    v.file = rel.replace(os.sep, "/")
                 except ValueError:
                     pass  # different drive, keep as-is
+            else:
+                # Ensure existing relative paths also use forward slashes
+                v.file = v.file.replace(os.sep, "/")
+
 
     @staticmethod
     def filter_rules_by_phase(

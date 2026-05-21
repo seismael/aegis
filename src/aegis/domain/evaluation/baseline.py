@@ -59,6 +59,12 @@ class BaselineManager:
             self._atomic_write(baseline)
 
     def add_to_baseline(self, violation: ArchitecturalViolation) -> None:
+        self.add_all_to_baseline([violation])
+
+    def add_all_to_baseline(self, violations: list[ArchitecturalViolation]) -> None:
+        if not violations:
+            return
+
         with self._lock:
             baseline = self.load_baseline_raw()
             if len(baseline) >= 50_000:
@@ -69,17 +75,20 @@ class BaselineManager:
                 )
 
             now = datetime.now(UTC).isoformat()
-            new_entry = BaselineViolation(
-                file=violation.file,
-                line=violation.line,
-                rule_id=violation.rule_id,
-                signature=violation.signature,
-                captured_at=now,
-            ).model_dump()
+            modified = False
+            for v in violations:
+                if not any(self._match(b, v) for b in baseline):
+                    new_entry = BaselineViolation(
+                        file=v.file,
+                        line=v.line,
+                        rule_id=v.rule_id,
+                        signature=v.signature,
+                        captured_at=now,
+                    ).model_dump()
+                    baseline.append(new_entry)
+                    modified = True
 
-            # Match by signature if available, otherwise fallback to file/line/rule
-            if not any(self._match(b, violation) for b in baseline):
-                baseline.append(new_entry)
+            if modified:
                 self._atomic_write(baseline)
 
     def is_exempt(

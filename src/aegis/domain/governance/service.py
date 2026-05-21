@@ -39,8 +39,7 @@ class GovernanceService:
         Merges with existing baseline to avoid wiping entries for other rules.
         """
         violations = self._evaluation_service.evaluate_workspace(root_dir, rules)
-        for v in violations:
-            self._baseline_manager.add_to_baseline(v)
+        self._baseline_manager.add_all_to_baseline(violations)
         return len(violations)
 
     @staticmethod
