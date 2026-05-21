@@ -1,16 +1,15 @@
 """
 Comprehensive 'Jailbreak' Verification Suite for Aegis v3.0 Architectural Sandbox.
-Empirically validates multi-tenancy, quarantine states, micro-context, and shell bypass mitigation.
+Empirically validates multi-tenancy, quarantine, micro-context, and shell bypass.
 """
 
 import json
+import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
-
-from aegis.domain.evaluation.ports import ArchitecturalViolation
-from aegis.domain.evaluation.vfs import SpeculativeVFS
 from aegis.kernel.server import AegisKernel
+from aegis.domain.evaluation.vfs import SpeculativeVFS
+from aegis.domain.evaluation.ports import ArchitecturalViolation
 
 
 @pytest.fixture
@@ -39,8 +38,8 @@ class TestSandboxHardening:
     """Tier 3: Absolute Enforcement Validation."""
 
     @pytest.mark.asyncio
-    async def test_phase_3_1_multi_tenancy_isolation(self, kernel, tmp_path):
-        """Verify that Agent A cannot see or commit Agent B's unverified changes."""
+    async def test_phase_3_1_multi_tenancy_isolation(self, kernel):
+        """Verify Agent A cannot see or commit Agent B's unverified changes."""
         vfs = kernel.container.vfs
         file_path = "domain.py"
 
@@ -57,7 +56,7 @@ class TestSandboxHardening:
 
     @pytest.mark.asyncio
     async def test_phase_3_2_quarantine_state_persistence(self, kernel, tmp_path):
-        """Verify that high-severity violations trigger Quarantine instead of hard-abort."""
+        """Verify high-severity violations trigger Quarantine instead of hard-abort."""
         # Setup real VFS but mock evaluation logic
         mock_eval = MagicMock()
 
@@ -86,7 +85,7 @@ class TestSandboxHardening:
 
     @pytest.mark.asyncio
     async def test_phase_3_3_dna_compression_efficiency(self, kernel):
-        """Verify that aegis_read_file returns Micro-Context instead of full Manifesto."""
+        """Verify aegis_read_file returns Micro-Context instead of full Manifesto."""
         kernel.container.vfs.stage_change(
             "test.py", "print('hello')", session_id="test"
         )
@@ -132,7 +131,7 @@ class TestSandboxHardening:
             AegisKernel, "_validate_architecture_compliance", mock_compliance
         ):
             # Attempt a 'bypass' command
-            cmd = "echo 'leak = True' >> safe.py"
+            cmd = "echo leak = True >> safe.py"
             result = await kernel.aegis_run_command(cmd)
 
         assert "ABORTED" in result

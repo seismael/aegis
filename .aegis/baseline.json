@@ -31435,5 +31435,54 @@
     "rule_id": "dead-module-detection",
     "signature": null,
     "captured_at": "2026-05-21T21:03:02.774117+00:00"
+  },
+  {
+    "file": "tests/test_v3_jailbreak.py",
+    "line": 114,
+    "rule_id": "perf-sync-io-async",
+    "signature": null,
+    "captured_at": "2026-05-21T21:08:27.183931+00:00"
+  },
+  {
+    "file": "tests/test_v3_jailbreak.py",
+    "line": 143,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-05-21T21:08:27.183931+00:00"
+  },
+  {
+    "file": "tests/test_v3_jailbreak.py",
+    "line": 42,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-05-21T21:08:27.183931+00:00"
+  },
+  {
+    "file": "tests/test_v3_jailbreak.py",
+    "line": 90,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-05-21T21:08:27.183931+00:00"
+  },
+  {
+    "file": "tests/test_v3_jailbreak.py",
+    "line": 101,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-05-21T21:08:27.183931+00:00"
+  },
+  {
+    "file": "tests/test_v3_jailbreak.py",
+    "line": 133,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-05-21T21:08:27.183931+00:00"
+  },
+  {
+    "file": "tests/test_v3_jailbreak.py",
+    "line": 34,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-05-21T21:08:27.183931+00:00"
   }
 ]

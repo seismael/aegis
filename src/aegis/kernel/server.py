@@ -364,7 +364,7 @@ class AegisKernel:
 
     async def aegis_run_command(self, command: str) -> str:
         """
-        Safe Bash Execution Wrapper. Runs shell commands with post-execution 
+        Safe Bash Execution Wrapper. Runs shell commands with post-execution
         checks. If command introduces drift, changes are reverted via git.
         """
         import subprocess
@@ -717,7 +717,7 @@ class AegisKernel:
     async def _autonomous_inference_initialization(self) -> str:
         """
         Phase 2 Innovation: Zero-Config 'Lights Out' Initialization.
-        Hypothesizes stack, installs relevant packs, and baselines all debt automatically.
+        Hypothesizes stack, installs relevant packs, and baselines all debt.
         """
         if self.container is None:
             return error(ERR_CONTAINER_NOT_INIT, "Kernel not initialized.")
