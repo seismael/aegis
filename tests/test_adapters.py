@@ -253,7 +253,7 @@ class TestAiderAdapter:
     ):
         monkeypatch.setattr("pathlib.Path.home", lambda: tmp_path)
         adapter = AiderAdapter(".")
-        with patch("subprocess.run", side_effect=FileNotFoundError):
+        with patch("shutil.which", return_value=None):
             assert adapter.is_present() is False
 
 

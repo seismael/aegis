@@ -1,4 +1,4 @@
-import subprocess
+import shutil
 
 from aegis.infrastructure.adapters.base import ToolAdapter
 
@@ -9,17 +9,18 @@ class AiderAdapter(ToolAdapter):
     Configures Aider to use Aegis as an architect-mode MCP server.
     """
 
+    def __init__(self, target_dir: str, home_dir: str | None = None):
+        super().__init__(target_dir, home_dir)
+
     @property
     def name(self) -> str:
         return "Aider"
 
     def is_present(self) -> bool:
         # Check if aider is in path
-        try:
-            subprocess.run(["aider", "--version"], capture_output=True)
+        if shutil.which("aider"):
             return True
-        except FileNotFoundError:
-            return (self.home / ".aider.conf.yml").exists()
+        return (self.home / ".aider.conf.yml").exists()
 
     def install(self) -> bool:
         config_path = self.home / ".aider.conf.yml"

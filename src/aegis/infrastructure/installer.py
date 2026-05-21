@@ -45,7 +45,10 @@ class AegisInstaller:
                 or any(target_tool.lower() == alias.lower() for alias in a.aliases)
             ]
             if not to_install:
-                console.print(f"[red]Error: Tool '{target_tool}' not supported or not found.[/red]")
+                console.print(
+                    f"[red]Error: Tool '{target_tool}' "
+                    "not supported or not found.[/red]"
+                )
                 return
 
         installed_count = 0
@@ -57,13 +60,17 @@ class AegisInstaller:
                     installed_count += 1
 
         if installed_count > 0:
-            console.print("\n[bold green]Aegis Global Capability Setup Complete![/bold green]")
             console.print(
-                "Your AI agents now natively possess the [bold]Aegis Governance[/bold] capability."
+                "\n[bold green]Aegis Global Capability Setup Complete![/bold green]"
+            )
+            console.print(
+                "Your AI agents now natively possess the "
+                "[bold]Aegis Governance[/bold] capability."
             )
         else:
             console.print(
-                "\n[yellow]No AI tools detected. Standard MCP manifest for manual registration.[/yellow]"
+                "\n[yellow]No AI tools detected. Standard MCP manifest "
+                "for manual registration.[/yellow]"
             )
 
     @staticmethod

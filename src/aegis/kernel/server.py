@@ -1433,7 +1433,9 @@ class AegisKernel:
             return RemediationResult(
                 summary="Kernel not fully initialized.",
                 violations_count=0,
-                handoff_prompt="ERROR: Kernel not fully initialized — container unavailable.",
+                handoff_prompt=(
+                    "ERROR: Kernel not fully initialized — container unavailable."
+                ),
             )
 
         rules = self._load_rules()

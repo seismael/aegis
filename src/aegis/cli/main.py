@@ -23,7 +23,12 @@ class AegisCLI:
     def __init__(self, container: Container | None = None):
         self._container = container
         self.console = Console()
-        self.app = typer.Typer(help="Aegis: Headless Architectural Governance Engine")
+        # Disable rich help in tests to avoid ANSI/truncation issues in CI
+        no_rich = "pytest" in sys.modules or "PYTEST_CURRENT_TEST" in os.environ
+        self.app = typer.Typer(
+            help="Aegis: Headless Architectural Governance Engine",
+            rich_markup_mode=None if no_rich else "rich",
+        )
         self._register_commands()
 
     @property

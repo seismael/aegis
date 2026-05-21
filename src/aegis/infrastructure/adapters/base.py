@@ -12,9 +12,9 @@ class ToolAdapter(ABC):
     Handles native plugin registration and configuration.
     """
 
-    def __init__(self, target_dir: str):
+    def __init__(self, target_dir: str, home_dir: str | None = None):
         self.target_dir = Path(target_dir)
-        self.home = Path.home()
+        self.home = Path(home_dir) if home_dir else Path.home()
 
     @property
     @abstractmethod
