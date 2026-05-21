@@ -16,7 +16,7 @@ class GenericMCPAdapter(ToolAdapter):
     def is_present(self) -> bool:
         return True  # Always available as a fallback
 
-    def install(self) -> bool:
+    def install(self, sandbox: bool = False) -> bool:  # noqa: ARG002
         # Standard MCP discovery file in project root
         manifest_path = self.target_dir / "mcp.json"
 

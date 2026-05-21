@@ -32,7 +32,7 @@ class ToolAdapter(ABC):
         pass
 
     @abstractmethod
-    def install(self) -> bool:
+    def install(self, sandbox: bool = False) -> bool:
         """Performs native installation of the Aegis capability."""
         pass
 

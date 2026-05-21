@@ -3,7 +3,7 @@
 ## 1. Vision
 **Aegis** is a universal architectural governance engine. It operates as a localized **Governance Microkernel** that facilitates the negotiation, codification, and proactive enforcement of structural consensus via the **Model Context Protocol (MCP)** and CLI.
 
-Unlike reactive quality tools, Aegis is built on a **Steering-First** philosophy: providing structural invariants as pre-emptive constraints to eliminate drift at the source.
+Beyond reactive quality tools, Aegis is built on a **Steering-First** philosophy, culminating in the v3.0 **Architectural Sandbox**: a governance runtime that interceptors File IO to physically invalidate architectural drift at the tool level.
 
 ---
 
@@ -11,10 +11,11 @@ Unlike reactive quality tools, Aegis is built on a **Steering-First** philosophy
 Aegis distinguishes between **Global Capability** (the environment extension) and **Local Governance** (the repository laws).
 
 ### 2.1 Global Environment Capability
-Aegis acts as a native extension for your development environment. It provides a set of proactive tools that allow development systems (humans or agents) to discover and respect local architectural boundaries before a task begins.
+Aegis acts as a native extension for your development environment. In v3.0, it acts as an **I/O Middleware** that provides hardened filesystem proxies, ensuring that development tools (humans or agents) are physically constrained by local architectural boundaries.
 
 ### 2.2 Project-Level Governance
-Upon project activation, the engine enforces the laws defined in `.aegis/rules/` and provides context-aware "Flight Plans" for new tasks.
+Upon project activation, the engine enforces the laws defined in `.aegis/rules/` and provides context-aware "Flight Plans" and speculative "In-Flight" validation.
+
 
 ---
 

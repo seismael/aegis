@@ -140,6 +140,8 @@ class AegisKernel:
         self.mcp.tool()(self.validate_workspace)
         self.mcp.tool()(self.evolve_ruleset)
         self.mcp.tool()(self.query_knowledge_graph)
+        self.mcp.tool()(self.aegis_read_file)
+        self.mcp.tool()(self.aegis_write_file)
 
     async def plan_architecture(
         self,
@@ -256,6 +258,86 @@ class AegisKernel:
             return await self._list_rule_packs()
 
         return f"ERROR: Unsupported or incomplete knowledge query: {query_type}."
+
+    async def aegis_read_file(self, path: str) -> str:
+        """
+        Hardened Proxy: Reads file content and injects ambient architectural DNA.
+        Ensures the agent is always aware of the local laws for the module.
+        """
+        if self.container is None:
+            return "ERROR: Kernel not initialized."
+
+        try:
+            # 1. Get raw content (respecting VFS if staged)
+            content = self._evaluation_service._get_file_content(path)
+
+            # 2. Get Governance DNA
+            dna_raw = await self._get_active_context(path)
+            dna = json.loads(dna_raw)
+
+            # 3. Construct DNA Header
+            header = "# === AEGIS GOVERNANCE DNA ===\n"
+            header += f"# CONTEXT: {path}\n"
+            if dna.get("rules"):
+                header += "# ACTIVE LAWS:\n"
+                for r in dna["rules"]:
+                    header += f"#   - {r['id']}: {r['description']}\n"
+            header += "# ============================\n\n"
+
+            return header + content
+        except Exception as e:
+            return f"ERROR: Failed to read file — {e}"
+
+    async def aegis_write_file(self, path: str, content: str) -> str:
+        """
+        Hardened Proxy: Speculative write with absolute enforcement.
+        Blocks the write if it violates high-severity architectural laws.
+        """
+        if self.container is None:
+            return "ERROR: Kernel not initialized."
+
+        vfs = self.container.vfs
+        eval_service = self._evaluation_service
+
+        if not vfs or not eval_service:
+            return "ERROR: Governance Sandbox unavailable."
+
+        # 1. Speculative Stage (In-Memory Only)
+        vfs.stage_change(path, content)
+
+        # 2. In-Flight Validation
+        rules = self._load_rules()
+        violations = eval_service.evaluate_file(
+            path, rules, root_dir=self._workspace_root
+        )
+
+        # 3. Decision Gate
+        # Only block on HIGH/CRITICAL violations
+        blocking = [v for v in violations if v.severity in ("HIGH", "CRITICAL")]
+
+        if blocking:
+            # Rejection: Discard from VFS and return error
+            vfs.discard(path)
+            remediation = await self._apply_architectural_remediation()
+            return (
+                f"ABORTED: Architectural Violation detected in {path}. "
+                "The write operation has been blocked. "
+                "Refactor according to the following instructions:\n\n"
+                f"{remediation.handoff_prompt}"
+            )
+
+        # 4. Commit: Physically write to disk
+        try:
+            if vfs.commit(path):
+                msg = f"SUCCESS: File {path} written securely."
+                if violations:
+                    msg += (
+                        f"\n\nNOTE: {len(violations)} low-severity warnings surfaced."
+                    )
+                return msg
+            return f"ERROR: Failed to commit {path} to disk."
+        except Exception as e:
+            return f"ERROR: Disk IO failure — {e}"
 
     async def _propose_architectural_steering(self, task_description: str) -> str:
         """
@@ -1637,6 +1719,9 @@ class AegisKernel:
         parser.add_argument("--host", default="127.0.0.1", help="Bind host (SSE/HTTP)")
         parser.add_argument(
             "--port", type=int, default=8000, help="Bind port (SSE/HTTP)"
+        )
+        parser.add_argument(
+            "--sandbox", action="store_true", help="Enable absolute enforcement sandbox"
         )
         args = parser.parse_args()
 

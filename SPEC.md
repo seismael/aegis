@@ -29,14 +29,15 @@ The **Aegis Kernel** exposes its capabilities via the **Model Context Protocol (
 - `get_rule_rationale`: Fetches the reasoning behind a law.
 - `get_dependency_graph`: Visualizes module coupling and identifies leaks.
 
-### 3.2 Resources (Governance Artifacts)
-- `aegis://rules`: The machine-readable rule matrix.
-- `aegis://baseline`: The technical debt ledger.
-- `aegis://evolution`: The auditable decision log.
+## Layer 4: The v3.0 Governance Runtime Environment (GRE)
+The ultimate technical target for Aegis is absolute native enforcement via **I/O Middleware**.
 
-### 3.3 Prompts (Workflow Templates)
-- `evaluate-architecture`: A standard workflow to verify compliance.
-- `remediate-violations`: A guided workflow for fixing architectural drift.
+### 4.1 Speculative Virtual File System (V-FS)
+An in-memory sandbox that captures proposed code changes and executes AST scans *before* they are committed to the physical disk.
 
-## Layer 4: Active Law Matrix
-Current active rules are defined in `.aegis/rules/*.yaml`. For the latest state of the project's self-governance, refer to the rule matrix via `aegis status`.
+### 4.2 Hardened Tool Proxies
+- `aegis_write_file`: Intercepts and blocks non-compliant writes in-flight.
+- `aegis_read_file`: Injects ambient architectural DNA into the agent's context window.
+
+## Layer 5: Active Law Matrix
+Current active rules are defined in `.aegis/rules/*.yaml`.

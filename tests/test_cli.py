@@ -25,10 +25,8 @@ class TestAegisCLI:
         c.loaded_plugins = []
         from aegis.domain.enforcement.ports import RemediationResult
 
-        c.remediation_synthesizer.generate_remediation.return_value = (
-            RemediationResult(
-                summary="violations", violations_count=1, handoff_prompt="mock prompt"
-            )
+        c.remediation_synthesizer.generate_remediation.return_value = RemediationResult(
+            summary="violations", violations_count=1, handoff_prompt="mock prompt"
         )
         c.governance_service = MagicMock()
         c.governance_service.get_active_violations.return_value = []
@@ -503,10 +501,8 @@ class TestInsightsCLI:
         c.loaded_plugins = []
         from aegis.domain.enforcement.ports import RemediationResult
 
-        c.remediation_synthesizer.generate_remediation.return_value = (
-            RemediationResult(
-                summary="violations", violations_count=1, handoff_prompt="mock prompt"
-            )
+        c.remediation_synthesizer.generate_remediation.return_value = RemediationResult(
+            summary="violations", violations_count=1, handoff_prompt="mock prompt"
         )
         c.governance_service = MagicMock()
         c.governance_service.get_active_violations.return_value = []

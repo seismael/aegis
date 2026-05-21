@@ -12,6 +12,7 @@ from aegis.domain.evaluation.ports import (
     SemanticAnalyzerInterface,
 )
 from aegis.domain.evaluation.scoping import ScopeFilter
+from aegis.domain.evaluation.vfs import SpeculativeVFS
 from aegis.domain.policy.models import (
     CategoryPhaseMapping,
     EngineType,
@@ -38,6 +39,7 @@ class EvaluationService:
         diff_provider: DiffProviderInterface,
         semantic_analyzer: SemanticAnalyzerInterface | None = None,
         extra_analyzers: list[RuleAnalyzerInterface] | None = None,
+        vfs: SpeculativeVFS | None = None,
     ):
         self.tree_sitter_analyzer = tree_sitter_analyzer
         self.graph_analyzer = graph_analyzer
@@ -45,6 +47,7 @@ class EvaluationService:
         self.diff_provider = diff_provider
         self.semantic_analyzer = semantic_analyzer
         self.extra_analyzers = extra_analyzers or []
+        self.vfs = vfs
 
     def evaluate_workspace(
         self,
@@ -76,7 +79,7 @@ class EvaluationService:
         graph_rules = [r for r in rules if r.engine_type == EngineType.GRAPH]
         semantic_rules = [r for r in rules if r.engine_type == EngineType.SEMANTIC]
 
-        # File-level analysis (tree-sitter + regex + semantic + extra)
+        # File-level analysis (tree-sitter + regex + semantic + extra analyzers)
         if ts_rules or regex_rules or semantic_rules or self.extra_analyzers:
             for root, _, files in os.walk(root_dir):
                 for file in files:
@@ -85,8 +88,7 @@ class EvaluationService:
                         continue
 
                     try:
-                        with open(file_path, encoding="utf-8") as f:
-                            content = f.read()
+                        content = self._get_file_content(file_path)
 
                         if ts_rules:
                             all_violations.extend(
@@ -110,7 +112,7 @@ class EvaluationService:
                             all_violations.extend(
                                 extra.analyze_file(file_path, content, rules)
                             )
-                    except (UnicodeDecodeError, OSError):
+                    except (UnicodeDecodeError, OSError, FileNotFoundError):
                         continue
 
         # Cross-file graph analysis (once per sweep)
@@ -151,7 +153,6 @@ class EvaluationService:
                 # Ensure existing relative paths also use forward slashes
                 v.file = v.file.replace(os.sep, "/")
 
-
     @staticmethod
     def filter_rules_by_phase(
         rules: list[Rule],
@@ -159,14 +160,7 @@ class EvaluationService:
         category: RuleCategory | None = None,
         phase_mapping: CategoryPhaseMapping | None = None,
     ) -> list[Rule]:
-        """Filter rules by evaluation phase and/or category.
-
-        - When *phase* is None, all rules pass (backward compatible).
-        - When *phase* is set, rules pass if their explicit ``phases``
-          contain the phase, or their category's default mapping includes it.
-        - When *category* is set, only rules of that category pass.
-        - Both filters can be combined (AND logic).
-        """
+        """Filter rules by evaluation phase and/or category."""
         mapping = phase_mapping or CategoryPhaseMapping()
 
         def _matches(r: Rule) -> bool:
@@ -187,12 +181,7 @@ class EvaluationService:
     def evaluate_code_string(
         self, code_string: str, language: str, rules: list[Rule]
     ) -> list[ArchitecturalViolation]:
-        """Evaluate a code string in-memory against applicable rules.
-
-        Builds a synthetic path so analyzers resolve the correct language
-        from the extension.  Tree-sitter failures on partial code are caught
-        and silently skipped.
-        """
+        """Evaluate a code string in-memory against applicable rules."""
         if not code_string or not rules:
             return []
 
@@ -239,9 +228,8 @@ class EvaluationService:
         """Evaluate a single file against applicable rules."""
         file_violations: list[ArchitecturalViolation] = []
         try:
-            with open(file_path, encoding="utf-8") as f:
-                content = f.read()
-        except (UnicodeDecodeError, OSError):
+            content = self._get_file_content(file_path)
+        except (UnicodeDecodeError, OSError, FileNotFoundError):
             return file_violations
 
         ts_rules = [r for r in rules if r.engine_type == EngineType.TREE_SITTER]
@@ -272,7 +260,6 @@ class EvaluationService:
     ) -> list[ArchitecturalViolation]:
         """
         Performs a token-efficient analysis of only the changed lines in changed files.
-        Graph rules are skipped (cross-file analysis requires a full workspace sweep).
         """
         rules = self.filter_rules_by_phase(rules, phase, category, phase_mapping)
 
@@ -291,26 +278,25 @@ class EvaluationService:
         # Partition rules
         ts_rules = [r for r in rules if r.engine_type == EngineType.TREE_SITTER]
         regex_rules = [r for r in rules if r.engine_type == EngineType.REGEX]
-        graph_rules = [r for r in rules if r.engine_type == EngineType.GRAPH]
         semantic_rules = [r for r in rules if r.engine_type == EngineType.SEMANTIC]
 
-        if graph_rules:
-            logger.debug(
-                "Graph rules skipped during staged evaluation "
-                "(requires full workspace sweep).",
-                rule_count=len(graph_rules),
-            )
-
-        if not ts_rules and not regex_rules and not self.extra_analyzers:
+        if (
+            not ts_rules
+            and not regex_rules
+            and not semantic_rules
+            and not self.extra_analyzers
+        ):
             return all_violations
 
         for file_path in diff.changed_files:
             try:
-                if not os.path.exists(file_path):
+                # In V3, we also check if the file is staged in our VFS
+                if not os.path.exists(file_path) and not (
+                    self.vfs and self.vfs.is_staged(file_path)
+                ):
                     continue
 
-                with open(file_path, encoding="utf-8") as f:
-                    content = f.read()
+                content = self._get_file_content(file_path)
 
                 file_violations: list[ArchitecturalViolation] = []
                 if ts_rules:
@@ -354,6 +340,13 @@ class EvaluationService:
         self._normalize_violation_paths(all_violations, root_dir)
 
         return ScopeFilter.filter_violations(all_violations, rules)
+
+    def _get_file_content(self, file_path: str) -> str:
+        """Retrieves file content via VFS if available, otherwise from disk."""
+        if self.vfs:
+            return self.vfs.read(file_path)
+        with open(file_path, encoding="utf-8") as f:
+            return f.read()
 
     @staticmethod
     def _derive_root_dir(changed_files: set[str]) -> str:

@@ -33,14 +33,14 @@ class ClaudeAdapter(ToolAdapter):
         except FileNotFoundError:
             return False
 
-    def install(self) -> bool:
+    def install(self, sandbox: bool = False) -> bool:
         # 1. Try native 'claude' CLI registration (The Preferred Native Method)
-        if self._try_native_mcp_add():
+        if self._try_native_mcp_add(sandbox=sandbox):
             self._deploy_skills()
             return True
 
         # 2. Fallback to raw config mutation (Robust Default)
-        self._manual_config_injection()
+        self._manual_config_injection(sandbox=sandbox)
         self._deploy_skills()
         return True
 
@@ -53,22 +53,17 @@ class ClaudeAdapter(ToolAdapter):
         self._remove_skills()
         return True
 
-    def _try_native_mcp_add(self) -> bool:
+    def _try_native_mcp_add(self, sandbox: bool = False) -> bool:
         """Attempts to use the 'claude' CLI to add the MCP server natively."""
         try:
             # Command: claude mcp add [name] [command] [args...]
             # This is the 'Native Plugin' installation method for Claude Code
+            args = ["aegis-kernel", "--", "--transport", "stdio"]
+            if sandbox:
+                args.append("--sandbox")
+
             result = subprocess.run(
-                [
-                    "claude",
-                    "mcp",
-                    "add",
-                    "aegis",
-                    "aegis-kernel",
-                    "--",
-                    "--transport",
-                    "stdio",
-                ],
+                ["claude", "mcp", "add", "aegis"] + args,
                 capture_output=True,
                 text=True,
                 check=False,
@@ -90,7 +85,7 @@ class ClaudeAdapter(ToolAdapter):
         except FileNotFoundError:
             return False
 
-    def _manual_config_injection(self) -> None:
+    def _manual_config_injection(self, sandbox: bool = False) -> None:
         """Fallback: Directly mutate the Claude Desktop configuration JSON."""
         config_path = self.home / ".claude" / "claude_desktop_config.json"
         config_path.parent.mkdir(parents=True, exist_ok=True)
@@ -106,9 +101,18 @@ class ClaudeAdapter(ToolAdapter):
         if "mcpServers" not in config:
             config["mcpServers"] = {}
 
+        # The Hostage Maneuver: If in sandbox mode, disable standard filesystem
+        if sandbox:
+            if "filesystem" in config["mcpServers"]:
+                # Prefix with disabled_ to unregister from Claude but keep config
+                config["mcpServers"]["disabled_filesystem"] = config["mcpServers"].pop(
+                    "filesystem"
+                )
+                logger.info("Sandbox Mode: Standard filesystem server disabled.")
+
         config["mcpServers"]["aegis"] = {
             "command": "aegis-kernel",
-            "args": ["--transport", "stdio"],
+            "args": ["--transport", "stdio"] + (["--sandbox"] if sandbox else []),
         }
 
         with open(config_path, "w", encoding="utf-8") as f:

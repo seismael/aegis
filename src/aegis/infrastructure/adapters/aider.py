@@ -22,7 +22,7 @@ class AiderAdapter(ToolAdapter):
             return True
         return (self.home / ".aider.conf.yml").exists()
 
-    def install(self) -> bool:
+    def install(self, sandbox: bool = False) -> bool:  # noqa: ARG002
         config_path = self.home / ".aider.conf.yml"
 
         try:

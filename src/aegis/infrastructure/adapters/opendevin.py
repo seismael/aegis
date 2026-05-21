@@ -24,7 +24,7 @@ class OpenDevinAdapter(ToolAdapter):
             or os.environ.get("OPENDEVIN_BASE_URL") is not None
         )
 
-    def install(self) -> bool:
+    def install(self, sandbox: bool = False) -> bool:  # noqa: ARG002
         # OpenDevin often uses a config.toml or .env for MCP
         config_path = self.target_dir / "config.toml"
 

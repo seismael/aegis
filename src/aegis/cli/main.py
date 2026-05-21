@@ -297,6 +297,9 @@ class AegisCLI:
         tool: str | None = typer.Argument(
             None, help="Specific tool to install into (e.g. claude, aider)"
         ),
+        sandbox: bool = typer.Option(
+            False, "--sandbox", help="Enable absolute enforcement sandbox (v3)"
+        ),
     ):
         """Globally installs Aegis MCP configs and AI Skills into agent tools."""
         from aegis.infrastructure.installer import AegisInstaller
@@ -307,7 +310,7 @@ class AegisCLI:
         )
         try:
             installer = AegisInstaller()
-            installer.install_global_capability(target_tool=tool)
+            installer.install_global_capability(target_tool=tool, sandbox=sandbox)
         except Exception as e:
             self.console.print(f"[bold red]Installation failed:[/bold red] {str(e)}")
             raise typer.Exit(code=1) from e

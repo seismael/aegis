@@ -33,7 +33,9 @@ class AegisInstaller:
             GenericMCPAdapter(target_dir),  # Catch-all standard
         ]
 
-    def install_global_capability(self, target_tool: str | None = None) -> None:
+    def install_global_capability(
+        self, target_tool: str | None = None, sandbox: bool = False
+    ) -> None:
         """Installs the Aegis capability natively across all detected AI tools."""
         self.console.print(
             "[bold blue]Installing Aegis Universal Capability...[/bold blue]"
@@ -60,7 +62,7 @@ class AegisInstaller:
                 self.console.print(
                     f"  - Integrating with [cyan]{adapter.name}[/cyan]..."
                 )
-                if adapter.install():
+                if adapter.install(sandbox=sandbox):
                     installed_count += 1
 
         if installed_count > 0:

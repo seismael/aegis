@@ -9,17 +9,16 @@ This document defines the **Governance Protocol** that ensures architectural int
 Aegis enforces a **Steering-First** methodology. You are mandated to use the following proactive cycle:
 
 ### 1. Discovery (Task Start)
-- **MANDATORY**: Whenever starting a new logical task, call the `propose_architectural_steering` tool.
+- **MANDATORY**: Whenever starting a new logical task, call the `plan_architecture` tool.
 - Align your implementation strategy with the resulting **Architectural Flight Plan**.
 
 ### 2. Awareness (File Edit)
-- **MANDATORY**: Before editing any specific file, call `get_relevant_rules(path)`.
-- Explicitly respect the returned structural laws during generation.
+- **MANDATORY**: Before editing any specific file, call `plan_architecture(file_path=...)`.
+- **Sandbox Mode**: If the **Architectural Sandbox** is enabled, reading a file will automatically inject the **Governance DNA** into your context. You MUST respect these invariants.
 
-### 3. Validation (Commit/Gate)
-- **MANDATORY**: Run `uv run aegis check` before every commit.
-- **TRANSPARENCY**: Run `uv run aegis status` to inspect the current rule matrix and debt ledger.
-- **DEBT MANAGEMENT**: Baseline new or unavoidable violations with `uv run aegis baseline`. Never suppress violations silently.
+### 3. Absolute Enforcement (In-Flight)
+- **Sandbox Mode**: When using `aegis_write_file`, Aegis will perform an in-memory scan. Violations will physically block the write operation.
+- **Legacy Mode**: Run `uv run aegis check` before every commit.
 
 ---
 

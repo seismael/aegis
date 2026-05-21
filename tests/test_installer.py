@@ -29,6 +29,7 @@ class TestAegisInstaller:
     def test_aider_adapter_is_available(self, monkeypatch):
         """Aider adapter detects if aider CLI is in PATH."""
         from aegis.infrastructure.adapters.aider import AiderAdapter
+
         monkeypatch.setattr(
             "aegis.infrastructure.adapters.aider.shutil.which",
             lambda _: "/usr/local/bin/aider",
@@ -39,12 +40,14 @@ class TestAegisInstaller:
     def test_aider_adapter_not_available(self, monkeypatch, tmp_path):
         """Aider adapter detects if aider CLI is missing."""
         from aegis.infrastructure.adapters.aider import AiderAdapter
+
         monkeypatch.setattr(
             "aegis.infrastructure.adapters.aider.shutil.which", lambda _: None
         )
         # Ensure .aider.conf.yml doesn't exist in home
         adapter = AiderAdapter(str(tmp_path), home_dir=str(tmp_path))
         assert adapter.is_present() is False
+
     def test_claude_adapter_manual_injection(self, tmp_path, monkeypatch):
         monkeypatch.setattr("pathlib.Path.home", lambda: tmp_path)
         adapter = ClaudeAdapter(".")
