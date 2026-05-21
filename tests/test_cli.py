@@ -23,7 +23,13 @@ class TestAegisCLI:
         c.baseline_manager.load_baseline_raw.return_value = []
         c.baseline_manager.is_exempt.return_value = False
         c.loaded_plugins = []
-        c.remediation_synthesizer.generate_remediation.return_value = "mock prompt"
+        from aegis.domain.enforcement.ports import RemediationResult
+
+        c.remediation_synthesizer.generate_remediation.return_value = (
+            RemediationResult(
+                summary="violations", violations_count=1, handoff_prompt="mock prompt"
+            )
+        )
         c.governance_service = MagicMock()
         c.governance_service.get_active_violations.return_value = []
         c.governance_service.capture_baseline.return_value = 0
@@ -495,7 +501,13 @@ class TestInsightsCLI:
         c.baseline_manager.load_baseline_raw.return_value = []
         c.baseline_manager.is_exempt.return_value = False
         c.loaded_plugins = []
-        c.remediation_synthesizer.generate_remediation.return_value = "mock prompt"
+        from aegis.domain.enforcement.ports import RemediationResult
+
+        c.remediation_synthesizer.generate_remediation.return_value = (
+            RemediationResult(
+                summary="violations", violations_count=1, handoff_prompt="mock prompt"
+            )
+        )
         c.governance_service = MagicMock()
         c.governance_service.get_active_violations.return_value = []
         return c

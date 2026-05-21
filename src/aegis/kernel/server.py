@@ -142,14 +142,24 @@ class AegisKernel:
         self.mcp.tool()(self.query_knowledge_graph)
 
     async def plan_architecture(
-        self, intent: str | None = None, file_path: str | None = None
+        self,
+        intent: str | None = None,
+        file_path: str | None = None,
+        code_string: str | None = None,
+        language: str = "py",
     ) -> str:
         """
         Meta-Tool: Pre-emptive task alignment and rule discovery.
         AI agents MUST call this at the START of a task or before editing a module.
         intent: Description of the coding task (e.g. 'Add a new domain service').
         file_path: Optional path to a specific file to get targeted rules.
+        code_string: Optional code snippet to validate in-memory (mid-thought).
+        language: Language of the code_string (defaults to 'py').
         """
+        if code_string:
+            # Innovation: Mid-thought validation via orphaned _evaluate_code_delta
+            return await self._evaluate_code_delta(code_string, language)
+
         report = "# Aegis Architectural Alignment\n\n"
 
         if intent:
@@ -157,8 +167,9 @@ class AegisKernel:
             report += steering + "\n\n"
 
         if file_path:
-            context = await self._get_active_context(file_path)
-            report += "## Targeted File Context\n" + context + "\n"
+            # Use the full _get_relevant_rules for comprehensive planning
+            context = await self._get_relevant_rules(file_path)
+            report += "## Targeted File Rules\n" + context + "\n"
 
         return report
 
@@ -323,6 +334,29 @@ class AegisKernel:
             )
 
         all_rules = self._load_rules()
+        active_v_map = {}
+        baseline_map = {}
+
+        if self.container and self.container.governance_service:
+            try:
+                violations = self.container.governance_service.get_active_violations(
+                    all_rules, self._workspace_root
+                )
+                for v in violations:
+                    active_v_map[v.rule_id] = active_v_map.get(v.rule_id, 0) + 1
+            except Exception:
+                pass
+
+        if self._baseline_manager:
+            try:
+                raw = self._baseline_manager.load_baseline_raw()
+                for entry in raw:
+                    rid = entry.get("rule_id")
+                    if rid:
+                        baseline_map[rid] = baseline_map.get(rid, 0) + 1
+            except Exception:
+                pass
+
         if not all_rules:
             return RelevantRulesResult(
                 file_path=path,
@@ -345,6 +379,8 @@ class AegisKernel:
                 engine_type=r.engine_type.value,
                 language=r.language,
                 rationale=r.rationale,
+                active_violations=active_v_map.get(r.id, 0),
+                baseline_entries=baseline_map.get(r.id, 0),
             )
             for r in relevant
         ]
@@ -375,6 +411,29 @@ class AegisKernel:
             )
 
         all_rules = self._load_rules()
+        active_v_map = {}
+        baseline_map = {}
+
+        if self.container and self.container.governance_service:
+            try:
+                violations = self.container.governance_service.get_active_violations(
+                    all_rules, self._workspace_root
+                )
+                for v in violations:
+                    active_v_map[v.rule_id] = active_v_map.get(v.rule_id, 0) + 1
+            except Exception:
+                pass
+
+        if self._baseline_manager:
+            try:
+                raw = self._baseline_manager.load_baseline_raw()
+                for entry in raw:
+                    rid = entry.get("rule_id")
+                    if rid:
+                        baseline_map[rid] = baseline_map.get(rid, 0) + 1
+            except Exception:
+                pass
+
         if not all_rules:
             return RelevantRulesResult(
                 file_path=file_path,
@@ -411,6 +470,8 @@ class AegisKernel:
                 engine_type=r.engine_type.value,
                 language=r.language,
                 rationale=r.rationale,
+                active_violations=active_v_map.get(r.id, 0),
+                baseline_entries=baseline_map.get(r.id, 0),
             )
             for r in relevant
         ]
@@ -1251,8 +1312,8 @@ class AegisKernel:
                 workspace=root,
                 rules_loaded=len(rules),
                 tools_count=tool_count + plugin_tools,
-                resources_count=4,
-                prompts_count=5,
+                resources_count=6,
+                prompts_count=6,
                 active_violations=len(active),
                 plugins_loaded=plugin_count,
             )
@@ -1282,6 +1343,7 @@ class AegisKernel:
 
         root = self._workspace_root
         rules = self._load_rules()
+        rules_map = {r.id: r for r in rules}
 
         if phase or category:
             from aegis.domain.evaluation.service import EvaluationService
@@ -1341,6 +1403,9 @@ class AegisKernel:
                 severity=v.severity,
                 description=v.description,
                 signature=v.signature,
+                mode=rules_map.get(v.rule_id).mode.value
+                if rules_map.get(v.rule_id)
+                else "block",
             )
             for v in active
         ]
@@ -1365,17 +1430,19 @@ class AegisKernel:
         For quick deterministic fixes, call apply_auto_fixes first.
         """
         if self.container is None:
-            return error(
-                ERR_CONTAINER_NOT_INIT,
-                "Kernel not fully initialized — container unavailable.",
+            return RemediationResult(
+                summary="Kernel not fully initialized.",
+                violations_count=0,
+                handoff_prompt="ERROR: Kernel not fully initialized — container unavailable.",
             )
 
         rules = self._load_rules()
         rules_map = {r.id: r for r in rules}
         if not self.container.governance_service:
-            return error(
-                ERR_SERVICE_UNAVAILABLE,
-                "Governance service unavailable — container in degraded mode.",
+            return RemediationResult(
+                summary="Governance service unavailable.",
+                violations_count=0,
+                handoff_prompt="ERROR: Governance service unavailable — container in degraded mode.",
             )
         active = self.container.governance_service.get_active_violations(
             rules, self._workspace_root
@@ -1399,8 +1466,10 @@ class AegisKernel:
             )
 
         if self.remediation_synthesizer is None:
-            return error(
-                ERR_SERVICE_UNAVAILABLE, "Remediation synthesizer unavailable."
+            return RemediationResult(
+                summary="Remediation synthesizer unavailable.",
+                violations_count=0,
+                handoff_prompt="ERROR: Remediation synthesizer unavailable.",
             )
 
         return self.remediation_synthesizer.generate_remediation(active, rules_map)

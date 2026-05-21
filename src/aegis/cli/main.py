@@ -355,6 +355,9 @@ class AegisCLI:
                 " performance, documentation, dependencies, general"
             ),
         ),
+        json_output: bool = typer.Option(
+            False, "--json", help="Output results in structured JSON format"
+        ),
     ):
         """Performs a gated compliance check. Non-zero exit on blocking violations."""
         all_rules = self.container.load_rules()
@@ -378,13 +381,23 @@ class AegisCLI:
         rules = [r for r in all_rules if r.id == rule] if rule else all_rules
         rule_map = {r.id: r for r in rules}
 
+        if not json_output:
+            self.console.print(
+                f"[Aegis] Validating architectural compliance... "
+                f"({len(rules)} rules, phase={effective_phase or 'any'})"
+            )
+
         # Auto-baseline: capture all violations before checking so known
         # debt is exempt from the report
         if self.container._aegis_config.auto_baseline:
             if self.container.governance_service:
-                self.container.governance_service.capture_baseline(
+                count = self.container.governance_service.capture_baseline(
                     all_rules, self.container.workspace_root
                 )
+                if not json_output:
+                    self.console.print(
+                        f"[yellow]Auto-baselined {count} violations.[/yellow]"
+                    )
 
         if staged:
             if not self.container.evaluation_service:
@@ -396,13 +409,7 @@ class AegisCLI:
             violations = self.container.evaluation_service.evaluate_changes(
                 rules, root_dir=self.container.workspace_root
             )
-            bm = self.container.baseline_manager or (
-                self.console.print(
-                    "[yellow]Warning: Baseline manager unavailable  -"
-                    " skipping exemption check.[/yellow]"
-                )
-                or None
-            )
+            bm = self.container.baseline_manager
             active = (
                 [v for v in violations if not bm.is_exempt(v, rule_map.get(v.rule_id))]
                 if bm
@@ -413,6 +420,38 @@ class AegisCLI:
             active = self.container.governance_service.get_active_violations(
                 rules, self.container.workspace_root
             )
+
+        if json_output:
+            from aegis.kernel.models import ComplianceResult, ViolationInfo
+
+            v_list = [
+                ViolationInfo(
+                    file=v.file,
+                    line=v.line,
+                    rule_id=v.rule_id,
+                    severity=v.severity,
+                    description=v.description,
+                    signature=v.signature,
+                    mode=rule_map.get(v.rule_id).mode.value
+                    if rule_map.get(v.rule_id)
+                    else "block",
+                )
+                for v in active
+            ]
+            blocking = [v for v in v_list if v.severity in ("HIGH", "CRITICAL")]
+            result = ComplianceResult(
+                passed=len(active) == 0,
+                message=(
+                    "Compliance passed"
+                    if not active
+                    else f"{len(active)} violations found"
+                ),
+                total_violations=len(active),
+                blocking_violations=len(blocking),
+                violations=v_list,
+            )
+            print(result.model_dump_json(indent=2))
+            raise typer.Exit(code=0 if len(active) == 0 else 1)
 
         # Warn if active violations exceed configured threshold
         max_v = self.container._aegis_config.max_violations
@@ -634,9 +673,11 @@ class AegisCLI:
                 "[green]No active violations found for remediation.[/green]"
             )
             return
-        prompt = self.container.remediation_synthesizer.generate_remediation(
+
+        remediation = self.container.remediation_synthesizer.generate_remediation(
             active, rule_map
         )
+        prompt = remediation.handoff_prompt
 
         if output:
             with open(output, "w", encoding="utf-8") as f:
@@ -644,6 +685,9 @@ class AegisCLI:
             self.console.print(f"[green]Remediation prompt written to {output}[/green]")
         else:
             self.console.print(prompt)
+
+        # Non-zero exit code if violations remain
+        raise typer.Exit(code=1)
 
     def fix(
         self,

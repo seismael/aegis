@@ -32,7 +32,10 @@ class AegisInstaller:
 
     def install_global_capability(self, target_tool: str | None = None) -> None:
         """Installs the Aegis capability natively across all detected AI tools."""
-        print("Installing Aegis Universal Capability...")
+        from rich.console import Console
+        console = Console()
+
+        console.print("[bold blue]Installing Aegis Universal Capability...[/bold blue]")
         to_install = self.adapters
         if target_tool:
             to_install = [
@@ -42,25 +45,25 @@ class AegisInstaller:
                 or any(target_tool.lower() == alias.lower() for alias in a.aliases)
             ]
             if not to_install:
-                print(f"Error: Tool '{target_tool}' not supported or not found.")
+                console.print(f"[red]Error: Tool '{target_tool}' not supported or not found.[/red]")
                 return
 
         installed_count = 0
 
         for adapter in to_install:
             if adapter.is_present() or target_tool:
-                print(f"  - Integrating with {adapter.name}...")
+                console.print(f"  - Integrating with [cyan]{adapter.name}[/cyan]...")
                 if adapter.install():
                     installed_count += 1
 
         if installed_count > 0:
-            print("\nAegis Global Capability Setup Complete!")
-            print(
-                "Your AI agents now natively possess the 'Aegis Governance' capability."
+            console.print("\n[bold green]Aegis Global Capability Setup Complete![/bold green]")
+            console.print(
+                "Your AI agents now natively possess the [bold]Aegis Governance[/bold] capability."
             )
         else:
-            print(
-                "\nNo AI tools detected. Standard MCP manifest for manual registration."
+            console.print(
+                "\n[yellow]No AI tools detected. Standard MCP manifest for manual registration.[/yellow]"
             )
 
     @staticmethod

@@ -172,7 +172,7 @@ class TestMCPErrorHandling:
         k = AegisKernel()
         k.container = None
         result = await k._apply_architectural_remediation()
-        assert "CONTAINER_NOT_INIT" in result
+        assert "Kernel not fully initialized" in result.handoff_prompt
 
     @pytest.mark.asyncio
     async def test_get_rule_rationale_no_container(self):
