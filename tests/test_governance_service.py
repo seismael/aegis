@@ -62,7 +62,7 @@ class TestGovernanceService:
         count = svc.capture_baseline([Rule(id="r1", description="x")], "/root")
 
         assert count == 2
-        assert baseline_mock.add_to_baseline.call_count == 2
+        assert baseline_mock.add_all_to_baseline.call_count == 1
 
     def test_capture_baseline_zero_violations(self):
         eval_mock = MagicMock(spec=EvaluationService)
