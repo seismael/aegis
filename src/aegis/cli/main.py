@@ -856,7 +856,12 @@ class AegisCLI:
             f"(transport={transport}, host={host}, port={port})"
         )
         kernel = AegisKernel()
-        kernel.run(transport=transport, host=host, port=port, cors_origins=cors_origins)
+        kernel.run(
+            transport=transport,
+            host=host,
+            port=port,
+            cors_origins=cors_origins,
+        )
 
     def watch(
         self,
