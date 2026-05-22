@@ -2,11 +2,12 @@ import os
 
 import structlog
 
-from aegis.domain.enforcement.ports import (
+from aegis.domain.evaluation.ports import (
+    ArchitecturalViolation,
     RemediationProviderInterface,
     RemediationResult,
+    RuleAnalyzerInterface,
 )
-from aegis.domain.evaluation.ports import ArchitecturalViolation, RuleAnalyzerInterface
 from aegis.domain.policy.models import Rule
 
 logger = structlog.get_logger()

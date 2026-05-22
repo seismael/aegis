@@ -14,7 +14,6 @@ from aegis.core.plugins.registry import PluginRegistry
 from aegis.domain.enforcement.remediation import RemediationPromptSynthesizer
 from aegis.domain.evaluation.baseline import BaselineManager
 from aegis.domain.evaluation.service import EvaluationService
-from aegis.domain.evaluation.vfs import SpeculativeVFS
 from aegis.domain.evolution.service import EvolutionService
 from aegis.domain.governance.service import GovernanceService
 from aegis.domain.policy.models import (
@@ -24,7 +23,6 @@ from aegis.domain.policy.models import (
 )
 from aegis.domain.policy.parser import PolicyParser
 from aegis.infrastructure.ast_analyzer import TreeSitterAnalyzer
-from aegis.infrastructure.git_provider import GitDiffProvider
 from aegis.infrastructure.graph_analyzer import GraphAnalyzer
 from aegis.infrastructure.regex_analyzer import RegexAnalyzer
 from aegis.infrastructure.semantic_analyzer import SemanticAnalyzer
@@ -54,12 +52,7 @@ class Container:
         self.graph_analyzer = GraphAnalyzer()
         self.regex_analyzer = RegexAnalyzer()
         self.semantic_analyzer = SemanticAnalyzer()
-        self.vfs = SpeculativeVFS(self.workspace_root)
-
-        # Git provider (handles missing repo internally)
-        self.diff_provider = self._try_init(
-            "diff_provider", GitDiffProvider, self.workspace_root
-        )
+        self.diff_provider = None
 
         # Baseline manager (may fail on permissions)
         self.baseline_manager = self._try_init(
@@ -177,7 +170,6 @@ class Container:
                 self.diff_provider,
                 semantic_analyzer=self.semantic_analyzer,
                 extra_analyzers=self.plugin_registry.custom_analyzers,
-                vfs=self.vfs,
             )
         except Exception as exc:
             self._record_init_error(f"evaluation_service: {exc}")

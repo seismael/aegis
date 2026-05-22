@@ -101,3 +101,25 @@ class DiffProviderInterface(ABC):
     def get_changes_since_baseline(self, baseline_ref: str) -> DiffResult:
         """Returns changes between a baseline reference and current state."""
         pass
+
+
+class FixProposal(BaseModel):
+    file: str
+    diff: str = ""
+    replacement_code: str = ""
+    line_start: int = 0
+    line_end: int = 0
+
+
+class RemediationResult(BaseModel):
+    summary: str
+    violations_count: int
+    proposals: list[FixProposal] = []
+    handoff_prompt: str = ""
+
+
+class RemediationProviderInterface(ABC):
+    @abstractmethod
+    def generate_remediation(
+        self, violations: list[ArchitecturalViolation], rules_map: dict
+    ) -> RemediationResult: ...

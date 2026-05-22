@@ -12,7 +12,6 @@ from aegis.domain.evaluation.ports import (
     SemanticAnalyzerInterface,
 )
 from aegis.domain.evaluation.scoping import ScopeFilter
-from aegis.domain.evaluation.vfs import SpeculativeVFS
 from aegis.domain.policy.models import (
     CategoryPhaseMapping,
     EngineType,
@@ -39,7 +38,6 @@ class EvaluationService:
         diff_provider: DiffProviderInterface,
         semantic_analyzer: SemanticAnalyzerInterface | None = None,
         extra_analyzers: list[RuleAnalyzerInterface] | None = None,
-        vfs: SpeculativeVFS | None = None,
     ):
         self.tree_sitter_analyzer = tree_sitter_analyzer
         self.graph_analyzer = graph_analyzer
@@ -47,7 +45,6 @@ class EvaluationService:
         self.diff_provider = diff_provider
         self.semantic_analyzer = semantic_analyzer
         self.extra_analyzers = extra_analyzers or []
-        self.vfs = vfs
 
     def evaluate_workspace(
         self,
@@ -293,9 +290,7 @@ class EvaluationService:
         for file_path in diff.changed_files:
             try:
                 # In V3, we also check if the file is staged in our VFS
-                if not os.path.exists(file_path) and not (
-                    self.vfs and self.vfs.is_staged(file_path, session_id=session_id)
-                ):
+                if not os.path.exists(file_path):
                     continue
 
                 content = self._get_file_content(file_path, session_id=session_id)
@@ -344,9 +339,7 @@ class EvaluationService:
         return ScopeFilter.filter_violations(all_violations, rules)
 
     def _get_file_content(self, file_path: str, session_id: str = "default") -> str:
-        """Retrieves file content via VFS if available, otherwise from disk."""
-        if self.vfs:
-            return self.vfs.read(file_path, session_id=session_id)
+        """Retrieves file content from disk."""
         with open(file_path, encoding="utf-8") as f:
             return f.read()
 
