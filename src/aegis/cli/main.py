@@ -396,8 +396,9 @@ class AegisCLI:
             )
 
         # Auto-baseline: capture all violations before checking so known
-        # debt is exempt from the report
-        if self.container._aegis_config.auto_baseline:
+        # debt is exempt from the report. Skip in staged mode — capturing
+        # uncommitted changes would exempt new violations from detection.
+        if not staged and self.container._aegis_config.auto_baseline:
             if self.container.governance_service:
                 count = self.container.governance_service.capture_baseline(
                     all_rules, self.container.workspace_root

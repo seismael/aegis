@@ -9,7 +9,7 @@ rules:
     mode: warn
     applies_to:
       - "**/*.py"
-    query: ^class\s+\w+[\s\S]{0,300}(def \w+[\s\S]{0,300}){10,}
+    query: (?m)^class\s+\w+[\s\S]{0,300}(def \w+[\s\S]{0,300}){10,}
     rationale: Large classes with many public methods suggest multiple responsibilities needing extraction.
 
   - id: design-ocp-type-dispatch
@@ -25,7 +25,7 @@ rules:
     engine_type: regex
     severity: LOW
     mode: report
-    query: ^class\s+\w+[\s\S]{0,200}(def \w+[\s\S]{0,200}){6,}
+    query: (?m)^class\s+\w+[\s\S]{0,200}(def \w+[\s\S]{0,200}){6,}
     rationale: Large interfaces violate Interface Segregation; split into smaller role-specific interfaces.
 
   - id: design-dip-abstractions
@@ -44,7 +44,7 @@ rules:
     mode: report
     applies_to:
       - "**/domain/**"
-    query: ^class\s+\w+[\s\S]{0,100}(?!(def\s+__eq__|def\s+__hash__|\bid\b|\buuid\b|\bguid\b))
+    query: (?m)^class\s+\w+[\s\S]{0,100}(?!(def\s+__eq__|def\s+__hash__|\bid\b|\buuid\b|\bguid\b))
     rationale: Entities without identity may be better modeled as value objects in DDD.
 
   - id: design-aggregate-boundary

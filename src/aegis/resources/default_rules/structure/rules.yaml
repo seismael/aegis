@@ -7,7 +7,7 @@ rules:
     engine_type: regex
     severity: MEDIUM
     mode: warn
-    query: ^from\s+\S+\s+import\s+\*(?![^#]*noqa)
+    query: (?m)^from\s+\S+\s+import\s+\*(?![^#]*noqa)
     rationale: Explicit __all__ or named imports define the public surface of each module.
 
   - id: struct-file-per-concept
@@ -18,7 +18,7 @@ rules:
     applies_to:
       - "**/domain/**"
       - "**/models/**"
-    query: ^class\s+\w+[\s\S]{0,200}^class\s+\w+
+    query: (?m)^class\s+\w+[\s\S]{0,200}^class\s+\w+
     rationale: Multiple public classes per file suggest reduced cohesion and violated SRP.
 
   - id: struct-max-file-length
@@ -36,7 +36,7 @@ rules:
     engine_type: regex
     severity: LOW
     mode: report
-    query: ^(import|from)\s+\S+\.(utils|helpers|common)\.
+    query: (?m)^(import|from)\s+\S+\.(utils|helpers|common)\.
     rationale: Utility modules lack cohesive purpose and encourage procedural programming patterns.
 
   - id: struct-no-init-logic
@@ -46,7 +46,7 @@ rules:
     mode: warn
     applies_to:
       - "**/__init__.py"
-    query: ^(def |class )
+    query: (?m)^(def |class )
     rationale: Executable logic in __init__.py causes import-order side effects and hidden coupling.
 
   - id: struct-circular-package

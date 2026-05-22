@@ -23,7 +23,7 @@ rules:
     engine_type: regex
     severity: HIGH
     mode: warn
-    query: '^\s*except\s*:'
+    query: '(?m)^\s*except\s*:'
     rationale: Bare except catches KeyboardInterrupt and SystemExit, making crashes silent and debugging impossible.
 
   - id: bp-context-managers
@@ -41,7 +41,7 @@ rules:
     engine_type: regex
     severity: LOW
     mode: report
-    query: '^def \w+\([^):]{20,}\):'
+    query: '(?m)^def \w+\([^):]{20,}\):'
     rationale: Type hints enable static analysis, better IDE support, and self-documenting code.
 
   - id: bp-fstring-usage
@@ -73,7 +73,7 @@ rules:
     engine_type: regex
     severity: LOW
     mode: report
-    query: ^class\s+\w+\(\):[\s\S]{0,200}def __init__
+    query: (?m)^class\s+\w+\(\):[\s\S]{0,200}def __init__
     rationale: dataclasses provide validation, immutability options, and better IDE support than manual init.
 
   - id: bp-dunder-methods
@@ -81,7 +81,7 @@ rules:
     engine_type: regex
     severity: LOW
     mode: report
-    query: ^class\s+\w+[\s\S]{0,300}(?!(__str__|__repr__))
+    query: (?m)^class\s+\w+[\s\S]{0,300}(?!(__str__|__repr__))
     rationale: Without string representations, instances are indistinguishable in logs and debug output.
 
   - id: bp-iterator-protocol

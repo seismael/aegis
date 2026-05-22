@@ -7,7 +7,7 @@ rules:
     engine_type: regex
     severity: LOW
     mode: report
-    query: ^.{89,}$
+    query: (?m)^.{89,}$
     rationale: Excessively long lines reduce readability and code review effectiveness.
 
   - id: style-naming-convention
@@ -15,7 +15,7 @@ rules:
     engine_type: regex
     severity: LOW
     mode: report
-    query: ^class\s+[a-z_]|^def\s+[A-Z]
+    query: (?m)^class\s+[a-z_]|^def\s+[A-Z]
     rationale: Consistent naming conventions improve code navigation and readability.
 
   - id: style-no-trailing-whitespace
@@ -36,7 +36,7 @@ rules:
     engine_type: regex
     severity: LOW
     mode: report
-    query: ^import\s+\S+\nimport\s+\S+
+    query: (?m)^import\s+\S+\nimport\s+\S+
     rationale: Consistent import ordering signals project maturity and aids readability.
 
   - id: style-consistent-quotes
@@ -56,7 +56,7 @@ rules:
     mode: report
     applies_to:
       - "**/*.py"
-    query: ^(if |elif |for |while |and |or |except|with )[\s\S]{0,200}(if |elif |for |while |and |or |except|with )[\s\S]{0,200}(if |elif |for |while |and |or |except|with )
+    query: (?m)^(if |elif |for |while |and |or |except|with )[\s\S]{0,200}(if |elif |for |while |and |or |except|with )[\s\S]{0,200}(if |elif |for |while |and |or |except|with )
     rationale: High cyclomatic complexity makes code difficult to test, review, and maintain.
 
   - id: style-blank-lines

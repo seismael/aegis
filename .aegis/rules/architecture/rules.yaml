@@ -23,7 +23,7 @@ rules:
     engine_type: regex
     severity: MEDIUM
     mode: warn
-    query: ^from\s+\S+\s+import\s+\*
+    query: (?m)^from\s+\S+\s+import\s+\*
     rationale: Explicit imports improve readability and make dependency analysis possible.
 
   - id: arch-layer-violation
@@ -31,6 +31,7 @@ rules:
     engine_type: graph
     severity: HIGH
     mode: block
+    query: disallowed_import
     applies_to:
       - "**/domain/**"
     metadata:
@@ -53,7 +54,7 @@ rules:
     mode: warn
     applies_to:
       - "**/domain/**"
-    query: ^class\s+\w+(Controller|Service|Repository|Manager)
+    query: (?m)^class\s+\w+(Controller|Service|Repository|Manager)
     rationale: Names like UserService or OrderController in domain layer reveal anemic domain models.
 
   - id: arch-module-boundary
@@ -69,5 +70,5 @@ rules:
     engine_type: regex
     severity: LOW
     mode: report
-    query: ^(import|from)\s+\S+\n\s*\n(import|from)\s+\S+
+    query: (?m)^(import|from)\s+\S+\n\s*\n(import|from)\s+\S+
     rationale: Disorganized imports reduce readability and make dependency review harder.

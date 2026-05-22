@@ -241,6 +241,10 @@ class AegisKernel:
             return await self._create_custom_pack(target, rules_yaml)
         if action == "test_rule" and target and rules_yaml:
             return await self._test_architectural_rule(target, rules_yaml)
+        if action == "update_packs" and target:
+            return await self._update_rule_packs(target)
+        if action == "reset_packs":
+            return await self._reset_rule_packs()
 
         return f"ERROR: Unsupported or incomplete evolution action: {action}."
 
@@ -262,6 +266,10 @@ class AegisKernel:
             return await self._list_rule_packs()
         if query_type == "dna":
             return await self._get_project_dna()
+        if query_type == "phases":
+            return await self._list_evaluation_phases()
+        if query_type == "phase_mapping":
+            return await self._get_phase_mapping()
 
         return f"ERROR: Unsupported or incomplete knowledge query: {query_type}."
 
@@ -1533,7 +1541,7 @@ class AegisKernel:
                 workspace=root,
                 rules_loaded=len(rules),
                 tools_count=tool_count + plugin_tools,
-                resources_count=6,
+                resources_count=7,
                 prompts_count=6,
                 active_violations=len(active),
                 plugins_loaded=plugin_count,

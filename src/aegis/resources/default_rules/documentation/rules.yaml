@@ -20,7 +20,7 @@ rules:
     mode: report
     applies_to:
       - "**/src/**/*.py"
-    query: ^(def|class)\s+(?!_)[\s\S]{0,3}:\n(?!\s*""")
+    query: (?m)^(def|class)\s+(?!_)[\s\S]{0,3}:\n(?!\s*""")
     rationale: Public APIs without documentation force consumers to read implementation details.
 
   - id: docs-stale-markers

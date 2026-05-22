@@ -16,7 +16,7 @@ rules:
     engine_type: regex
     severity: HIGH
     mode: block
-    query: (password|passwd|pwd)\s*[=:]\s*["\'][^"\']+["\']
+    query: (?i)(password|passwd|pwd)\s*[=:]\s*["\'][^"\']+["\']
     excludes:
       - tests/**
       - "**/test_*"

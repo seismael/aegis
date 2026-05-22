@@ -114,11 +114,11 @@ class GraphAnalyzer(GraphAnalyzerInterface):
             return violations
 
         for module, imports in file_imports.items():
-            if not module.startswith(source_ns):
+            if source_ns not in module.split("."):
                 continue
 
             for line, imported in imports:
-                if imported.startswith(target_ns):
+                if target_ns in imported.split("."):
                     violations.append(
                         ArchitecturalViolation(
                             file=module.replace(".", os.sep) + ".py",
