@@ -1764,8 +1764,7 @@ class AegisKernel:
             dna += f"[{cat.upper()}]\n"
             for r in rules:
                 dna += (
-                    f"- {r.id} ({r.severity.value}/{r.mode.value}): "
-                    f"{r.description}\n"
+                    f"- {r.id} ({r.severity.value}/{r.mode.value}): {r.description}\n"
                 )
 
         return dna

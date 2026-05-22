@@ -32128,5 +32128,47 @@
     "rule_id": "style-no-trailing-whitespace",
     "signature": null,
     "captured_at": "2026-05-22T09:30:15.122986+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1795,
+    "rule_id": "perf-n-plus-1",
+    "signature": null,
+    "captured_at": "2026-05-22T09:34:26.463693+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1898,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-05-22T09:34:26.463693+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1783,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-05-22T09:34:26.463693+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1799,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-05-22T09:34:26.463693+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1817,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-05-22T09:34:26.463693+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1861,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-05-22T09:34:26.463693+00:00"
   }
 ]
