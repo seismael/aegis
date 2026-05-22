@@ -1259,7 +1259,8 @@ class AegisKernel:
         )
         def remediate_violations_prompt() -> str:
             return (
-                "You are a remediation agent. First call `validate_workspace(auto_fix=True)` "
+                "You are a remediation agent. First call "
+                "`validate_workspace(auto_fix=True)` "
                 "to resolve deterministic violations automatically. "
                 "Then call `validate_workspace` to see what remains "
                 "(returns structured JSON with violations[]). "
