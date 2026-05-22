@@ -1275,10 +1275,11 @@ class AegisKernel:
         )
         def explain_rule_prompt(rule_id: str) -> str:
             return (
-                f"Call `query_knowledge_graph(query_type='rationale', target='{rule_id}')` "
-                "to understand its purpose and evolution history. "
-                "Then read the rule definition from the `aegis://rules` resource. "
-                "Summarize what the rule enforces and why it exists."
+                "Call `query_knowledge_graph(query_type='rationale', "
+                f"target='{rule_id}')` to understand its purpose and "
+                "evolution history. Then read the rule definition from "
+                "the `aegis://rules` resource. Summarize what the rule "
+                "enforces and why it exists."
             )
 
         @self.mcp.prompt(
@@ -1299,10 +1300,11 @@ class AegisKernel:
         )
         def inspect_dependency_prompt(node_name: str) -> str:
             return (
-                f"Call `query_knowledge_graph(query_type='dependency', target='{node_name}')` "
-                "to inspect its imports and reverse-dependencies. "
-                "Check for: (1) circular dependencies, (2) domain->infrastructure leaks, "
-                "(3) excessive coupling. Report findings and suggest refactoring if needed."
+                "Call `query_knowledge_graph(query_type='dependency', "
+                f"target='{node_name}')` to inspect its imports and "
+                "reverse-dependencies. Check for: (1) circular dependencies, "
+                "(2) domain->infrastructure leaks, (3) excessive coupling. "
+                "Report findings and suggest refactoring if needed."
             )
 
     def _register_resources(self):
@@ -1744,7 +1746,7 @@ class AegisKernel:
     async def _get_project_dna(self) -> str:
         """
         Returns a compressed 'Manifesto' of the project's invariants.
-        Provides ambient architectural awareness for AI agents without token bloat.
+        Provides ambient architectural awareness for AI agents.
         """
         all_rules = self._load_rules()
         if not all_rules:
@@ -1762,7 +1764,8 @@ class AegisKernel:
             dna += f"[{cat.upper()}]\n"
             for r in rules:
                 dna += (
-                    f"- {r.id} ({r.severity.value}/{r.mode.value}): {r.description}\n"
+                    f"- {r.id} ({r.severity.value}/{r.mode.value}): "
+                    f"{r.description}\n"
                 )
 
         return dna

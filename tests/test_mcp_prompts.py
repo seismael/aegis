@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -32,7 +32,9 @@ class TestMCPPrompts:
     @pytest.mark.asyncio
     async def test_start_task_prompt_content(self, kernel):
         """Verify the start-task prompt contains the correct Meta-Tool references."""
-        result = await kernel.mcp.get_prompt("start-new-task", arguments={"description": "test"})
+        result = await kernel.mcp.get_prompt(
+            "start-new-task", arguments={"description": "test"}
+        )
         assert result is not None
         assert "plan_architecture" in str(result)
         assert "aegis://dna" in str(result)
