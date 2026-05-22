@@ -1243,13 +1243,13 @@ class AegisKernel:
         def evaluate_architecture_prompt() -> str:
             return (
                 "You are an architectural governance auditor. "
-                "Run `validate_architecture_compliance` on the full workspace. "
+                "Run `validate_workspace` on the full workspace. "
                 "Returns structured JSON: passed (bool), violations[] with "
                 "file, line, rule_id, severity, description for each violation. "
                 "Parse the JSON directly — no string parsing needed. "
                 "If violations are found, group them by rule_id and severity "
                 "to produce a scorecard. "
-                "Call `list_evaluation_phases` and `get_phase_mapping` to "
+                "Call `query_knowledge_graph(query_type='phases')` to "
                 "contextualize when each rule is evaluated."
             )
 
@@ -1259,13 +1259,13 @@ class AegisKernel:
         )
         def remediate_violations_prompt() -> str:
             return (
-                "You are a remediation agent. First call `apply_auto_fixes` "
+                "You are a remediation agent. First call `validate_workspace(auto_fix=True)` "
                 "to resolve deterministic violations automatically. "
-                "Then call `validate_architecture_compliance` to see what remains "
+                "Then call `validate_workspace` to see what remains "
                 "(returns structured JSON with violations[]). "
-                "For remaining violations, call `apply_architectural_remediation` "
-                "for structured fix instructions, then resolve each violation "
-                "one by one. Re-validate after each fix until all are cleared."
+                "The output will contain structured fix instructions. "
+                "Resolve each violation one by one. "
+                "Re-validate after each fix until all are cleared."
             )
 
         @self.mcp.prompt(
@@ -1274,11 +1274,10 @@ class AegisKernel:
         )
         def explain_rule_prompt(rule_id: str) -> str:
             return (
-                f"Call `get_rule_rationale` for rule '{rule_id}' to understand "
-                "its purpose, evolution history, and any past decisions about it. "
+                f"Call `query_knowledge_graph(query_type='rationale', target='{rule_id}')` "
+                "to understand its purpose and evolution history. "
                 "Then read the rule definition from the `aegis://rules` resource. "
-                "Summarize what the rule enforces, why it exists, and how it has "
-                "evolved over time."
+                "Summarize what the rule enforces and why it exists."
             )
 
         @self.mcp.prompt(
@@ -1288,13 +1287,9 @@ class AegisKernel:
         def initialize_governance_prompt() -> str:
             return (
                 "You are setting up architectural governance. "
-                "First call `hypothesize_workspace_architecture` to detect"
-                " the tech stack and bounded contexts. "
-                "Present the findings to the user and suggest relevant rule packs. "
-                "If they agree, call `initialize_project_governance`, "
-                "then `install_rule_pack` for each recommended pack. "
-                "Finally call `capture_architectural_baseline` to mark"
-                " existing violations as accepted debt."
+                "Call `evolve_ruleset(action='auto_init')` to detect"
+                " the tech stack, recommend rule packs, install them, "
+                "and baseline existing debt automatically."
             )
 
         @self.mcp.prompt(
@@ -1303,10 +1298,10 @@ class AegisKernel:
         )
         def inspect_dependency_prompt(node_name: str) -> str:
             return (
-                f"Call `get_dependency_graph` for module '{node_name}' to inspect "
-                "its imports and reverse-dependencies. Check for: (1) circular "
-                "dependencies, (2) domain->infrastructure leaks, (3) excessive "
-                "coupling. Report findings and suggest refactoring if needed."
+                f"Call `query_knowledge_graph(query_type='dependency', target='{node_name}')` "
+                "to inspect its imports and reverse-dependencies. "
+                "Check for: (1) circular dependencies, (2) domain->infrastructure leaks, "
+                "(3) excessive coupling. Report findings and suggest refactoring if needed."
             )
 
     def _register_resources(self):

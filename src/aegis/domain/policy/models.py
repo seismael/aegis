@@ -54,6 +54,9 @@ class RuleCategory(StrEnum):
     INFRASTRUCTURE = "infrastructure"
     GENERAL = "general"
     SEMANTIC = "semantic"
+    CLOUD_ISOLATION = "cloud-isolation"
+    GO = "go"
+    RUST = "rust"
 
 
 class EngineType(StrEnum):
@@ -120,6 +123,18 @@ class CategoryPhaseMapping(BaseModel):
                 EvaluationPhase.ON_DEMAND,
             ],
             RuleCategory.SEMANTIC: [
+                EvaluationPhase.CI,
+                EvaluationPhase.ON_DEMAND,
+            ],
+            RuleCategory.CLOUD_ISOLATION: [
+                EvaluationPhase.CI,
+                EvaluationPhase.ON_DEMAND,
+            ],
+            RuleCategory.GO: [
+                EvaluationPhase.CI,
+                EvaluationPhase.ON_DEMAND,
+            ],
+            RuleCategory.RUST: [
                 EvaluationPhase.CI,
                 EvaluationPhase.ON_DEMAND,
             ],
