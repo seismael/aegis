@@ -1,85 +1,73 @@
 """
-Aegis Universal Capability Installer.
-Provides universal and native installation logic for all major AI agent coder tools.
+Aegis V4 Agent-Native Installer.
+Injects Aegis directly into the cognition and execution loops
+of Claude and Aider via their native configuration files.
+No adapters. MCP is the universal protocol.
 """
 
-import structlog
+import json
+from pathlib import Path
 
-from aegis.infrastructure.adapters.aider import AiderAdapter
-from aegis.infrastructure.adapters.base import ToolAdapter
-from aegis.infrastructure.adapters.claude import ClaudeAdapter
-from aegis.infrastructure.adapters.generic import GenericMCPAdapter
-from aegis.infrastructure.adapters.opendevin import OpenDevinAdapter
+AEGIS_GOVERNANCE_DIRECTIVE = (
+    "CRITICAL GOVERNANCE DIRECTIVE: "
+    "You are governed by the Aegis Microkernel. "
+    "Before declaring ANY coding task complete, you MUST execute the "
+    "`validate_architecture_compliance` MCP tool. If it returns violations, "
+    "you MUST remediate the code natively before proceeding."
+)
 
-logger = structlog.get_logger()
 
-
-class AegisInstaller:
+class AgentNativeInstaller:
     """
-    Universal Capability Orchestrator.
-    Binds Aegis as a native capability to all detected AI tools
-    (Claude, Aider, OpenCode, Gemini, etc.).
+    Injects Aegis directly into the cognition and execution loops
+    of the target AI coding agents.
     """
 
-    def __init__(self, target_dir: str = "."):
-        from rich.console import Console
+    def __init__(self):
+        self.home = Path.home()
 
-        self.target_dir = target_dir
-        self.console = Console()
-        self.adapters: list[ToolAdapter] = [
-            ClaudeAdapter(target_dir),
-            AiderAdapter(target_dir),
-            OpenDevinAdapter(target_dir),
-            GenericMCPAdapter(target_dir),  # Catch-all standard
-        ]
+    def install(self, target_tool: str | None = None):
+        if not target_tool or target_tool == "claude":
+            self._inject_claude()
+        if not target_tool or target_tool == "aider":
+            self._inject_aider()
+        if target_tool and target_tool not in ("claude", "aider"):
+            raise ValueError(
+                f"Unsupported tool: {target_tool}. Supported: claude, aider"
+            )
 
-    def install_global_capability(
-        self, target_tool: str | None = None, sandbox: bool = False
-    ) -> None:
-        """Installs the Aegis capability natively across all detected AI tools."""
-        self.console.print(
-            "[bold blue]Installing Aegis Universal Capability...[/bold blue]"
+    def _inject_claude(self):
+        claude_config = self.home / ".claude.json"
+        config = {}
+        if claude_config.exists():
+            with open(claude_config, "r") as f:
+                config = json.load(f)
+
+        if "mcpServers" not in config:
+            config["mcpServers"] = {}
+        config["mcpServers"]["aegis"] = {"command": "aegis", "args": ["run"]}
+
+        existing_instructions = config.get("customInstructions", "")
+        if "Aegis Microkernel" not in existing_instructions:
+            config["customInstructions"] = (
+                f"{existing_instructions}\n\n{AEGIS_GOVERNANCE_DIRECTIVE}".strip()
+            )
+
+        with open(claude_config, "w") as f:
+            json.dump(config, f, indent=2)
+
+        print(f"[Aegis] Injected governance directive into {claude_config}")
+
+    def _inject_aider(self):
+        aider_config = self.home / ".aider.conf.yml"
+        directive = (
+            "\n# Aegis Native Integration\n"
+            "mcp-server: aegis run\n"
+            "test-cmd: aegis run --check\n"
+            "auto-test: true\n"
         )
-        to_install = self.adapters
-        if target_tool:
-            to_install = [
-                a
-                for a in self.adapters
-                if target_tool.lower() in a.name.lower()
-                or any(target_tool.lower() == alias.lower() for alias in a.aliases)
-            ]
-            if not to_install:
-                self.console.print(
-                    f"[red]Error: Tool '{target_tool}' "
-                    "not supported or not found.[/red]"
-                )
-                return
 
-        installed_count = 0
+        with open(aider_config, "a") as f:
+            f.write(directive)
 
-        for adapter in self.adapters:
-            if adapter.is_present() or target_tool:
-                self.console.print(
-                    f"  - Integrating with [cyan]{adapter.name}[/cyan]..."
-                )
-                if adapter.install(sandbox=sandbox):
-                    installed_count += 1
-
-        if installed_count > 0:
-            self.console.print(
-                "\n[bold green]Aegis Global Capability Setup Complete![/bold green]"
-            )
-            self.console.print(
-                "Your AI agents now natively possess the "
-                "[bold]Aegis Governance[/bold] capability."
-            )
-        else:
-            self.console.print(
-                "\n[yellow]No AI tools detected. Standard MCP manifest "
-                "for manual registration.[/yellow]"
-            )
-
-    @staticmethod
-    def entry_point():
-        installer = AegisInstaller()
-        installer.install_global_capability()
+        print(f"[Aegis] Injected MCP configuration into {aider_config}")
