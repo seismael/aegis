@@ -5,7 +5,7 @@ from collections.abc import Callable
 
 import structlog
 
-from aegis.core.plugins.interfaces import CustomAnalyzerInterface
+from aegis.domain.evaluation.plugins.interfaces import CustomAnalyzerInterface
 from aegis.domain.evaluation.ports import RuleAnalyzerInterface
 from aegis.domain.policy.models import Rule
 

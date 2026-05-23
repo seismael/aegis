@@ -4,8 +4,6 @@ from unittest.mock import MagicMock
 from aegis.domain.evaluation.constants import IGNORE_DIRS
 from aegis.domain.evaluation.ports import (
     ArchitecturalViolation,
-    DiffProviderInterface,
-    DiffResult,
     GraphAnalyzerInterface,
     RegexAnalyzerInterface,
     RuleAnalyzerInterface,
@@ -24,13 +22,11 @@ class TestEvaluationService:
         ts_analyzer=None,
         graph_analyzer=None,
         regex_analyzer=None,
-        diff_provider=None,
     ):
         return EvaluationService(
             tree_sitter_analyzer=ts_analyzer or MagicMock(spec=RuleAnalyzerInterface),
             graph_analyzer=graph_analyzer or MagicMock(spec=GraphAnalyzerInterface),
             regex_analyzer=regex_analyzer or MagicMock(spec=RegexAnalyzerInterface),
-            diff_provider=diff_provider or MagicMock(spec=DiffProviderInterface),
         )
 
     def test_evaluate_workspace(self, tmp_path):
@@ -46,11 +42,10 @@ class TestEvaluationService:
             )
         ]
 
-        diff_provider = MagicMock(spec=DiffProviderInterface)
         graph_mock = MagicMock(spec=GraphAnalyzerInterface)
         regex_mock = MagicMock(spec=RegexAnalyzerInterface)
 
-        service = EvaluationService(analyzer, graph_mock, regex_mock, diff_provider)
+        service = EvaluationService(analyzer, graph_mock, regex_mock)
         rules = [
             Rule(
                 id="test-rule",
@@ -63,28 +58,6 @@ class TestEvaluationService:
         violations = service.evaluate_workspace(str(tmp_path), rules)
         assert len(violations) == 1
         assert violations[0].rule_id == "test-rule"
-
-    def test_evaluate_changes(self):
-        analyzer = MagicMock(spec=RuleAnalyzerInterface)
-        analyzer.analyze_file.return_value = []
-
-        diff_result = MagicMock(spec=DiffResult)
-        diff_result.changed_files = {"src/main.py"}
-
-        diff_provider = MagicMock(spec=DiffProviderInterface)
-        diff_provider.get_staged_changes.return_value = diff_result
-
-        graph_mock = MagicMock(spec=GraphAnalyzerInterface)
-        regex_mock = MagicMock(spec=RegexAnalyzerInterface)
-
-        service = EvaluationService(analyzer, graph_mock, regex_mock, diff_provider)
-
-        try:
-            service.evaluate_changes([])
-        except FileNotFoundError:
-            pass
-
-        diff_provider.get_staged_changes.assert_called_once()
 
     def test_normalize_violation_paths(self, tmp_path):
         """Absolute violation paths are normalized to relative."""
@@ -104,9 +77,8 @@ class TestEvaluationService:
 
         graph_mock = MagicMock(spec=GraphAnalyzerInterface)
         regex_mock = MagicMock(spec=RegexAnalyzerInterface)
-        diff_provider = MagicMock(spec=DiffProviderInterface)
 
-        service = EvaluationService(analyzer, graph_mock, regex_mock, diff_provider)
+        service = EvaluationService(analyzer, graph_mock, regex_mock)
         rules = [Rule(id="r1", description="test")]
         violations = service.evaluate_workspace(str(tmp_path), rules)
 
@@ -132,9 +104,8 @@ class TestEvaluationService:
 
         graph_mock = MagicMock(spec=GraphAnalyzerInterface)
         regex_mock = MagicMock(spec=RegexAnalyzerInterface)
-        diff_provider = MagicMock(spec=DiffProviderInterface)
 
-        service = EvaluationService(analyzer, graph_mock, regex_mock, diff_provider)
+        service = EvaluationService(analyzer, graph_mock, regex_mock)
         rules = [Rule(id="r1", description="test")]
         violations = service.evaluate_workspace(str(tmp_path), rules)
 
@@ -147,9 +118,8 @@ class TestEvaluationService:
         graph_mock = MagicMock(spec=GraphAnalyzerInterface)
         graph_mock.analyze_graph.return_value = []
         regex_mock = MagicMock(spec=RegexAnalyzerInterface)
-        diff_provider = MagicMock(spec=DiffProviderInterface)
 
-        service = EvaluationService(analyzer, graph_mock, regex_mock, diff_provider)
+        service = EvaluationService(analyzer, graph_mock, regex_mock)
         rules = [Rule(id="r1", description="test")]
         violations = service.evaluate_workspace(str(tmp_path), rules)
         assert violations == []
@@ -164,9 +134,8 @@ class TestEvaluationService:
         graph_mock = MagicMock(spec=GraphAnalyzerInterface)
         graph_mock.analyze_graph.return_value = []
         regex_mock = MagicMock(spec=RegexAnalyzerInterface)
-        diff_provider = MagicMock(spec=DiffProviderInterface)
 
-        service = EvaluationService(analyzer, graph_mock, regex_mock, diff_provider)
+        service = EvaluationService(analyzer, graph_mock, regex_mock)
         rules = [Rule(id="r1", description="test")]
         service.evaluate_workspace(str(tmp_path), rules)
 
@@ -204,9 +173,8 @@ class TestEvaluationService:
         graph_mock = MagicMock(spec=GraphAnalyzerInterface)
         graph_mock.analyze_graph.return_value = []
         regex_mock = MagicMock(spec=RegexAnalyzerInterface)
-        diff_provider = MagicMock(spec=DiffProviderInterface)
 
-        service = EvaluationService(analyzer, graph_mock, regex_mock, diff_provider)
+        service = EvaluationService(analyzer, graph_mock, regex_mock)
         rules = [Rule(id="r1", description="test")]
         # Should not crash
         violations = service.evaluate_workspace(str(tmp_path), rules)
@@ -224,7 +192,6 @@ class TestEvaluationService:
             MagicMock(spec=RuleAnalyzerInterface),
             graph_analyzer,
             MagicMock(spec=RegexAnalyzerInterface),
-            MagicMock(spec=DiffProviderInterface),
         )
         rules = [
             Rule(
@@ -238,176 +205,6 @@ class TestEvaluationService:
         assert violations == []
         graph_analyzer.analyze_graph.assert_called_once()
 
-    def test_evaluate_changes_handles_missing_file(self, tmp_path):
-        """evaluate_changes skips files in diff that no longer exist on disk."""
-        diff_result = MagicMock(spec=DiffResult)
-        diff_result.changed_files = {str(tmp_path / "deleted.py")}
-
-        diff_provider = MagicMock(spec=DiffProviderInterface)
-        diff_provider.get_staged_changes.return_value = diff_result
-
-        service = EvaluationService(
-            MagicMock(spec=RuleAnalyzerInterface),
-            MagicMock(spec=GraphAnalyzerInterface),
-            MagicMock(spec=RegexAnalyzerInterface),
-            diff_provider,
-        )
-        violations = service.evaluate_changes([])
-        assert violations == []
-
-    def test_evaluate_changes_filters_by_modified_lines(self, tmp_path):
-        """Violation on a modified line is included."""
-        f = tmp_path / "src" / "main.py"
-        f.parent.mkdir(parents=True)
-        f.write_text("line1\nline2\nline3\n", encoding="utf-8")
-
-        analyzer = MagicMock(spec=RuleAnalyzerInterface)
-        analyzer.analyze_file.return_value = [
-            ArchitecturalViolation(file=str(f), line=2, rule_id="r1", description="bad")
-        ]
-
-        diff_result = MagicMock(spec=DiffResult)
-        diff_result.changed_files = {str(f)}
-        diff_result.get_modified_lines.return_value = {2}
-
-        diff_provider = MagicMock(spec=DiffProviderInterface)
-        diff_provider.get_staged_changes.return_value = diff_result
-
-        service = EvaluationService(
-            analyzer,
-            MagicMock(spec=GraphAnalyzerInterface),
-            MagicMock(spec=RegexAnalyzerInterface),
-            diff_provider,
-        )
-        rules = [Rule(id="r1", description="test")]
-        violations = service.evaluate_changes(rules, root_dir=str(tmp_path))
-        assert len(violations) == 1
-
-    def test_evaluate_changes_excludes_unmodified_lines(self, tmp_path):
-        """Violation NOT on a modified line is excluded."""
-        f = tmp_path / "src" / "main.py"
-        f.parent.mkdir(parents=True)
-        f.write_text("line1\nline2\nline3\n", encoding="utf-8")
-
-        analyzer = MagicMock(spec=RuleAnalyzerInterface)
-        analyzer.analyze_file.return_value = [
-            ArchitecturalViolation(file=str(f), line=2, rule_id="r1", description="bad")
-        ]
-
-        diff_result = MagicMock(spec=DiffResult)
-        diff_result.changed_files = {str(f)}
-        diff_result.get_modified_lines.return_value = {3}
-
-        diff_provider = MagicMock(spec=DiffProviderInterface)
-        diff_provider.get_staged_changes.return_value = diff_result
-
-        service = EvaluationService(
-            analyzer,
-            MagicMock(spec=GraphAnalyzerInterface),
-            MagicMock(spec=RegexAnalyzerInterface),
-            diff_provider,
-        )
-        rules = [Rule(id="r1", description="test")]
-        violations = service.evaluate_changes(rules, root_dir=str(tmp_path))
-        assert len(violations) == 0
-
-    def test_evaluate_changes_skips_graph_rules(self, tmp_path):
-        """Graph rules are skipped during staged evaluation."""
-        f = tmp_path / "main.py"
-        f.write_text("x = 1", encoding="utf-8")
-
-        analyzer = MagicMock(spec=RuleAnalyzerInterface)
-        diff_result = MagicMock(spec=DiffResult)
-        diff_result.changed_files = {str(f)}
-        diff_result.get_modified_lines.return_value = {1}
-        diff_provider = MagicMock(spec=DiffProviderInterface)
-        diff_provider.get_staged_changes.return_value = diff_result
-
-        graph_mock = MagicMock(spec=GraphAnalyzerInterface)
-        service = EvaluationService(
-            analyzer,
-            graph_mock,
-            MagicMock(spec=RegexAnalyzerInterface),
-            diff_provider,
-        )
-        rules = [
-            Rule(
-                id="g1",
-                engine_type=EngineType.GRAPH,
-                query="circular_dependency",
-                description="cycle",
-            )
-        ]
-        violations = service.evaluate_changes(rules, root_dir=str(tmp_path))
-        assert violations == []
-        graph_mock.analyze_graph.assert_not_called()
-
-    def test_evaluate_changes_uses_both_ts_and_regex(self, tmp_path):
-        """Both ts and regex analyzers are called during staged eval."""
-        f = tmp_path / "main.py"
-        f.write_text("print('x')\n", encoding="utf-8")
-
-        ts_analyzer = MagicMock(spec=RuleAnalyzerInterface)
-        ts_analyzer.analyze_file.return_value = []
-        regex_analyzer = MagicMock(spec=RegexAnalyzerInterface)
-        regex_analyzer.analyze_file.return_value = []
-
-        diff_result = MagicMock(spec=DiffResult)
-        diff_result.changed_files = {str(f)}
-        diff_result.get_modified_lines.return_value = {1}
-        diff_provider = MagicMock(spec=DiffProviderInterface)
-        diff_provider.get_staged_changes.return_value = diff_result
-
-        service = EvaluationService(
-            ts_analyzer,
-            MagicMock(spec=GraphAnalyzerInterface),
-            regex_analyzer,
-            diff_provider,
-        )
-        rules = [
-            Rule(id="r1", engine_type=EngineType.TREE_SITTER, description="ast"),
-            Rule(id="r2", engine_type=EngineType.REGEX, description="re"),
-        ]
-        service.evaluate_changes(rules, root_dir=str(tmp_path))
-        ts_analyzer.analyze_file.assert_called_once()
-        regex_analyzer.analyze_file.assert_called_once()
-
-    def test_evaluate_changes_logs_on_read_error(self, tmp_path):
-        """evaluate_changes does not crash when a file cannot be read."""
-        diff_result = MagicMock(spec=DiffResult)
-        diff_result.changed_files = {str(tmp_path / "no_perms.py")}
-        diff_result.get_modified_lines.return_value = {1}
-        diff_provider = MagicMock(spec=DiffProviderInterface)
-        diff_provider.get_staged_changes.return_value = diff_result
-
-        service = EvaluationService(
-            MagicMock(spec=RuleAnalyzerInterface),
-            MagicMock(spec=GraphAnalyzerInterface),
-            MagicMock(spec=RegexAnalyzerInterface),
-            diff_provider,
-        )
-        violations = service.evaluate_changes([], root_dir=str(tmp_path))
-        assert violations == []
-
-    def test_derive_root_dir_from_empty_set(self):
-        """_derive_root_dir with empty set returns cwd."""
-        root = EvaluationService._derive_root_dir(set())
-        assert root == os.getcwd()
-
-    def test_derive_root_dir_from_single_file(self, tmp_path):
-        """_derive_root_dir with one file returns its parent."""
-        p = tmp_path / "src" / "main.py"
-        root = EvaluationService._derive_root_dir({str(p)})
-        assert root == str(tmp_path / "src")
-
-    def test_derive_root_dir_handles_value_error(self):
-        """_derive_root_dir with cross-drive paths on Windows returns cwd."""
-        try:
-            root = EvaluationService._derive_root_dir({"C:\\a.py", "D:\\b.py"})
-            assert root == os.getcwd()
-        except ValueError:
-            pass  # os.path.commonpath raises on some Python versions
-
 
 class TestEvaluateFile:
     """Tests for EvaluationService.evaluate_file."""
@@ -417,7 +214,6 @@ class TestEvaluateFile:
             tree_sitter_analyzer=ts_analyzer or MagicMock(spec=RuleAnalyzerInterface),
             graph_analyzer=MagicMock(spec=GraphAnalyzerInterface),
             regex_analyzer=regex_analyzer or MagicMock(spec=RegexAnalyzerInterface),
-            diff_provider=MagicMock(spec=DiffProviderInterface),
         )
 
     def test_evaluate_file_returns_violations(self, tmp_path):
@@ -481,7 +277,6 @@ class TestEvaluateFile:
             tree_sitter_analyzer=ts_analyzer,
             graph_analyzer=MagicMock(spec=GraphAnalyzerInterface),
             regex_analyzer=regex_analyzer,
-            diff_provider=MagicMock(spec=DiffProviderInterface),
         )
         rules = [
             Rule(id="t1", engine_type=EngineType.TREE_SITTER, description="ts"),
@@ -500,7 +295,6 @@ class TestEvaluateCodeString:
             tree_sitter_analyzer=ts_analyzer or MagicMock(spec=RuleAnalyzerInterface),
             graph_analyzer=MagicMock(spec=GraphAnalyzerInterface),
             regex_analyzer=regex_analyzer or MagicMock(spec=RegexAnalyzerInterface),
-            diff_provider=MagicMock(spec=DiffProviderInterface),
         )
 
     def test_empty_code_returns_empty(self):

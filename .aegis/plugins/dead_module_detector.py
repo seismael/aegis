@@ -10,7 +10,7 @@ Use-case: Identifying and cleaning up dead code in large repositories.
 import os
 import re
 
-from aegis.core.plugins import CustomAnalyzerInterface
+from aegis.domain.evaluation.plugins import CustomAnalyzerInterface
 from aegis.domain.evaluation.ports import ArchitecturalViolation
 from aegis.domain.policy.models import EnforcementMode, Rule, Severity
 

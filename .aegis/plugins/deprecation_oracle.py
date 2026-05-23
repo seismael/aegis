@@ -11,7 +11,7 @@ sunsetting legacy internal APIs in professional codebases.
 import re
 from collections.abc import Callable
 
-from aegis.core.plugins import CustomAnalyzerInterface
+from aegis.domain.evaluation.plugins import CustomAnalyzerInterface
 from aegis.domain.evaluation.ports import ArchitecturalViolation
 from aegis.domain.policy.models import Rule
 

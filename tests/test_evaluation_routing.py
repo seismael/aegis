@@ -1,7 +1,6 @@
 from unittest.mock import MagicMock
 
 from aegis.domain.evaluation.ports import (
-    DiffProviderInterface,
     GraphAnalyzerInterface,
     RegexAnalyzerInterface,
     RuleAnalyzerInterface,
@@ -20,14 +19,13 @@ class TestEvaluationRouting:
             MagicMock(spec=RuleAnalyzerInterface),
             MagicMock(spec=GraphAnalyzerInterface),
             MagicMock(spec=RegexAnalyzerInterface),
-            MagicMock(spec=DiffProviderInterface),
         )
 
-    def _make_service(self, ts, graph, regex, diff):
-        return EvaluationService(ts, graph, regex, diff)
+    def _make_service(self, ts, graph, regex):
+        return EvaluationService(ts, graph, regex)
 
     def test_tree_sitter_rules_dispatched_to_ts_analyzer(self, tmp_path):
-        ts_mock, graph_mock, regex_mock, diff_mock = self._make_mocks()
+        ts_mock, graph_mock, regex_mock = self._make_mocks()
         ts_mock.analyze_file.return_value = []
         graph_mock.analyze_graph.return_value = []
         regex_mock.analyze_file.return_value = []
@@ -37,7 +35,7 @@ class TestEvaluationRouting:
         f = p / "main.py"
         f.write_text("x = 1", encoding="utf-8")
 
-        service = self._make_service(ts_mock, graph_mock, regex_mock, diff_mock)
+        service = self._make_service(ts_mock, graph_mock, regex_mock)
         rules = [
             Rule(
                 id="ts-rule",
@@ -52,12 +50,12 @@ class TestEvaluationRouting:
         regex_mock.analyze_file.assert_not_called()
 
     def test_graph_rules_dispatched_to_graph_analyzer(self, tmp_path):
-        ts_mock, graph_mock, regex_mock, diff_mock = self._make_mocks()
+        ts_mock, graph_mock, regex_mock = self._make_mocks()
         ts_mock.analyze_file.return_value = []
         graph_mock.analyze_graph.return_value = []
         regex_mock.analyze_file.return_value = []
 
-        service = self._make_service(ts_mock, graph_mock, regex_mock, diff_mock)
+        service = self._make_service(ts_mock, graph_mock, regex_mock)
         rules = [
             Rule(
                 id="graph-rule",
@@ -72,7 +70,7 @@ class TestEvaluationRouting:
         regex_mock.analyze_file.assert_not_called()
 
     def test_regex_rules_dispatched_to_regex_analyzer(self, tmp_path):
-        ts_mock, graph_mock, regex_mock, diff_mock = self._make_mocks()
+        ts_mock, graph_mock, regex_mock = self._make_mocks()
         ts_mock.analyze_file.return_value = []
         graph_mock.analyze_graph.return_value = []
         regex_mock.analyze_file.return_value = []
@@ -82,7 +80,7 @@ class TestEvaluationRouting:
         f = p / "main.py"
         f.write_text("x = 1", encoding="utf-8")
 
-        service = self._make_service(ts_mock, graph_mock, regex_mock, diff_mock)
+        service = self._make_service(ts_mock, graph_mock, regex_mock)
         rules = [
             Rule(
                 id="regex-rule",
@@ -97,7 +95,7 @@ class TestEvaluationRouting:
         graph_mock.analyze_graph.assert_not_called()
 
     def test_mixed_routes_when_multiple_engine_types(self, tmp_path):
-        ts_mock, graph_mock, regex_mock, diff_mock = self._make_mocks()
+        ts_mock, graph_mock, regex_mock = self._make_mocks()
         ts_mock.analyze_file.return_value = []
         graph_mock.analyze_graph.return_value = []
         regex_mock.analyze_file.return_value = []
@@ -107,7 +105,7 @@ class TestEvaluationRouting:
         f = p / "main.py"
         f.write_text("x = 1", encoding="utf-8")
 
-        service = self._make_service(ts_mock, graph_mock, regex_mock, diff_mock)
+        service = self._make_service(ts_mock, graph_mock, regex_mock)
         rules = [
             Rule(
                 id="ts",
@@ -132,22 +130,3 @@ class TestEvaluationRouting:
         ts_mock.analyze_file.assert_called_once()
         graph_mock.analyze_graph.assert_called_once()
         regex_mock.analyze_file.assert_called_once()
-
-    def test_graph_rules_skipped_in_evaluate_changes(self):
-        ts_mock, graph_mock, regex_mock, diff_mock = self._make_mocks()
-
-        diff_result = MagicMock()
-        diff_result.changed_files = set()
-        diff_mock.get_staged_changes.return_value = diff_result
-
-        service = self._make_service(ts_mock, graph_mock, regex_mock, diff_mock)
-        rules = [
-            Rule(
-                id="gr",
-                description="GR",
-                engine_type=EngineType.GRAPH,
-                severity=Severity.HIGH,
-            ),
-        ]
-        result = service.evaluate_changes(rules)
-        assert result == []

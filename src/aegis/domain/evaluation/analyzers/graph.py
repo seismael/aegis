@@ -2,7 +2,7 @@ import ast
 import os
 from collections import defaultdict
 
-from aegis.core.constants import IGNORE_DIRS
+from aegis.domain.evaluation.constants import IGNORE_DIRS
 from aegis.domain.evaluation.ports import ArchitecturalViolation, GraphAnalyzerInterface
 from aegis.domain.policy.models import Rule
 
