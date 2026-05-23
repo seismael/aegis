@@ -1,6 +1,5 @@
 import logging
 import os
-import sys
 
 import typer
 
@@ -8,8 +7,8 @@ import typer
 class AegisCLI:
     """
     Headless CLI for Aegis V4 Agent-Native Microkernel.
-    Two commands only: install (global agent config injection) and run (start MCP server).
-    No human-facing output during development — agents handle everything via MCP.
+    Two commands: install (global agent config) and run (MCP server).
+    No human-facing output — agents handle everything via MCP.
     """
 
     def __init__(self):
