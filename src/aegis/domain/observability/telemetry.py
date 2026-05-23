@@ -9,6 +9,7 @@ class TelemetryRecorder:
     """Persists and aggregates architectural telemetry to .aegis/telemetry.json."""
 
     def __init__(self, workspace_root: str):
+        self.root_dir = workspace_root
         self.path = os.path.join(workspace_root, ".aegis", "telemetry.json")
         os.makedirs(os.path.dirname(self.path), exist_ok=True)
         self._lock = threading.Lock()
@@ -24,16 +25,41 @@ class TelemetryRecorder:
         )
         self._save(data)
 
-    def record_check(self, violation_count: int, timestamp: str | None = None) -> None:
-        """Log a single validate_architecture_compliance call."""
-        data = self._load()
-        data.setdefault("checks", []).append(
+    def record_check(
+        self,
+        total_violations: int,
+        active_violations: int,
+        timestamp: str | None = None,
+    ) -> None:
+        """Record a compliance check event."""
+        import json
+        from datetime import datetime, timezone
+        from pathlib import Path
+
+        telemetry_path = Path(self.root_dir) / ".aegis" / "telemetry.json"
+        telemetry_dir = telemetry_path.parent
+        telemetry_dir.mkdir(parents=True, exist_ok=True)
+
+        data = []
+        if telemetry_path.exists():
+            try:
+                data = json.loads(telemetry_path.read_text())
+            except (json.JSONDecodeError, FileNotFoundError):
+                data = []
+
+        if not isinstance(data, list):
+            data = []
+
+        data.append(
             {
-                "violation_count": violation_count,
-                "timestamp": (timestamp or datetime.now(UTC).isoformat()),
+                "timestamp": timestamp or datetime.now(timezone.utc).isoformat(),
+                "total_violations": total_violations,
+                "active_violations": active_violations,
+                "type": "check",
             }
         )
-        self._save(data)
+
+        telemetry_path.write_text(json.dumps(data, indent=2))
 
     def get_insights(self) -> dict:
         """Aggregate telemetry into a scorecard dict."""

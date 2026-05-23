@@ -68,3 +68,38 @@ class SemanticAnalyzer(SemanticAnalyzerInterface):
                 )
 
         return violations
+
+    def build_rubric(self, target_file: str, rules: list) -> str:
+        """
+        Builds a re-entrant grading rubric for the parent LLM.
+        The LLM reads this rubric, grades its own code, and applies fixes natively.
+        """
+        if not rules:
+            return "NO_SEMANTIC_RULES for this file."
+
+        rubric = f"## Semantic Grading Rubric for `{target_file}`\n\n"
+        rubric += "Please evaluate the following rules using your semantic reasoning.\n"
+        rubric += "For each violation found, output the fix inline.\n\n"
+
+        for i, rule in enumerate(rules, 1):
+            rubric += f"### {i}. **{rule.id}**\n"
+            rubric += f"**Rule:** {rule.description}\n"
+            if hasattr(rule, "rationale") and rule.rationale:
+                rubric += f"**Rationale:** {rule.rationale}\n"
+            rubric += f"**Severity:** {rule.severity.value}\n"
+            if hasattr(rule, "query") and rule.query:
+                rubric += f"**Check pattern:** `{rule.query}`\n"
+            rubric += "\n"
+
+        rubric += "---\n"
+        rubric += "**Instructions:**\n"
+        rubric += "1. Read the file content.\n"
+        rubric += "2. For each rule above, determine if the code violates it.\n"
+        rubric += "3. If a violation is found, output:\n"
+        rubric += (
+            "   `VIOLATION: <rule_id> - <line> - <description> - FIX: <remediation>`\n"
+        )
+        rubric += "4. Apply all fixes to the file.\n"
+        rubric += "5. Re-run `validate_architecture_compliance` to confirm.\n"
+
+        return rubric
