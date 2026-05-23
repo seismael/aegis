@@ -2,7 +2,6 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from aegis.core.models.evolution import EvolutionDecision
 from aegis.domain.policy.models import EnforcementMode, Rule, Severity
 from aegis.kernel.server import AegisKernel
 

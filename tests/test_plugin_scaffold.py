@@ -4,7 +4,7 @@ import os
 
 import pytest
 
-from aegis.core.plugins.scaffold import PluginScaffold
+from aegis.domain.evaluation.plugins.scaffold import PluginScaffold
 
 
 class TestPluginScaffold:

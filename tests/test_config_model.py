@@ -2,8 +2,7 @@
 
 import yaml
 
-from aegis.core.container.config_loader import load_aegis_config
-from aegis.core.models.config import AegisConfig
+from aegis.domain.policy.config import AegisConfig
 
 
 class TestAegisConfig:

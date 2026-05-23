@@ -5,7 +5,7 @@ class TestPluginMCPIntegration:
 
     def test_plugin_registry_provides_custom_tools(self, tmp_path):
         """Verify PluginRegistry correctly exposes custom MCP tools."""
-        from aegis.core.plugins.registry import PluginRegistry
+        from aegis.domain.evaluation.plugins.registry import PluginRegistry
 
         # Create a test plugin
         plugin_dir = tmp_path / ".aegis" / "plugins"

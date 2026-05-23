@@ -1,7 +1,7 @@
 import pytest
 
-from aegis.core.plugins import CustomAnalyzerInterface
-from aegis.core.plugins.registry import PluginRegistry
+from aegis.domain.evaluation.plugins.interfaces import CustomAnalyzerInterface
+from aegis.domain.evaluation.plugins.registry import PluginRegistry
 from aegis.domain.evaluation.ports import RuleAnalyzerInterface
 from aegis.domain.policy.models import Rule
 
@@ -106,7 +106,7 @@ def register_mcp_tools():
         plugin_dir.mkdir(parents=True)
 
         plugin_code = """
-from aegis.core.plugins import CustomAnalyzerInterface
+from aegis.domain.evaluation.plugins.interfaces import CustomAnalyzerInterface
 from aegis.domain.policy.models import Rule
 from aegis.domain.evaluation.ports import ArchitecturalViolation
 
@@ -139,7 +139,7 @@ def register_analyzers():
         plugin_dir.mkdir(parents=True)
 
         plugin_code = """
-from aegis.core.plugins import CustomAnalyzerInterface
+from aegis.domain.evaluation.plugins.interfaces import CustomAnalyzerInterface
 from aegis.domain.policy.models import Rule
 
 class TooledAnalyzer(CustomAnalyzerInterface):
@@ -197,7 +197,7 @@ def register_mcp_tools():
 
         (plugin_dir / "working.py").write_text(
             """
-from aegis.core.plugins import CustomAnalyzerInterface
+from aegis.domain.evaluation.plugins.interfaces import CustomAnalyzerInterface
 from aegis.domain.policy.models import Rule
 
 class Good(CustomAnalyzerInterface):
@@ -242,7 +242,7 @@ def register_analyzers():
 
         (plugin_dir / "e2e.py").write_text(
             """
-from aegis.core.plugins import CustomAnalyzerInterface
+from aegis.domain.evaluation.plugins.interfaces import CustomAnalyzerInterface
 from aegis.domain.policy.models import Rule
 from aegis.domain.evaluation.ports import ArchitecturalViolation
 
@@ -287,7 +287,7 @@ def register_analyzers():
         for name in ["alpha", "beta"]:
             (plugin_dir / f"{name}.py").write_text(
                 f"""
-from aegis.core.plugins import CustomAnalyzerInterface
+from aegis.domain.evaluation.plugins.interfaces import CustomAnalyzerInterface
 from aegis.domain.policy.models import Rule
 
 class {name.capitalize()}Analyzer(CustomAnalyzerInterface):

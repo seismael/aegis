@@ -1,7 +1,7 @@
 import os
 from unittest.mock import MagicMock
 
-from aegis.core.constants import IGNORE_DIRS
+from aegis.domain.evaluation.constants import IGNORE_DIRS
 from aegis.domain.evaluation.ports import (
     ArchitecturalViolation,
     DiffProviderInterface,

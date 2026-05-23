@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from aegis.infrastructure.graph_analyzer import GraphAnalyzer
+from aegis.domain.evaluation.analyzers.graph import GraphAnalyzer
 from aegis.kernel.server import AegisKernel
 
 
