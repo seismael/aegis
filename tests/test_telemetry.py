@@ -17,7 +17,7 @@ class TestTelemetryRecorder:
     def test_record_check(self, tmp_path):
         """A check event is written then readable."""
         t = TelemetryRecorder(str(tmp_path))
-        t.record_check(3)
+        t.record_check(3, 0)
         data = t._load()
         assert len(data["checks"]) == 1
         assert data["checks"][0]["violation_count"] == 3
@@ -36,8 +36,8 @@ class TestTelemetryRecorder:
         t.record_remediation("r1")
         t.record_remediation("r1")
         t.record_remediation("r2")
-        t.record_check(0)
-        t.record_check(3)
+        t.record_check(0, 0)
+        t.record_check(3, 3)
 
         insights = t.get_insights()
         assert insights["total_remediations"] == 3

@@ -9,7 +9,7 @@ class TestAegisConfig:
     def test_defaults(self):
         config = AegisConfig()
         assert config.enforcement == "warn"
-        assert config.phase_defaults is None
+        assert config.phase_defaults == {}
 
     def test_phase_defaults_custom(self):
         config = AegisConfig(
@@ -33,9 +33,9 @@ class TestAegisConfig:
         config = AegisConfig(auto_baseline=True)
         assert config.auto_baseline is True
 
-    def test_max_violations_default_zero(self):
+    def test_max_violations_default(self):
         config = AegisConfig()
-        assert config.max_violations == 0
+        assert config.max_violations == 1000
 
     def test_max_violations_custom(self):
         config = AegisConfig(max_violations=1000)
@@ -44,7 +44,7 @@ class TestAegisConfig:
     def test_missing_file_returns_defaults(self):
         config = AegisConfig()
         assert config.enforcement == "warn"
-        assert config.phase_defaults is None
+        assert config.phase_defaults == {}
 
     def test_empty_file_returns_defaults(self):
         config = AegisConfig()

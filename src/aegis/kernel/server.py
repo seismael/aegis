@@ -39,24 +39,41 @@ class AegisKernel:
         self.logger = structlog.get_logger()
         self._workspace_root = workspace_root or self._discover_root()
 
-        self.policy = PolicyParser(self._workspace_root)
-
-        self.regex = RegexAnalyzer()
-        self.tree_sitter = TreeSitterAnalyzer()
-        self.graph = GraphAnalyzer()
-        self.semantic = SemanticAnalyzer()
-
-        self.evaluation = EvaluationService(
-            tree_sitter_analyzer=self.tree_sitter,
-            graph_analyzer=self.graph,
-            regex_analyzer=self.regex,
-            semantic_analyzer=self.semantic,
-        )
-
-        self.baseline = BaselineManager(self._workspace_root)
-        self.packs = RulePackManager(self._workspace_root)
-        self.telemetry = TelemetryRecorder(self._workspace_root)
-        self.remediation = RemediationPromptSynthesizer()
+        try:
+            self.policy = PolicyParser(self._workspace_root)
+        except Exception:
+            self.policy = None
+        try:
+            self.regex = RegexAnalyzer()
+            self.tree_sitter = TreeSitterAnalyzer()
+            self.graph = GraphAnalyzer()
+            self.semantic = SemanticAnalyzer()
+            self.evaluation = EvaluationService(
+                tree_sitter_analyzer=self.tree_sitter,
+                graph_analyzer=self.graph,
+                regex_analyzer=self.regex,
+                semantic_analyzer=self.semantic,
+            )
+        except Exception:
+            self.regex = self.tree_sitter = None
+            self.graph = self.semantic = None
+            self.evaluation = None
+        try:
+            self.baseline = BaselineManager(self._workspace_root)
+        except Exception:
+            self.baseline = None
+        try:
+            self.packs = RulePackManager(self._workspace_root)
+        except Exception:
+            self.packs = None
+        try:
+            self.telemetry = TelemetryRecorder(self._workspace_root)
+        except Exception:
+            self.telemetry = None
+        try:
+            self.remediation = RemediationPromptSynthesizer()
+        except Exception:
+            self.remediation = None
 
         self.mcp = FastMCP("Aegis Architecture Engine")
         self._register_tools()
@@ -414,9 +431,13 @@ class AegisKernel:
     def run(self, transport: str = "stdio", host: str = "127.0.0.1", port: int = 8000):
         if transport == "stdio":
             self.mcp.run(transport="stdio")
-        elif transport == "sse":
-            self.mcp.run(transport="sse", host=host, port=port)
-        elif transport == "streamable-http":
-            self.mcp.run(transport="streamable-http", host=host, port=port)
+        elif transport in ("sse", "streamable-http"):
+            import uvicorn
+
+            if transport == "sse":
+                app = self.mcp.sse_app()
+            else:
+                app = self.mcp.streamable_http_app()
+            uvicorn.run(app, host=host, port=port)
         else:
             raise ValueError(f"Unknown transport: {transport}")

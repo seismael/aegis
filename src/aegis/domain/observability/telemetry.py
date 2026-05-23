@@ -32,34 +32,16 @@ class TelemetryRecorder:
         timestamp: str | None = None,
     ) -> None:
         """Record a compliance check event."""
-        import json
-        from datetime import datetime
-        from pathlib import Path
-
-        telemetry_path = Path(self.root_dir) / ".aegis" / "telemetry.json"
-        telemetry_dir = telemetry_path.parent
-        telemetry_dir.mkdir(parents=True, exist_ok=True)
-
-        data = []
-        if telemetry_path.exists():
-            try:
-                data = json.loads(telemetry_path.read_text())
-            except (json.JSONDecodeError, FileNotFoundError):
-                data = []
-
-        if not isinstance(data, list):
-            data = []
-
-        data.append(
+        data = self._load()
+        data.setdefault("checks", []).append(
             {
                 "timestamp": timestamp or datetime.now(UTC).isoformat(),
-                "total_violations": total_violations,
+                "violation_count": total_violations,
                 "active_violations": active_violations,
                 "type": "check",
             }
         )
-
-        telemetry_path.write_text(json.dumps(data, indent=2))
+        self._save(data)
 
     def get_insights(self) -> dict:
         """Aggregate telemetry into a scorecard dict."""

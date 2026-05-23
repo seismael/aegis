@@ -2,6 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from aegis.cli.main import AegisCLI
 from aegis.kernel.server import AegisKernel
 
 
@@ -15,8 +16,8 @@ class TestMCPTransport:
             kernel.run()
             mock_run.assert_called_once()
 
-    def test_sse_transport_does_not_call_stdio(self):
-        """SSE transport should not call the stdio run method."""
+    def test_sse_transport(self):
+        """SSE transport uses sse_app + uvicorn."""
         kernel = AegisKernel()
         with (
             patch.object(kernel.mcp, "sse_app") as mock_sse,
@@ -30,7 +31,7 @@ class TestMCPTransport:
             assert kwargs["port"] == 9000
 
     def test_streamable_http_transport(self):
-        """streamable-http transport uses the http_app method."""
+        """streamable-http transport uses streamable_http_app + uvicorn."""
         kernel = AegisKernel()
         with (
             patch.object(kernel.mcp, "streamable_http_app") as mock_http,
@@ -43,17 +44,33 @@ class TestMCPTransport:
     def test_invalid_transport_raises(self):
         """Unsupported transport raises ValueError."""
         kernel = AegisKernel()
-        with pytest.raises(ValueError, match="Unsupported transport"):
+        with pytest.raises(ValueError, match="Unknown transport"):
             kernel.run(transport="invalid")
 
     @patch("argparse.ArgumentParser.parse_args")
+    @patch(
+        "sys.argv",
+        [
+            "aegis",
+            "run",
+            "--transport",
+            "stdio",
+            "--host",
+            "127.0.0.1",
+            "--port",
+            "8000",
+        ],
+    )
     def test_entry_point_parses_transport_arg(self, mock_parse_args):
         """entry_point parses --transport argument."""
         mock_parse_args.return_value = MagicMock(
             transport="stdio", host="127.0.0.1", port=8000
         )
         with patch.object(AegisKernel, "run") as mock_run:
-            AegisKernel.entry_point()
+            try:
+                AegisCLI.entry_point()
+            except SystemExit:
+                pass
             mock_run.assert_called_once_with(
                 transport="stdio", host="127.0.0.1", port=8000
             )

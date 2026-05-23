@@ -23,7 +23,7 @@ class TestRemediationPromptSynthesizer:
     def test_empty_violations_returns_ok(self):
         synth = RemediationPromptSynthesizer()
         result = synth.generate_remediation([], {})
-        assert "No remediation required" in result.handoff_prompt
+        assert "No remediation required" in result.summary
 
     def test_single_violation_includes_details(self):
         synth = RemediationPromptSynthesizer()
