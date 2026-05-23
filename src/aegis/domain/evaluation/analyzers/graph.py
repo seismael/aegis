@@ -50,7 +50,7 @@ class GraphAnalyzer(GraphAnalyzerInterface):
         file_imports: dict[str, list[tuple[int, str]]] = defaultdict(list)
 
         for root, _, files in os.walk(root_dir):
-            if any(x in root for x in IGNORE_DIRS):
+            if any(part in IGNORE_DIRS for part in root.split(os.sep)):
                 continue
 
             for file in files:

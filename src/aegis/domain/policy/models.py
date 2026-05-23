@@ -164,7 +164,7 @@ class Rule(BaseModel):
 
     # Language-specific query
     query: str | None = None
-    language: str = "py"
+    language: str = "python"
 
     # For positive rules (X must have Y): violations = candidates - check
     candidates_query: str | None = None

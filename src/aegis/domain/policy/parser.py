@@ -257,3 +257,15 @@ class PolicyParser:
 
         logger.info("Loaded governance rules from directory", total=len(all_rules))
         return all_rules
+
+    def parse_all(self, workspace_root: str) -> list[Rule]:
+        """Load rules from .aegis/rules/ directory and/or .aegis/rules.yaml file."""
+        rules_dir = os.path.join(workspace_root, ".aegis", "rules")
+        rules_file = os.path.join(workspace_root, ".aegis", "rules.yaml")
+
+        rules: list[Rule] = []
+        if os.path.isdir(rules_dir):
+            rules.extend(self.parse_directory(rules_dir))
+        if os.path.isfile(rules_file):
+            rules.extend(self.parse_rules(rules_file))
+        return rules

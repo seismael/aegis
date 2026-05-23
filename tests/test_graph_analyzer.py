@@ -264,7 +264,7 @@ class TestGraphAnalyzer:
         (tmp_path / "main.py").write_text("from os import path\n", encoding="utf-8")
         (tmp_path / "huge.py").write_text("x = 1\n", encoding="utf-8")
         analyzer = GraphAnalyzer()
-        with patch("aegis.infrastructure.graph_analyzer._MAX_FILE_BYTES", 5):
+        with patch("aegis.domain.evaluation.analyzers.graph._MAX_FILE_BYTES", 5):
             adjacency, _ = analyzer.build_import_graph(str(tmp_path))
         # huge.py (5 bytes) exceeds 5-byte limit, main.py (17 bytes) also skipped
         assert "huge" not in adjacency
@@ -277,7 +277,7 @@ class TestGraphAnalyzer:
             "# " + "x" * 2000 + "\nx = 1\n", encoding="utf-8"
         )
         analyzer = GraphAnalyzer()
-        with patch("aegis.infrastructure.graph_analyzer._MAX_FILE_BYTES", 500):
+        with patch("aegis.domain.evaluation.analyzers.graph._MAX_FILE_BYTES", 500):
             adjacency, _ = analyzer.build_import_graph(str(tmp_path))
         assert "small" in adjacency
         assert "large" not in adjacency
@@ -299,7 +299,7 @@ class TestGraphAnalyzer:
 
         analyzer = GraphAnalyzer()
         with patch(
-            "aegis.infrastructure.graph_analyzer.os.path.getsize",
+            "aegis.domain.evaluation.analyzers.graph.os.path.getsize",
             side_effect=_fake_getsize,
         ):
             adjacency, _ = analyzer.build_import_graph(str(tmp_path))
