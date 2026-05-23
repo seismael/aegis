@@ -3,6 +3,7 @@ import os
 import pytest
 
 from aegis.domain.policy.models import EnforcementMode, Rule, Severity
+from aegis.kernel.server import AegisKernel
 
 
 class TestInternalPrivacyPlugin:
@@ -45,7 +46,7 @@ class TestInternalPrivacyPlugin:
         return tmp_path
 
     def test_plugin_detects_unauthorized_access(self, workspace):
-        container = Container(workspace_root=str(workspace))
+        container = AegisKernel(workspace_root=str(workspace))
 
         rule = Rule(
             id="privacy-test",
@@ -59,9 +60,7 @@ class TestInternalPrivacyPlugin:
             },
         )
 
-        violations = container.evaluation_service.evaluate_workspace(
-            str(workspace), [rule]
-        )
+        violations = container.evaluation.evaluate_workspace(str(workspace), [rule])
 
         # Assertions
         assert len(violations) == 1

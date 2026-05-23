@@ -50,7 +50,7 @@ class ScopeFilter:
 
     @staticmethod
     def filter_rules_for_file(
-        file_path: str, rules: list, all_rules: list | None = None, max_rules: int = 15
+        file_path: str, rules: list, _all_rules: list | None = None, max_rules: int = 15
     ) -> list:
         """
         JIT-scopes rules to a single file. Filters by applies_to/excludes glob,

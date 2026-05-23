@@ -2,6 +2,8 @@ import os
 
 import pytest
 
+from aegis.kernel.server import AegisKernel
+
 
 class TestAdvancedPluginArchitecture:
     """Integration test for the enhanced plugin lifecycle and capabilities."""
@@ -37,8 +39,8 @@ class TestAdvancedPluginArchitecture:
 
     def test_auto_rule_registration(self, workspace):
         """Verify that plugins can automatically register their own rules."""
-        container = Container(workspace_root=str(workspace))
-        rules = container.load_rules()
+        container = AegisKernel(workspace_root=str(workspace))
+        rules = container._load_rules()
 
         # Should include the dead-module-detection rule from the plugin
         rule_ids = [r.id for r in rules]
@@ -46,12 +48,10 @@ class TestAdvancedPluginArchitecture:
 
     def test_project_wide_analysis(self, workspace):
         """Verify that plugins can perform whole-project analysis."""
-        container = Container(workspace_root=str(workspace))
-        rules = container.load_rules()
+        container = AegisKernel(workspace_root=str(workspace))
+        rules = container._load_rules()
 
-        violations = container.evaluation_service.evaluate_workspace(
-            str(workspace), rules
-        )
+        violations = container.evaluation.evaluate_workspace(str(workspace), rules)
 
         relevant = [v for v in violations if v.rule_id == "dead-module-detection"]
 
@@ -62,20 +62,16 @@ class TestAdvancedPluginArchitecture:
 
     def test_custom_remediation_provider(self, workspace):
         """Verify that plugins can provide specialized remediation text."""
-        container = Container(workspace_root=str(workspace))
-        rules = container.load_rules()
+        container = AegisKernel(workspace_root=str(workspace))
+        rules = container._load_rules()
         rules_map = {r.id: r for r in rules}
 
-        violations = container.evaluation_service.evaluate_workspace(
-            str(workspace), rules
-        )
+        violations = container.evaluation.evaluate_workspace(str(workspace), rules)
 
         relevant = [v for v in violations if v.rule_id == "dead-module-detection"]
 
         # Generate remediation prompt
-        prompt = container.remediation_synthesizer.generate_remediation(
-            relevant, rules_map
-        )
+        prompt = container.remediation.generate_remediation(relevant, rules_map)
 
         # Should use the custom remediation provided by the plugin
         assert "surface area" in prompt.handoff_prompt

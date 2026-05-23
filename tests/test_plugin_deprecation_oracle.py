@@ -3,6 +3,7 @@ import os
 import pytest
 
 from aegis.domain.policy.models import EnforcementMode, Rule, Severity
+from aegis.kernel.server import AegisKernel
 
 
 class TestDeprecationOraclePlugin:
@@ -32,7 +33,7 @@ class TestDeprecationOraclePlugin:
         return tmp_path
 
     def test_plugin_detects_deprecated_pattern(self, workspace):
-        container = Container(workspace_root=str(workspace))
+        container = AegisKernel(workspace_root=str(workspace))
 
         rule = Rule(
             id="deprecate-requests",
@@ -46,9 +47,7 @@ class TestDeprecationOraclePlugin:
             },
         )
 
-        violations = container.evaluation_service.evaluate_workspace(
-            str(workspace), [rule]
-        )
+        violations = container.evaluation.evaluate_workspace(str(workspace), [rule])
 
         # Assertions
         assert len(violations) == 2

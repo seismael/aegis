@@ -7,6 +7,7 @@ from typer.testing import CliRunner
 
 from aegis.cli.main import AegisCLI
 from aegis.domain.policy.models import EnforcementMode, Rule, Severity
+from aegis.kernel.server import AegisKernel
 
 # ─── Container / DI composition ─────────────────────────────────────────────
 
@@ -17,45 +18,45 @@ class TestContainerComposition:
     def test_container_creates_without_crashing(self, tmp_path):
         """Container initializes successfully in a valid project dir."""
         (tmp_path / "pyproject.toml").write_text("[project]\nname = 'test'\n")
-        c = Container(workspace_root=str(tmp_path))
+        c = AegisKernel(workspace_root=str(tmp_path))
         assert c.workspace_root == str(tmp_path)
-        assert c.policy_parser is not None
-        assert c.evaluation_service is not None
-        assert c.baseline_manager is not None
-        assert c.evolution_service is not None
-        assert c.remediation_synthesizer is not None
-        assert c.plugin_registry is not None
+        assert c.policy is not None
+        assert c.evaluation is not None
+        assert c.baseline is not None
+        assert c.packs is not None
+        assert c.remediation is not None
+        assert c.mcp is not None
 
     def test_discover_project_root_pyproject(self, tmp_path, monkeypatch):
         """_discover_project_root finds pyproject.toml."""
         (tmp_path / "pyproject.toml").write_text("")
         monkeypatch.chdir(tmp_path)
-        c = Container()
+        c = AegisKernel()
         assert c.workspace_root == str(tmp_path)
 
     def test_discover_project_root_git(self, tmp_path, monkeypatch):
         """_discover_project_root finds .git directory."""
         (tmp_path / ".git").mkdir()
         monkeypatch.chdir(tmp_path)
-        c = Container()
+        c = AegisKernel()
         assert c.workspace_root == str(tmp_path)
 
     def test_discover_project_root_fallback_cwd(self, tmp_path, monkeypatch):
         """_discover_project_root falls back to CWD when no markers found."""
         monkeypatch.chdir(tmp_path)
-        c = Container()
+        c = AegisKernel()
         assert c.workspace_root == str(tmp_path)
 
     def test_container_loaded_plugins_property(self, tmp_path):
         """loaded_plugins property returns list from registry."""
         (tmp_path / "pyproject.toml").write_text("")
-        c = Container(workspace_root=str(tmp_path))
+        c = AegisKernel(workspace_root=str(tmp_path))
         assert isinstance(c.loaded_plugins, list)
 
     def test_container_custom_mcp_tools_property(self, tmp_path):
         """custom_mcp_tools property returns list from registry."""
         (tmp_path / "pyproject.toml").write_text("")
-        c = Container(workspace_root=str(tmp_path))
+        c = AegisKernel(workspace_root=str(tmp_path))
         assert isinstance(c.custom_mcp_tools, list)
 
 
@@ -73,12 +74,12 @@ class TestCLIFlagCombinations:
         c = MagicMock()
         c.workspace_root = "/fake/project"
         c.load_rules.return_value = []
-        c.evaluation_service.evaluate_workspace.return_value = []
-        c.evaluation_service.evaluate_changes.return_value = []
-        c.baseline_manager.load_baseline_raw.return_value = []
-        c.baseline_manager.is_exempt.return_value = False
+        c.evaluation.evaluate_workspace.return_value = []
+        c.evaluation.evaluate_changes.return_value = []
+        c.baseline.load_baseline_raw.return_value = []
+        c.baseline.is_exempt.return_value = False
         c.loaded_plugins = []
-        c.remediation_synthesizer.generate_remediation.return_value = "mock prompt"
+        c.remediation.generate_remediation.return_value = "mock prompt"
         c.governance_service = MagicMock()
         c.governance_service.get_active_violations.return_value = []
         c.governance_service.capture_baseline.return_value = 0
@@ -103,8 +104,8 @@ class TestCLIFlagCombinations:
         container.load_rules.return_value = [
             Rule(id="r1", description="test", mode=EnforcementMode.WARN)
         ]
-        container.evaluation_service.evaluate_changes.return_value = []
-        container.baseline_manager.is_exempt.return_value = False
+        container.evaluation.evaluate_changes.return_value = []
+        container.baseline.is_exempt.return_value = False
         container.loaded_plugins = []
         container.remediation_synthesizer.generate_remediation.return_value = ""
         container.governance_service = MagicMock()
@@ -131,8 +132,8 @@ class TestCLIFlagCombinations:
             Rule(id="r1", description="test", mode=EnforcementMode.BLOCK),
             Rule(id="r2", description="test", mode=EnforcementMode.BLOCK),
         ]
-        container.evaluation_service.evaluate_changes.return_value = []
-        container.baseline_manager.is_exempt.return_value = False
+        container.evaluation.evaluate_changes.return_value = []
+        container.baseline.is_exempt.return_value = False
         container.loaded_plugins = []
         container.remediation_synthesizer.generate_remediation.return_value = ""
         container.governance_service = MagicMock()
@@ -299,26 +300,22 @@ class TestFullPipeline:
         src_file = tmp_path / "main.py"
         src_file.write_text("# TODO: implement this\nx = 1\n", encoding="utf-8")
 
-        container = Container(workspace_root=str(tmp_path))
+        container = AegisKernel(workspace_root=str(tmp_path))
 
         # Step 1: Evaluate
-        rules = container.load_rules()
-        violations = container.evaluation_service.evaluate_workspace(
-            str(tmp_path), rules
-        )
+        rules = container._load_rules()
+        violations = container.evaluation.evaluate_workspace(str(tmp_path), rules)
         assert len(violations) >= 1
         assert violations[0].rule_id == "no-todo"
 
         # Step 2: Baseline
-        container.baseline_manager.save_baseline(violations)
-        baseline = container.baseline_manager.load_baseline_raw()
+        container.baseline.save_baseline(violations)
+        baseline = container.baseline.load_baseline_raw()
         assert len(baseline) >= 1
 
         # Step 3: Re-evaluate — violations should be exempt
-        violations2 = container.evaluation_service.evaluate_workspace(
-            str(tmp_path), rules
-        )
-        active = [v for v in violations2 if not container.baseline_manager.is_exempt(v)]
+        violations2 = container.evaluation.evaluate_workspace(str(tmp_path), rules)
+        active = [v for v in violations2 if not container.baseline.is_exempt(v)]
         assert len(active) == 0
 
     def test_full_pipeline_cli_check(self, tmp_path):
@@ -332,7 +329,7 @@ class TestFullPipeline:
         )
         (tmp_path / "app.py").write_text("# TODO: fix\n", encoding="utf-8")
 
-        container = Container(workspace_root=str(tmp_path))
+        container = AegisKernel(workspace_root=str(tmp_path))
         cli = AegisCLI(container=container)
         runner = CliRunner()
         result = runner.invoke(cli.app, ["status", "--json"])
@@ -361,20 +358,14 @@ class TestFullPipeline:
             encoding="utf-8",
         )
 
-        container = Container(workspace_root=str(tmp_path))
-        rules = container.load_rules()
-        violations = container.evaluation_service.evaluate_workspace(
-            str(tmp_path), rules
-        )
+        container = AegisKernel(workspace_root=str(tmp_path))
+        rules = container._load_rules()
+        violations = container.evaluation.evaluate_workspace(str(tmp_path), rules)
         assert len(violations) >= 1
 
         # Baseline the violations
-        container.baseline_manager.save_baseline(violations)
-        container2 = Container(workspace_root=str(tmp_path))
-        violations2 = container2.evaluation_service.evaluate_workspace(
-            str(tmp_path), rules
-        )
-        active = [
-            v for v in violations2 if not container2.baseline_manager.is_exempt(v)
-        ]
+        container.baseline.save_baseline(violations)
+        container2 = AegisKernel(workspace_root=str(tmp_path))
+        violations2 = container2.evaluation.evaluate_workspace(str(tmp_path), rules)
+        active = [v for v in violations2 if not container2.baseline.is_exempt(v)]
         assert len(active) == 0

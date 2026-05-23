@@ -33,7 +33,7 @@ class TelemetryRecorder:
     ) -> None:
         """Record a compliance check event."""
         import json
-        from datetime import datetime, timezone
+        from datetime import datetime
         from pathlib import Path
 
         telemetry_path = Path(self.root_dir) / ".aegis" / "telemetry.json"
@@ -52,7 +52,7 @@ class TelemetryRecorder:
 
         data.append(
             {
-                "timestamp": timestamp or datetime.now(timezone.utc).isoformat(),
+                "timestamp": timestamp or datetime.now(UTC).isoformat(),
                 "total_violations": total_violations,
                 "active_violations": active_violations,
                 "type": "check",

@@ -1,5 +1,5 @@
-from aegis.domain.policy.models import Rule, Severity
 from aegis.domain.evaluation.analyzers.ast import TreeSitterAnalyzer
+from aegis.domain.policy.models import Rule, Severity
 
 
 class TestTreeSitterAnalyzer:

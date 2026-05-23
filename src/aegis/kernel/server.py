@@ -1,39 +1,26 @@
 import json
-import os
 import re
 from pathlib import Path
 
 import structlog
-import yaml
 from mcp.server.fastmcp import FastMCP
 
+from aegis.domain.evaluation.analyzers.ast import TreeSitterAnalyzer
+from aegis.domain.evaluation.analyzers.graph import GraphAnalyzer
+from aegis.domain.evaluation.analyzers.regex import RegexAnalyzer
+from aegis.domain.evaluation.analyzers.semantic import SemanticAnalyzer
+from aegis.domain.evaluation.baseline import BaselineManager
+from aegis.domain.evaluation.prompt_synthesizer import RemediationPromptSynthesizer
+from aegis.domain.evaluation.scoping import ScopeFilter
+from aegis.domain.evaluation.service import EvaluationService
+from aegis.domain.observability.telemetry import TelemetryRecorder
+from aegis.domain.policy.pack_manager import RulePackManager
+from aegis.domain.policy.parser import PolicyParser
 from aegis.kernel.errors import (
-    ERR_FILE_NOT_FOUND,
     ERR_INVALID_INPUT,
-    ERR_NOT_INITIALIZED,
-    ERR_READ_FAILED,
-    ERR_SERVICE_UNAVAILABLE,
     error,
     warn,
 )
-from aegis.kernel.models import (
-    ComplianceResult,
-    RelevantRulesResult,
-    ServerStatusResult,
-    ViolationInfo,
-)
-from aegis.domain.evaluation.ports import RemediationResult
-from aegis.domain.evaluation.prompt_synthesizer import RemediationPromptSynthesizer
-from aegis.domain.evaluation.analyzers.graph import GraphAnalyzer
-from aegis.domain.evaluation.service import EvaluationService
-from aegis.domain.evaluation.scoping import ScopeFilter
-from aegis.domain.evaluation.baseline import BaselineManager
-from aegis.domain.evaluation.analyzers.regex import RegexAnalyzer
-from aegis.domain.evaluation.analyzers.ast import TreeSitterAnalyzer
-from aegis.domain.evaluation.analyzers.semantic import SemanticAnalyzer
-from aegis.domain.policy.parser import PolicyParser
-from aegis.domain.policy.pack_manager import RulePackManager
-from aegis.domain.observability.telemetry import TelemetryRecorder
 
 _VERSION = "0.4.0"
 
@@ -173,7 +160,8 @@ class AegisKernel:
             except ValueError as e:
                 return error("SCAFFOLD_FAILED", str(e))
 
-        return f"SUCCESS: Governance framework scaffolded with packs: {', '.join(installed)}"
+        packs_str = ", ".join(installed)
+        return f"SUCCESS: Governance framework scaffolded with packs: {packs_str}"
 
     async def query_knowledge_graph(
         self,
@@ -234,7 +222,6 @@ class AegisKernel:
         self,
         action: str,
         target: str | None = None,
-        rationale: str | None = None,
     ) -> str:
         """
         Agent-driven rule lifecycle management.
@@ -394,7 +381,10 @@ class AegisKernel:
     def _register_prompts(self):
         @self.mcp.prompt()
         def evaluate_architecture(files: list[str]) -> str:
-            return f"Call validate_architecture_compliance with files_modified={files} before declaring the task complete."
+            return (
+                f"Call validate_architecture_compliance with "
+                f"files_modified={files} before declaring the task complete."
+            )
 
         @self.mcp.prompt()
         def remediate_violations() -> str:
@@ -408,14 +398,18 @@ class AegisKernel:
         @self.mcp.prompt()
         def initialize_governance() -> str:
             return (
-                "1. Call query_knowledge_graph(query_type='hypothesis') to discover the workspace architecture.\n"
+                "1. Call query_knowledge_graph(query_type='hypothesis') "
+                "to discover the workspace architecture.\n"
                 "2. Present the proposed architecture to the user for approval.\n"
                 "3. Call scaffold_governance_framework with the approved pack list."
             )
 
         @self.mcp.prompt()
         def inspect_dependency(module: str) -> str:
-            return f"Call query_knowledge_graph(query_type='dependency_graph', target='{module}') to inspect dependencies."
+            return (
+                f"Call query_knowledge_graph(query_type='dependency_graph', "
+                f"target='{module}') to inspect dependencies."
+            )
 
     def run(self, transport: str = "stdio", host: str = "127.0.0.1", port: int = 8000):
         if transport == "stdio":

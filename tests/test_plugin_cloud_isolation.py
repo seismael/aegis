@@ -3,6 +3,7 @@ import os
 import pytest
 
 from aegis.domain.policy.models import EnforcementMode, Rule, Severity
+from aegis.kernel.server import AegisKernel
 
 
 class TestCloudIsolationPlugin:
@@ -43,7 +44,7 @@ class TestCloudIsolationPlugin:
 
     def test_plugin_detects_cloud_leak_in_domain(self, workspace):
         # Initialise container for the temp workspace
-        container = Container(workspace_root=str(workspace))
+        container = AegisKernel(workspace_root=str(workspace))
 
         # Manually define the rule (normally loaded from YAML)
         rule = Rule(
@@ -56,9 +57,7 @@ class TestCloudIsolationPlugin:
         )
 
         # Run evaluation
-        violations = container.evaluation_service.evaluate_workspace(
-            str(workspace), [rule]
-        )
+        violations = container.evaluation.evaluate_workspace(str(workspace), [rule])
 
         # Filter for our specific rule
         # (ScopeFilter is already called in evaluate_workspace)
@@ -73,7 +72,7 @@ class TestCloudIsolationPlugin:
         assert not any("s3_adapter.py" in v.file for v in relevant)
 
     def test_plugin_mcp_tool_registration(self, workspace):
-        container = Container(workspace_root=str(workspace))
+        container = AegisKernel(workspace_root=str(workspace))
 
         # Check if the tool is registered in the container
         tools = container.custom_mcp_tools

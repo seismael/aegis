@@ -1,8 +1,8 @@
 import os
 from unittest.mock import patch
 
-from aegis.domain.policy.models import EnforcementMode, EngineType, Rule, Severity
 from aegis.domain.evaluation.analyzers.graph import GraphAnalyzer
+from aegis.domain.policy.models import EnforcementMode, EngineType, Rule, Severity
 
 
 class TestGraphAnalyzer:

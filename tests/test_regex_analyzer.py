@@ -1,5 +1,5 @@
-from aegis.domain.policy.models import EnforcementMode, EngineType, Rule, Severity
 from aegis.domain.evaluation.analyzers.regex import RegexAnalyzer
+from aegis.domain.policy.models import EnforcementMode, EngineType, Rule, Severity
 
 
 class TestRegexAnalyzer:

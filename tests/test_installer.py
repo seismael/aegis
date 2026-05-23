@@ -1,9 +1,9 @@
-from unittest.mock import patch, mock_open
 from pathlib import Path
+from unittest.mock import mock_open, patch
 
 from aegis.infrastructure.installer import (
-    AgentNativeInstaller,
     AEGIS_GOVERNANCE_DIRECTIVE,
+    AgentNativeInstaller,
 )
 
 

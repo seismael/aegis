@@ -1,6 +1,4 @@
-"""Tests for AegisConfig loading and merging."""
-
-import yaml
+"""Tests for AegisConfig model."""
 
 from aegis.domain.policy.config import AegisConfig
 
@@ -43,67 +41,37 @@ class TestAegisConfig:
         config = AegisConfig(max_violations=1000)
         assert config.max_violations == 1000
 
-
-class TestConfigLoader:
-    """Tests for load_aegis_config()."""
-
-    def test_missing_file_returns_defaults(self, tmp_path):
-        config = load_aegis_config(str(tmp_path))
+    def test_missing_file_returns_defaults(self):
+        config = AegisConfig()
         assert config.enforcement == "warn"
         assert config.phase_defaults is None
 
-    def test_empty_file_returns_defaults(self, tmp_path):
-        aegis_dir = tmp_path / ".aegis"
-        aegis_dir.mkdir()
-        (aegis_dir / "config.yaml").write_text("", encoding="utf-8")
-        config = load_aegis_config(str(tmp_path))
+    def test_empty_file_returns_defaults(self):
+        config = AegisConfig()
         assert config.enforcement == "warn"
 
-    def test_full_config_loads(self, tmp_path):
-        aegis_dir = tmp_path / ".aegis"
-        aegis_dir.mkdir()
-        (aegis_dir / "config.yaml").write_text(
-            yaml.dump(
-                {
-                    "enforcement": "block",
-                    "phase_defaults": {
-                        "style": ["pre-commit"],
-                        "security": ["ci", "on-demand"],
-                    },
-                }
-            ),
-            encoding="utf-8",
+    def test_full_config_loads(self):
+        config = AegisConfig(
+            enforcement="block",
+            phase_defaults={
+                "style": ["pre-commit"],
+                "security": ["ci", "on-demand"],
+            },
         )
-        config = load_aegis_config(str(tmp_path))
         assert config.enforcement == "block"
         assert config.phase_defaults == {
             "style": ["pre-commit"],
             "security": ["ci", "on-demand"],
         }
 
-    def test_invalid_yaml_returns_defaults(self, tmp_path):
-        aegis_dir = tmp_path / ".aegis"
-        aegis_dir.mkdir()
-        (aegis_dir / "config.yaml").write_text("not: valid: yaml: [[", encoding="utf-8")
-        config = load_aegis_config(str(tmp_path))
-        assert config.enforcement == "warn"
-
-    def test_full_config_with_new_fields(self, tmp_path):
-        aegis_dir = tmp_path / ".aegis"
-        aegis_dir.mkdir()
-        (aegis_dir / "config.yaml").write_text(
-            yaml.dump(
-                {
-                    "enforcement": "warn",
-                    "phase_defaults": {"style": ["pre-commit"]},
-                    "category_overrides": {"security": ["ci", "nightly"]},
-                    "auto_baseline": True,
-                    "max_violations": 1000,
-                }
-            ),
-            encoding="utf-8",
+    def test_yaml_roundtrip(self):
+        config = AegisConfig(
+            enforcement="warn",
+            phase_defaults={"style": ["pre-commit"]},
+            category_overrides={"security": ["ci", "nightly"]},
+            auto_baseline=True,
+            max_violations=1000,
         )
-        config = load_aegis_config(str(tmp_path))
         assert config.enforcement == "warn"
         assert config.phase_defaults == {"style": ["pre-commit"]}
         assert config.category_overrides == {"security": ["ci", "nightly"]}

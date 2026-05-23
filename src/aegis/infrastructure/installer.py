@@ -40,7 +40,7 @@ class AgentNativeInstaller:
         claude_config = self.home / ".claude.json"
         config = {}
         if claude_config.exists():
-            with open(claude_config, "r") as f:
+            with open(claude_config) as f:
                 config = json.load(f)
 
         if "mcpServers" not in config:

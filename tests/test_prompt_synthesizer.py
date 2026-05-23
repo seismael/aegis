@@ -1,5 +1,5 @@
-from aegis.domain.evaluation.prompt_synthesizer import RemediationPromptSynthesizer
 from aegis.domain.evaluation.ports import ArchitecturalViolation
+from aegis.domain.evaluation.prompt_synthesizer import RemediationPromptSynthesizer
 from aegis.domain.policy.models import EnforcementMode, Rule, RuleCategory, Severity
 
 

@@ -119,11 +119,11 @@ class TestMCPTools:
         kernel.container.load_rules.return_value = [rule]
         kernel.container.evolution_service.load_log.return_value = MagicMock(
             decisions=[
-                EvolutionDecision(
-                    rule_id="r1",
-                    action="suppress",
-                    rationale="Approved for hotfix.",
-                )
+                {
+                    "rule_id": "r1",
+                    "action": "suppress",
+                    "rationale": "Approved for hotfix.",
+                }
             ]
         )
 
