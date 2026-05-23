@@ -2,8 +2,6 @@ import os
 
 import pytest
 
-from aegis.core.container.app import Container
-
 
 class TestAdvancedPluginArchitecture:
     """Integration test for the enhanced plugin lifecycle and capabilities."""

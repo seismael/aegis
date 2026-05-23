@@ -2,7 +2,7 @@
 
 import json
 
-from aegis.domain.enforcement.errors import (
+from aegis.kernel.errors import (
     ERR_CONTAINER_NOT_INIT,
     error,
     ok,

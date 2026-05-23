@@ -1,21 +1,4 @@
-# Aegis Architectural Governance — reusable workflow
-#
-# Runs governance checks on push/PR, and can also be called from consuming repos:
-#
-#   jobs:
-#     governance:
-#       uses: ./.github/workflows/aegis-governance.yml
-#       with:
-#         phase: ci
-#
-# Or inline via the composite action:
-#
-#   - uses: ./.github/actions/aegis-ci
-#     with:
-#       phase: pre-commit
-#       strict: true
-
-name: "Aegis Governance"
+name: Aegis Governance
 
 on:
   push:
@@ -24,68 +7,42 @@ on:
     branches: [main]
   workflow_call:
     inputs:
-      phase:
-        description: "Evaluation phase"
-        required: false
-        type: string
-        default: "ci"
-      category:
-        description: "Filter by rule category"
-        required: false
-        type: string
-        default: ""
-      strict:
-        description: "Treat WARN/REPORT as blocking"
-        required: false
-        type: boolean
-        default: false
       working-directory:
-        description: "Repository subdirectory"
         required: false
         type: string
-        default: "."
+        default: '.'
 
 jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
-      - name: Install ruff
-        run: pip install ruff
-      - name: Run ruff check
-        run: ruff check .
+          python-version: '3.12'
+      - run: pip install ruff
+      - run: ruff check .
 
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
-      - name: Install uv
-        run: pip install uv
-      - name: Install dependencies
-        run: uv sync --group dev
-      - name: Run tests
-        run: uv run pytest tests/ -q --timeout=60
+          python-version: '3.12'
+      - run: pip install uv
+      - run: uv sync --group dev
+      - run: uv run pytest tests/ -q --timeout=60
 
-  check:
-    runs-on: ubuntu-latest
+  verify:
     needs: [lint, test]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
-      - uses: ./.github/actions/aegis-ci
-        with:
-          phase: ${{ inputs.phase || 'ci' }}
-          category: ${{ inputs.category || '' }}
-          strict: ${{ inputs.strict || false }}
-          working-directory: ${{ inputs.working-directory || '.' }}
+          python-version: '3.12'
+      - name: Install Aegis
+        run: pip install .
+      - name: Verify kernel can initialize
+        run: python -c "from aegis.kernel.server import AegisKernel; k = AegisKernel(); print('OK:', k.workspace_root)"

@@ -2,7 +2,6 @@ import os
 
 import pytest
 
-from aegis.core.container.app import Container
 from aegis.domain.policy.models import EnforcementMode, Rule, Severity
 
 

@@ -1,60 +1,62 @@
-# Aegis: Architectural Specification (v1.5)
+# Aegis V4 Architecture
 
-## 1. Vision
-**Aegis** is a universal architectural governance engine. It operates as a localized **Governance Microkernel** that facilitates the negotiation, codification, and proactive enforcement of structural consensus via the **Model Context Protocol (MCP)** and CLI.
+## The Symbiotic Model
 
-Beyond reactive quality tools, Aegis is built on a **Steering-First** philosophy, culminating in the v3.0 **Architectural Sandbox**: a governance runtime that interceptors File IO to physically invalidate architectural drift at the tool level.
+Aegis V4 is a purely Agent-Native microkernel. It does not run on the operating system — it runs inside AI coding agents via MCP.
 
----
+### Why No Git Hooks
 
-## 2. The Tiered Governance Paradigm
-Aegis distinguishes between **Global Capability** (the environment extension) and **Local Governance** (the repository laws).
+V3 used `.pre-commit-config.yaml` and `.git/hooks/pre-commit` to enforce governance. V4 eliminates this entirely:
 
-### 2.1 Global Environment Capability
-Aegis acts as a native extension for your development environment. In v3.0, it acts as an **I/O Middleware** that provides hardened filesystem proxies, ensuring that development tools (humans or agents) are physically constrained by local architectural boundaries.
+- Claude receives the Governance Directive in `customInstructions`, making validation mandatory before task completion.
+- Aider loops against `aegis run --check` via `--test-cmd`, creating a native self-healing cycle.
+- The agent, not the OS, enforces governance.
 
-### 2.2 Project-Level Governance
-Upon project activation, the engine enforces the laws defined in `.aegis/rules/` and provides context-aware "Flight Plans" and speculative "In-Flight" validation.
+### How Aegis Leverages the Parent LLM
 
+Aegis is a **deterministic** kernel:
 
----
+- **AST/Graph/Regex analyzers** — Pure Python math. No LLM calls.
+- **Semantic rules** — Aegis returns a grading rubric. The parent LLM self-evaluates.
+- **Memory** — Aegis has none. The agent's context window holds session state.
+- **Evolution** — SPEC.md and agent project knowledge capture architectural decisions.
 
-## 3. Core Subsystems
+### Tri-Core Microkernel
 
-### 3.1 The Logical Constraint Matrix
-Laws are stored as structured **Rule** models in YAML. Each rule defines:
-- **Engine Type**: AST (Tree-sitter), Graph (Dependency), or Regex (Pattern).
-- **Scope**: Inclusion and exclusion patterns (glob-based).
-- **Severity**: Ranging from `report` (informational) to `block` (preventing commits).
+```
+Agent (Claude/Aider)
+  |
+  ├── plan_architecture()
+  ├── validate_architecture_compliance()
+  ├── request_semantic_grading_rubric()
+  |
+  v
++-----------------------------------+
+|         FastMCP Server             |
+|                                    |
+|  +------------+  +------------+    |
+|  |   Policy    |  | Evaluation |    |
+|  |  Packs      |  | Analyzers  |    |
+|  |  Parser     |  | Scoping    |    |
+|  |  Models     |  | Baseline   |    |
+|  +------------+  +------------+    |
+|                                    |
+|  +------------+                     |
+|  |Observability|                    |
+|  | Telemetry   |                    |
+|  | Exporters   |                    |
+|  +------------+                     |
++-----------------------------------+
+```
 
-### 3.2 The Technical Debt Oracle (Baseline)
-Aegis enables **Structural Convergence** via structural signature hashing. Legacy violations are "grandfathered" into a `baseline.json` ledger, allowing the engine to block *new* architectural drift without requiring an immediate, massive refactor of existing code.
+### The Installer
 
----
+`aegis install` is the sole bridge between the host machine and the agent ecosystem:
 
-## 4. System Topology (Hexagonal)
+- Mutates `~/.claude.json` (MCP server + customInstructions)
+- Mutates `~/.aider.conf.yml` (MCP server + test-cmd + auto-test)
+- No other tool-specific code exists at runtime
 
-Aegis follows a strict **Hexagonal Architecture** to ensure the core governance logic remains decoupled from specific tool adapters or file system implementations.
+### Design Decisions
 
-### 4.1 Domain Layer (Core)
-- **Policy Domain**: Rule parsing, validation, and inheritance logic.
-- **Evaluation Domain**: Orchestrates the analysis engines and manages technical debt baselines.
-- **Enforcement Domain**: Synthesizes context-rich remediation prompts based on violations.
-- **Evolution Domain**: Manages the auditable history of architectural decisions.
-
-### 4.2 Infrastructure Layer (Adapters)
-- **AST Engine**: Specialized Tree-sitter integration for multi-language support.
-- **Graph Engine**: Analyzes module coupling and detects circular dependencies.
-- **VCS Provider**: Provides hunk-aware diffing to ensure analysis is targeted and fast.
-
-### 4.3 Kernel Layer (Interface)
-- **MCP Facade**: The stateless JSON-RPC interface for external tool interaction.
-- **CLI Router**: The primary interface for CI/CD pipelines and manual developer interaction.
-
----
-
-## 5. System Invariants
-
-1. **Zero-Telemetry Privacy**: 100% local execution; no code or metadata ever leaves the local environment.
-2. **Stateless Enforcement**: The engine is entirely reactive to the current `.aegis/` state and the local file system.
-3. **Self-Governance**: Aegis enforces its own structural and isolation laws using its internal checking engine.
+See `docs/adr/001-microkernel-architecture.md` for the original microkernel ADR.

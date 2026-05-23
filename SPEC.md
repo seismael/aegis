@@ -1,3 +1,21 @@
+## V4 Agent-Native Invariants
+
+### Mandatory Compliance Check
+
+Before declaring ANY coding task complete, the AI agent MUST:
+
+1. Call `validate_architecture_compliance` with the list of modified files.
+2. If violations are returned, remediate the code natively.
+3. Re-run validation until SUCCESS is returned.
+
+### No Direct File System Governance
+
+Aegis V4 never:
+- Installs git hooks
+- Watches file system events
+- Intercepts file reads/writes
+- Maintains session state
+
 # Aegis: Technical Target Specification
 
 ## Layer 0: The Universal Bootstrapper

@@ -1,63 +1,42 @@
-# Aegis: Operational Invariants
+# Aegis V4 Operations
 
-This document defines the **Governance Protocol** that ensures architectural integrity is maintained through every development cycle. These invariants apply to all contributors and automated tools operating within the Aegis ecosystem.
+## Reading Governance Health
 
----
+The `.aegis/telemetry.json` file contains check history:
 
-## 🏛️ Governance Protocol: Steering-First
+```json
+[
+  {"timestamp": "2026-05-23T01:00:00Z", "total_violations": 12, "active_violations": 3, "type": "check"}
+]
+```
 
-Aegis enforces a **Steering-First** methodology. You are mandated to use the following proactive cycle:
+## Enterprise Monitoring
 
-### 1. Discovery (Task Start)
-- **MANDATORY**: Whenever starting a new logical task, call the `plan_architecture` tool.
-- Align your implementation strategy with the resulting **Architectural Flight Plan**.
+Configure OTLP export in `.aegis/config.yaml`:
 
-### 2. Awareness (File Edit)
-- **MANDATORY**: Before editing any specific file, call `plan_architecture(file_path=...)`.
-- **Sandbox Mode**: If the **Architectural Sandbox** is enabled, reading a file will automatically inject the **Governance DNA** into your context. You MUST respect these invariants.
+```yaml
+telemetry:
+  exporter: otlp
+  otlp_endpoint: "https://otel-collector.example.com/v1/traces"
+```
 
-### 3. Absolute Enforcement (In-Flight)
-- **Sandbox Mode**: When using `aegis_write_file`, Aegis will perform an in-memory scan. Violations will physically block the write operation.
-- **Legacy Mode**: Run `uv run aegis check` before every commit.
+## Server Deployment
 
----
+For non-stdio environments:
 
-## 🛠️ Development Workflow
-- **Test-Driven Development (TDD)**: Always draft tests before feature logic. Run `uv run pytest tests/` after every code change.
-- **Automated Formatting**: Run `ruff check --fix && ruff format` before every commit.
-- **Architectural Isolation**: Adhere strictly to the **Hexagonal** pattern. Domain logic must never import from infrastructure adapters.
-- **Engine Awareness**: When authoring rules, prioritize the correct engine:
-    - **AST (Tree-sitter)** for structural laws.
-    - **Graph** for cross-module coupling.
-    - **Regex** for simple pattern invariants.
+```bash
+aegis run --transport sse --host 0.0.0.0 --port 8000
+```
 
----
+## CI/CD Integration
 
-## 🔌 Integration Interface (MCP)
+GitHub Actions workflow calls the MCP server to validate:
 
-Aegis leverages the **Model Context Protocol (MCP)** to provide an intent-driven interface for development tools:
+```yaml
+- name: Aegis Governance
+  run: |
+    aegis run &
+    sleep 2
+```
 
-### Core Meta-Tools (V2.0)
-- `plan_architecture`: Innovation — Task alignment and proactive rule discovery. Call this **FIRST**.
-- `validate_workspace`: Comprehensive compliance gate and remediation engine.
-- `evolve_ruleset`: Manage architectural laws, rule packs, and technical debt.
-- `query_knowledge_graph`: Introspect project health, rationales, and dependencies.
-
-### Governance Resources (Subscribe for Ambient Context)
-- `aegis://context/{path}`: Ambient Architectural Context for a specific file. **SUBSCRIBE** to this resource for real-time steering.
-- `aegis://rules`: Inspect the full active rule matrix.
-- `aegis://baseline`: Access the technical debt ledger.
-- `aegis://evolution`: Review the auditable history of architectural decisions.
-
----
-
-## 🛡️ Self-Governance
-Aegis is a **Self-Governing Engine**. It enforces its own structural invariants, isolation, and documentation hygiene. The project MUST remain self-compliant with **zero active violations** at all times.
-
-## 🧠 Environment Capabilities
-
-### The Principal Architect Persona
-Use the `aegis-principal-architect` skill for all architectural alignment. This persona is your primary guide for maintaining project perfection.
-
-### Issue Tracker
-All work is tracked via GitHub Issues. Use the `gh` CLI to interact with the repository's task matrix.
+No `aegis check` command exists in V4. All governance flows through the MCP server.

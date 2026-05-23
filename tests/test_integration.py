@@ -6,7 +6,6 @@ import pytest
 from typer.testing import CliRunner
 
 from aegis.cli.main import AegisCLI
-from aegis.core.container.app import Container
 from aegis.domain.policy.models import EnforcementMode, Rule, Severity
 
 # ─── Container / DI composition ─────────────────────────────────────────────
