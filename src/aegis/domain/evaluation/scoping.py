@@ -70,11 +70,13 @@ class ScopeFilter:
         for rule in rules:
             if lang and rule.language and rule.language != lang:
                 continue
-            if rule.applies_to and not ScopeFilter._path_matches_pattern(
-                pp, rule.applies_to
+            if rule.applies_to and not any(
+                ScopeFilter._path_matches_pattern(pp, p) for p in rule.applies_to
             ):
                 continue
-            if rule.excludes and ScopeFilter._path_matches_pattern(pp, rule.excludes):
+            if rule.excludes and any(
+                ScopeFilter._path_matches_pattern(pp, p) for p in rule.excludes
+            ):
                 continue
             matched.append(rule)
 

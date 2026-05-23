@@ -5,7 +5,7 @@ from aegis.domain.policy.models import EnforcementMode, EngineType, Rule, Severi
 class TestRegexAnalyzer:
     """Test suite for the RegexAnalyzer."""
 
-    def _make_rule(self, rid, pattern, language="py"):
+    def _make_rule(self, rid, pattern, language="python"):
         return Rule(
             id=rid,
             description=f"Regex: {rid}",
@@ -73,9 +73,9 @@ class TestRegexAnalyzer:
         assert violations == []
 
     def test_language_filter_applied_to_matching_extension(self):
-        """Rule with language='ts' applied to .ts file."""
+        """Rule with language='typescript' applied to .ts file."""
         analyzer = RegexAnalyzer()
-        rule = self._make_rule("r1", r"TODO", language="ts")
+        rule = self._make_rule("r1", r"TODO", language="typescript")
         violations = analyzer.analyze_file("main.ts", "# TODO", [rule])
         assert len(violations) == 1
 
@@ -111,12 +111,12 @@ class TestRegexAnalyzer:
 
     def test_resolve_ext_known(self):
         """Known extensions map to language codes."""
-        assert RegexAnalyzer._resolve_ext("main.py") == "py"
-        assert RegexAnalyzer._resolve_ext("app.ts") == "ts"
+        assert RegexAnalyzer._resolve_ext("main.py") == "python"
+        assert RegexAnalyzer._resolve_ext("app.ts") == "typescript"
         assert RegexAnalyzer._resolve_ext("app.tsx") == "tsx"
-        assert RegexAnalyzer._resolve_ext("app.js") == "js"
+        assert RegexAnalyzer._resolve_ext("app.js") == "javascript"
         assert RegexAnalyzer._resolve_ext("app.jsx") == "jsx"
-        assert RegexAnalyzer._resolve_ext("lib.rs") == "rs"
+        assert RegexAnalyzer._resolve_ext("lib.rs") == "rust"
 
     def test_resolve_ext_unknown(self):
         """Unknown extensions return the extension without leading dot."""
