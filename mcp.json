@@ -1,11 +1,8 @@
 {
   "mcpServers": {
-    "aegis": {
-      "command": "aegis-kernel",
-      "args": [
-        "--transport",
-        "stdio"
-      ],
+    "aegis-kernel": {
+      "command": "aegis",
+      "args": ["run"],
       "env": {
         "AEGIS_AGENT_MODE": "true"
       }

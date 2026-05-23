@@ -1,5 +1,4 @@
-
-[[mcp_servers]]
-name = "aegis"
-command = "uv"
-args = ["run", "aegis-kernel", "--transport", "stdio"]
+[mcp_servers.aegis-kernel]
+command = "aegis"
+args = ["run"]
+env = { AEGIS_AGENT_MODE = "true" }

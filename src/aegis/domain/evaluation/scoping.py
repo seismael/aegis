@@ -1,7 +1,7 @@
 import os
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
 
-from aegis.core.constants import LANG_EXT_MAP
+from aegis.domain.evaluation.constants import LANG_EXT_MAP
 from aegis.domain.evaluation.ports import ArchitecturalViolation
 from aegis.domain.policy.models import Rule
 
@@ -13,6 +13,74 @@ class ScopeFilter:
 
     Supports glob patterns with ** for recursive matching.
     """
+
+    @staticmethod
+    def filter_rules_for_files(
+        file_paths: list[str], all_rules: list, max_rules: int = 15
+    ) -> list:
+        """
+        JIT-scopes rules to a batch of modified files.
+        Returns top-N most relevant rules across all files, capped at max_rules.
+        """
+        matched_ids: dict[str, int] = {}
+        for fp in file_paths:
+            relevant = ScopeFilter.filter_rules_for_file(fp, all_rules, all_rules)
+            for r in relevant:
+                matched_ids[r.id] = matched_ids.get(r.id, 0) + 1
+
+        def sort_key(rule_id: str):
+            rule = next((r for r in all_rules if r.id == rule_id), None)
+            severity_order = {
+                "CRITICAL": 0,
+                "HIGH": 1,
+                "MEDIUM": 2,
+                "LOW": 3,
+                "WARN": 4,
+            }
+            sev = severity_order.get(rule.severity.value if rule else "LOW", 5)
+            return (-matched_ids[rule_id], sev)
+
+        sorted_ids = sorted(matched_ids, key=sort_key)
+        result = []
+        for rid in sorted_ids[:max_rules]:
+            rule = next((r for r in all_rules if r.id == rid), None)
+            if rule:
+                result.append(rule)
+        return result
+
+    @staticmethod
+    def filter_rules_for_file(
+        file_path: str, rules: list, all_rules: list | None = None, max_rules: int = 15
+    ) -> list:
+        """
+        JIT-scopes rules to a single file. Filters by applies_to/excludes glob,
+        language match. Returns rules sorted by severity, capped at max_rules.
+        """
+        from aegis.domain.evaluation.constants import LANG_EXT_MAP
+
+        ext = Path(file_path).suffix.lower()
+        lang = None
+        for lang_code, lang_ext in LANG_EXT_MAP.items():
+            if ext == lang_ext:
+                lang = lang_code
+                break
+
+        matched = []
+        pp = PurePosixPath(file_path.replace("\\", "/"))
+        for rule in rules:
+            if lang and rule.language and rule.language != lang:
+                continue
+            if rule.applies_to and not ScopeFilter._path_matches_pattern(
+                pp, rule.applies_to
+            ):
+                continue
+            if rule.excludes and ScopeFilter._path_matches_pattern(pp, rule.excludes):
+                continue
+            matched.append(rule)
+
+        severity_order = {"CRITICAL": 0, "HIGH": 1, "MEDIUM": 2, "LOW": 3, "WARN": 4}
+        matched.sort(key=lambda r: severity_order.get(r.severity.value, 5))
+        return matched[:max_rules]
 
     @staticmethod
     def _path_matches_pattern(path: PurePosixPath, pattern: str) -> bool:
@@ -104,36 +172,6 @@ class ScopeFilter:
             filtered.append(v)
 
         return filtered
-
-    @staticmethod
-    def filter_rules_for_file(path: str, rules: list[Rule]) -> list[Rule]:
-        """
-        Returns the subset of rules whose scoping patterns match the given file path.
-
-        A rule is relevant if *applies_to* (if set) matches the path and *excludes*
-        (if set) does NOT match.
-        """
-        pp = PurePosixPath(path.replace("\\", "/"))
-        matching: list[Rule] = []
-
-        for rule in rules:
-            if rule.applies_to:
-                allowed = any(
-                    ScopeFilter._path_matches_pattern(pp, p) for p in rule.applies_to
-                )
-                if not allowed:
-                    continue
-
-            if rule.excludes:
-                excluded = any(
-                    ScopeFilter._path_matches_pattern(pp, p) for p in rule.excludes
-                )
-                if excluded:
-                    continue
-
-            matching.append(rule)
-
-        return matching
 
     @staticmethod
     def _resolve_language(file_path: str) -> str:

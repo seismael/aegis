@@ -2,10 +2,9 @@ import os
 
 import structlog
 
-from aegis.core.constants import IGNORE_DIRS, LANG_EXT_MAP
+from aegis.domain.evaluation.constants import IGNORE_DIRS, LANG_EXT_MAP
 from aegis.domain.evaluation.ports import (
     ArchitecturalViolation,
-    DiffProviderInterface,
     GraphAnalyzerInterface,
     RegexAnalyzerInterface,
     RuleAnalyzerInterface,
@@ -35,14 +34,12 @@ class EvaluationService:
         tree_sitter_analyzer: RuleAnalyzerInterface,
         graph_analyzer: GraphAnalyzerInterface,
         regex_analyzer: RegexAnalyzerInterface,
-        diff_provider: DiffProviderInterface,
         semantic_analyzer: SemanticAnalyzerInterface | None = None,
         extra_analyzers: list[RuleAnalyzerInterface] | None = None,
     ):
         self.tree_sitter_analyzer = tree_sitter_analyzer
         self.graph_analyzer = graph_analyzer
         self.regex_analyzer = regex_analyzer
-        self.diff_provider = diff_provider
         self.semantic_analyzer = semantic_analyzer
         self.extra_analyzers = extra_analyzers or []
 
@@ -221,12 +218,11 @@ class EvaluationService:
         file_path: str,
         rules: list[Rule],
         root_dir: str | None = None,
-        session_id: str = "default",
     ) -> list[ArchitecturalViolation]:
         """Evaluate a single file against applicable rules."""
         file_violations: list[ArchitecturalViolation] = []
         try:
-            content = self._get_file_content(file_path, session_id=session_id)
+            content = self._get_file_content(file_path)
         except (UnicodeDecodeError, OSError, FileNotFoundError):
             return file_violations
 
@@ -248,111 +244,6 @@ class EvaluationService:
         self._normalize_violation_paths(file_violations, root_dir)
         return ScopeFilter.filter_violations(file_violations, rules)
 
-    def evaluate_changes(
-        self,
-        rules: list[Rule],
-        root_dir: str | None = None,
-        phase: EvaluationPhase | None = None,
-        category: RuleCategory | None = None,
-        phase_mapping: CategoryPhaseMapping | None = None,
-        session_id: str = "default",
-    ) -> list[ArchitecturalViolation]:
-        """
-        Performs a token-efficient analysis of only the changed lines in changed files.
-        """
-        rules = self.filter_rules_by_phase(rules, phase, category, phase_mapping)
-
-        if not self.diff_provider:
-            logger.warning(
-                "evaluate_changes: diff_provider unavailable (not a git repo?)"
-            )
-            return []
-
-        diff = self.diff_provider.get_staged_changes()
-        all_violations: list[ArchitecturalViolation] = []
-
-        # Derive root_dir from first changed file if not provided
-        root_dir = root_dir or self._derive_root_dir(diff.changed_files)
-
-        # Partition rules
-        ts_rules = [r for r in rules if r.engine_type == EngineType.TREE_SITTER]
-        regex_rules = [r for r in rules if r.engine_type == EngineType.REGEX]
-        semantic_rules = [r for r in rules if r.engine_type == EngineType.SEMANTIC]
-
-        if (
-            not ts_rules
-            and not regex_rules
-            and not semantic_rules
-            and not self.extra_analyzers
-        ):
-            return all_violations
-
-        for file_path in diff.changed_files:
-            try:
-                # In V3, we also check if the file is staged in our VFS
-                if not os.path.exists(file_path):
-                    continue
-
-                content = self._get_file_content(file_path, session_id=session_id)
-
-                file_violations: list[ArchitecturalViolation] = []
-                if ts_rules:
-                    file_violations.extend(
-                        self.tree_sitter_analyzer.analyze_file(
-                            file_path, content, ts_rules
-                        )
-                    )
-                if regex_rules:
-                    file_violations.extend(
-                        self.regex_analyzer.analyze_file(
-                            file_path, content, regex_rules
-                        )
-                    )
-                if semantic_rules and self.semantic_analyzer:
-                    file_violations.extend(
-                        self.semantic_analyzer.analyze_semantic(
-                            file_path, content, semantic_rules
-                        )
-                    )
-                for extra in self.extra_analyzers:
-                    file_violations.extend(
-                        extra.analyze_file(file_path, content, rules)
-                    )
-
-                modified_lines = diff.get_modified_lines(file_path)
-                if modified_lines:
-                    file_violations = [
-                        v for v in file_violations if v.line in modified_lines
-                    ]
-
-                all_violations.extend(file_violations)
-            except Exception as e:
-                logger.error(
-                    "Failed to analyze changed file",
-                    file=file_path,
-                    error=str(e),
-                )
-
-        # Normalize paths to relative for consistent baseline matching
-        self._normalize_violation_paths(all_violations, root_dir)
-
-        return ScopeFilter.filter_violations(all_violations, rules)
-
-    def _get_file_content(self, file_path: str, session_id: str = "default") -> str:
-        """Retrieves file content from disk."""
+    def _get_file_content(self, file_path: str) -> str:
         with open(file_path, encoding="utf-8") as f:
             return f.read()
-
-    @staticmethod
-    def _derive_root_dir(changed_files: set[str]) -> str:
-        """Derive the workspace root from a set of changed file paths."""
-        if not changed_files:
-            return os.getcwd()
-        try:
-            common = os.path.commonpath(list(changed_files))
-        except ValueError:
-            return os.getcwd()
-        # If common is a file path (single file diff), use its parent
-        if common and not os.path.isdir(common):
-            common = os.path.dirname(common)
-        return common or os.getcwd()

@@ -71,38 +71,6 @@ class SemanticAnalyzerInterface(ABC):
         pass
 
 
-class DiffResult(ABC):
-    """
-    Represents the set of changes in a codebase.
-    """
-
-    @property
-    @abstractmethod
-    def changed_files(self) -> set[str]:
-        pass
-
-    @abstractmethod
-    def get_modified_lines(self, file_path: str) -> set[int]:
-        """Returns the set of line numbers that were added or modified."""
-        pass
-
-
-class DiffProviderInterface(ABC):
-    """
-    Interface for providing diff information from source control.
-    """
-
-    @abstractmethod
-    def get_staged_changes(self) -> DiffResult:
-        """Returns changes currently in the git staging area."""
-        pass
-
-    @abstractmethod
-    def get_changes_since_baseline(self, baseline_ref: str) -> DiffResult:
-        """Returns changes between a baseline reference and current state."""
-        pass
-
-
 class FixProposal(BaseModel):
     file: str
     diff: str = ""
