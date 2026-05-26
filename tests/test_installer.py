@@ -1,5 +1,5 @@
 from pathlib import Path
-from unittest.mock import mock_open, patch
+from unittest.mock import MagicMock, patch
 
 from aegis.infrastructure.installer import (
     AEGIS_GOVERNANCE_DIRECTIVE,
@@ -7,26 +7,31 @@ from aegis.infrastructure.installer import (
 )
 
 
-def test_installer_claude_injection():
+def test_installer_claude_harness_usage():
     installer = AgentNativeInstaller()
-    installer.home = Path("/tmp/aegis_test")
-
-    mock_config = '{"mcpServers": {}}'
-    with patch("builtins.open", mock_open(read_data=mock_config)):
-        with patch("pathlib.Path.exists", return_value=True):
-            with patch("builtins.print"):
-                installer._inject_claude()
+    
+    mock_harness = MagicMock()
+    installer.harnesses["claude"] = mock_harness
+    
+    installer.install(target_tool="claude")
+    
+    mock_harness.install.assert_called_once()
+    mock_harness.deploy_skills.assert_called_once()
 
 
 def test_installer_target_filter():
     installer = AgentNativeInstaller()
-    installer.home = Path("/tmp/aegis_test")
+    
+    mock_claude = MagicMock()
+    mock_aider = MagicMock()
+    installer.harnesses = {
+        "claude": mock_claude,
+        "aider": mock_aider
+    }
 
-    with patch.object(installer, "_inject_claude") as mock_claude:
-        with patch.object(installer, "_inject_aider") as mock_aider:
-            installer.install(target_tool="claude")
-            mock_claude.assert_called_once()
-            mock_aider.assert_not_called()
+    installer.install(target_tool="claude")
+    mock_claude.install.assert_called_once()
+    mock_aider.install.assert_not_called()
 
 
 def test_installer_unsupported_tool():
