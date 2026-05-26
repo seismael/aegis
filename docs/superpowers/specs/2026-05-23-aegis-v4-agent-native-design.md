@@ -71,10 +71,12 @@ src/aegis/
 │   └── installer.py                # AgentNativeInstaller (Claude + Aider only)
 └── resources/                       # Bundled resources (rules, skills)
     ├── __init__.py
-    ├── default_rules/              # 17 rule packs in subdirectories
+    ├── default_rules/              # 18 rule packs in subdirectories
     └── skills/
         ├── aegis-principal-architect.md
-        └── aegis-init.md           # New: agent project bootstrap skill
+        ├── aegis-init.md           # Agent project bootstrap
+        ├── aegis-architect.md      # Rule generation protocol
+        └── aegis-semantic-check.md # Domain language self-grading
 ```
 
 ### Deleted

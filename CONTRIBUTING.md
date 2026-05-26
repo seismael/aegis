@@ -43,7 +43,7 @@ Aegis is a self-referential system. We use the engine to enforce the project's o
 4.  **Verification**: Run the full suite before submitting:
     ```bash
     uv run pytest tests/
-    uv run aegis check  # The ultimate architectural gate
+    uv run aegis run --headless-check  # Architectural governance gate
     ```
 
 ---
