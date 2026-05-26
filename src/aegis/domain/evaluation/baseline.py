@@ -140,8 +140,12 @@ class BaselineManager:
         with open(self.path, encoding="utf-8") as f:
             try:
                 data = json.load(f)
-                return data if isinstance(data, list) else []
+                if not isinstance(data, list):
+                    logger.warning("Baseline file is not a list, resetting")
+                    return []
+                return data
             except (json.JSONDecodeError, ValueError):
+                logger.warning("Baseline file corrupted, resetting")
                 return []
 
     def prune_stale(self, active_rule_ids: set) -> int:

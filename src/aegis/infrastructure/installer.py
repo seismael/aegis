@@ -77,22 +77,34 @@ class AgentNativeInstaller:
         self.home = Path.home()
 
     def install(self, target_tool: str | None = None):
-        if not target_tool or target_tool == "claude":
-            self._inject_claude()
-            self._deploy_claude_skills()
-        if not target_tool or target_tool == "aider":
-            self._inject_aider()
         if target_tool and target_tool not in ("claude", "aider"):
             raise ValueError(
                 f"Unsupported tool: {target_tool}. Supported: claude, aider"
             )
 
+        errors = []
+        if not target_tool or target_tool == "claude":
+            errors.extend(self._inject_claude())
+            errors.extend(self._deploy_claude_skills())
+        if not target_tool or target_tool == "aider":
+            errors.extend(self._inject_aider())
+
+        if errors:
+            print("[Aegis] Install completed with warnings:")
+            for e in errors:
+                print(f"  WARN: {e}")
+
     def _inject_claude(self):
+        errors = []
         claude_config = self.home / ".claude.json"
         config = {}
         if claude_config.exists():
-            with open(claude_config, encoding="utf-8-sig") as f:
-                config = json.load(f)
+            try:
+                with open(claude_config, encoding="utf-8-sig") as f:
+                    config = json.load(f)
+            except (json.JSONDecodeError, OSError) as e:
+                errors.append(f"Failed to read {claude_config}: {e}")
+                return errors
 
         if "mcpServers" not in config:
             config["mcpServers"] = {}
@@ -104,14 +116,24 @@ class AgentNativeInstaller:
                 f"{existing_instructions}\n\n{AEGIS_GOVERNANCE_DIRECTIVE}".strip()
             )
 
-        with open(claude_config, "w", encoding="utf-8") as f:
-            json.dump(config, f, indent=2)
+        try:
+            with open(claude_config, "w", encoding="utf-8") as f:
+                json.dump(config, f, indent=2)
+        except OSError as e:
+            errors.append(f"Failed to write {claude_config}: {e}")
+            return errors
 
         print(f"[Aegis] Injected governance directive into {claude_config}")
+        return errors
 
     def _deploy_claude_skills(self):
+        errors = []
         skills_dir = self.home / ".claude" / "skills"
-        skills_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            skills_dir.mkdir(parents=True, exist_ok=True)
+        except OSError as e:
+            errors.append(f"Failed to create skills directory {skills_dir}: {e}")
+            return errors
 
         deployed = 0
         for skill_name in AEGIS_SKILL_FILES:
@@ -129,8 +151,10 @@ class AgentNativeInstaller:
 
         if deployed:
             print(f"[Aegis] Deployed {deployed} skills to {skills_dir}")
+        return errors
 
     def _inject_aider(self):
+        errors = []
         aider_config = self.home / ".aider.conf.yml"
         directive = (
             "\n# Aegis Native Integration\n"
@@ -139,10 +163,15 @@ class AgentNativeInstaller:
             "auto-test: true\n"
         )
 
-        with open(aider_config, "a") as f:
-            f.write(directive)
+        try:
+            with open(aider_config, "a") as f:
+                f.write(directive)
+        except OSError as e:
+            errors.append(f"Failed to write {aider_config}: {e}")
+            return errors
 
         print(f"[Aegis] Injected MCP configuration into {aider_config}")
+        return errors
 
     @staticmethod
     def generate_agents_template(target_dir: str) -> str:

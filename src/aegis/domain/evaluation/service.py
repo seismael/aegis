@@ -64,8 +64,14 @@ class EvaluationService:
 
         # Lifecycle hook: Start
         for extra in self.extra_analyzers:
-            if hasattr(extra, "on_evaluation_start"):
-                extra.on_evaluation_start(root_dir)
+            try:
+                if hasattr(extra, "on_evaluation_start"):
+                    extra.on_evaluation_start(root_dir)
+            except Exception:
+                logger.warning(
+                    "Plugin on_evaluation_start failed",
+                    plugin=type(extra).__name__,
+                )
 
         # Partition rules by engine type
         ts_rules = [r for r in rules if r.engine_type == EngineType.TREE_SITTER]
@@ -103,9 +109,16 @@ class EvaluationService:
                                 )
                             )
                         for extra in self.extra_analyzers:
-                            all_violations.extend(
-                                extra.analyze_file(file_path, content, rules)
-                            )
+                            try:
+                                all_violations.extend(
+                                    extra.analyze_file(file_path, content, rules)
+                                )
+                            except Exception:
+                                logger.warning(
+                                    "Plugin analyze_file failed",
+                                    plugin=type(extra).__name__,
+                                    file=file_path,
+                                )
                     except (UnicodeDecodeError, OSError, FileNotFoundError):
                         continue
 
@@ -117,16 +130,28 @@ class EvaluationService:
 
         # Hook: Project-wide analysis
         for extra in self.extra_analyzers:
-            if hasattr(extra, "analyze_project"):
-                all_violations.extend(extra.analyze_project(root_dir, rules))
+            try:
+                if hasattr(extra, "analyze_project"):
+                    all_violations.extend(extra.analyze_project(root_dir, rules))
+            except Exception:
+                logger.warning(
+                    "Plugin analyze_project failed",
+                    plugin=type(extra).__name__,
+                )
 
         # Normalize paths to relative for consistent baseline matching
         self._normalize_violation_paths(all_violations, root_dir)
 
         # Lifecycle hook: End
         for extra in self.extra_analyzers:
-            if hasattr(extra, "on_evaluation_end"):
-                extra.on_evaluation_end(all_violations)
+            try:
+                if hasattr(extra, "on_evaluation_end"):
+                    extra.on_evaluation_end(all_violations)
+            except Exception:
+                logger.warning(
+                    "Plugin on_evaluation_end failed",
+                    plugin=type(extra).__name__,
+                )
 
         return ScopeFilter.filter_violations(all_violations, rules)
 

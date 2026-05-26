@@ -82,7 +82,8 @@ class ScopeFilter:
 
         severity_order = {"CRITICAL": 0, "HIGH": 1, "MEDIUM": 2, "LOW": 3, "WARN": 4}
         matched.sort(key=lambda r: severity_order.get(r.severity.value, 5))
-        return matched[:max_rules]
+        limit = max(max_rules, 0)
+        return matched[:limit]
 
     @staticmethod
     def _path_matches_pattern(path: PurePosixPath, pattern: str) -> bool:
@@ -234,7 +235,9 @@ class ScopeFilter:
         if adjacency is not None and len(result) < max_rules:
             module = ScopeFilter._module_from_path(file_path, base_dir=base_dir)
             related: set[str] = set()
-            related.update(adjacency.get(module, set()))
+            deps = adjacency.get(module)
+            if isinstance(deps, set):
+                related.update(deps)
             for mod, deps in adjacency.items():
                 if module in deps:
                     related.add(mod)
@@ -261,4 +264,5 @@ class ScopeFilter:
                             continue
                     result[rule.id] = rule
 
-        return list(result.values())[:max_rules]
+        limit = max(max_rules, 0)
+        return list(result.values())[:limit]

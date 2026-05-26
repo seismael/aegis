@@ -19,6 +19,7 @@ from aegis.domain.policy.pack_manager import RulePackManager
 from aegis.domain.policy.parser import PolicyParser
 from aegis.kernel.errors import (
     ERR_INVALID_INPUT,
+    ERR_SERVICE_UNAVAILABLE,
     error,
     warn,
 )
@@ -106,24 +107,47 @@ class AegisKernel:
         self,
         files_modified: list[str],
         phase: str = "pre-commit",
+        execution_depth: int = 0,
     ) -> str:
         """
         JIT Compliance Gate. Call before declaring any task complete.
         Returns SUCCESS string or formatted violation report with remediation.
         """
+        if execution_depth > 3:
+            return warn(
+                f"BYPASS: Execution depth {execution_depth} exceeds limit (3). "
+                "Remaining violations will not block task completion. "
+                "Flag the following rules for manual architectural review."
+            )
+
         rules = self._load_rules()
         if not rules:
             return warn("No rules loaded. Run /aegis-init first.")
 
         phase_enum = None
-        try:
-            from aegis.domain.policy.models import EvaluationPhase
+        if phase != "pre-commit":
+            try:
+                from aegis.domain.policy.models import EvaluationPhase
 
-            phase_enum = EvaluationPhase(phase)
-        except ValueError:
-            pass
+                phase_enum = EvaluationPhase(phase)
+            except ValueError:
+                return warn(
+                    f"Unknown phase '{phase}'. "
+                    "Valid phases: pre-commit, ci, nightly, on-demand."
+                )
 
         filtered = self._filter_rules_for_files(files_modified, rules)
+
+        if self.evaluation is None:
+            return error(
+                ERR_SERVICE_UNAVAILABLE,
+                "Evaluation engine not initialized. Check tree-sitter installation.",
+            )
+        if self.baseline is None:
+            return error(
+                ERR_SERVICE_UNAVAILABLE,
+                "Baseline manager not initialized.",
+            )
 
         rule_map = {r.id: r for r in rules}
         violations = self.evaluation.evaluate_workspace(
@@ -136,11 +160,20 @@ class AegisKernel:
             if not self.baseline.is_exempt(v, rule_map.get(v.rule_id))
         ]
 
+        if self.telemetry is not None:
+            if not active:
+                self.telemetry.record_check(len(violations), 0)
+                return "SUCCESS: Architecture compliant. Task may be marked complete."
+            self.telemetry.record_check(len(violations), len(active))
+
         if not active:
-            self.telemetry.record_check(len(violations), 0)
             return "SUCCESS: Architecture compliant. Task may be marked complete."
 
-        self.telemetry.record_check(len(violations), len(active))
+        if self.remediation is None:
+            return error(
+                ERR_SERVICE_UNAVAILABLE,
+                "Remediation prompt synthesizer not initialized.",
+            )
         result = self.remediation.generate_remediation(active, rule_map)
         return result.handoff_prompt
 
@@ -162,6 +195,11 @@ class AegisKernel:
         if not scoped:
             return "NO_SEMANTIC_RULES: No semantic rules apply to this file."
 
+        if self.semantic is None:
+            return error(
+                ERR_SERVICE_UNAVAILABLE,
+                "Semantic analyzer not initialized.",
+            )
         return self.semantic.build_rubric(target_file, scoped)
 
     async def scaffold_governance_framework(
@@ -173,6 +211,11 @@ class AegisKernel:
         from bundled resources to .aegis/rules/ and generates AGENTS.md.
         """
         installed = []
+        if self.packs is None:
+            return error(
+                ERR_SERVICE_UNAVAILABLE,
+                "Pack manager not initialized.",
+            )
         for pack_name in target_packs:
             try:
                 self.packs.install(pack_name)
@@ -206,10 +249,20 @@ class AegisKernel:
                     ERR_INVALID_INPUT,
                     "target module name required for dependency_graph",
                 )
+            if self.graph is None:
+                return error(
+                    ERR_SERVICE_UNAVAILABLE,
+                    "Graph analyzer not initialized.",
+                )
             result = self.graph.build_dependency_graph(self.workspace_root, target)
             return json.dumps(result, indent=2)
 
         if query_type == "module_health":
+            if self.evaluation is None:
+                return error(
+                    ERR_SERVICE_UNAVAILABLE,
+                    "Evaluation engine not initialized.",
+                )
             rules = self._load_rules()
             violations = self.evaluation.evaluate_workspace(self.workspace_root, rules)
             by_module = {}
@@ -291,6 +344,10 @@ class AegisKernel:
         rule = next((r for r in rules if r.id == target), None)
         if not rule:
             return error("RULE_NOT_FOUND", f"Rule '{target}' not found")
+        if self.evaluation is None:
+            return error(ERR_SERVICE_UNAVAILABLE, "Evaluation engine not initialized.")
+        if self.baseline is None:
+            return error(ERR_SERVICE_UNAVAILABLE, "Baseline manager not initialized.")
         violations = self.evaluation.evaluate_workspace(self.workspace_root, [rule])
         self.baseline.add_all_to_baseline(violations)
         return f"SUCCESS: Suppressed {len(violations)} violations for rule '{target}'"
@@ -298,6 +355,8 @@ class AegisKernel:
     async def _evolve_remove_pack(self, target: str | None) -> str:
         if not target:
             return error(ERR_INVALID_INPUT, "target pack_name required")
+        if self.packs is None:
+            return error(ERR_SERVICE_UNAVAILABLE, "Pack manager not initialized.")
         try:
             self.packs.remove(target)
             return f"SUCCESS: Removed rule pack '{target}'"
@@ -495,13 +554,34 @@ class AegisKernel:
             return []
 
     def _load_rules(self) -> list:
+        if self.policy is None:
+            return []
         try:
             return self.policy.parse_all(self.workspace_root)
         except Exception:
             return []
 
     def _filter_rules_for_files(self, files_modified: list[str], rules: list) -> list:
-        return ScopeFilter.filter_rules_for_files(files_modified, rules)
+        adjacency = None
+        if self.graph is not None:
+            try:
+                adjacency, _ = self.graph.build_import_graph(self.workspace_root)
+            except Exception:
+                pass
+
+        result: dict[str, object] = {}
+        for file_path in files_modified:
+            relevant = ScopeFilter.get_relevant_rules(
+                file_path,
+                rules,
+                adjacency=adjacency,
+                max_rules=15,
+                base_dir=self.workspace_root,
+            )
+            for r in relevant:
+                if r.id not in result:
+                    result[r.id] = r
+        return list(result.values())
 
     def _register_resources(self):
         @self.mcp.resource("aegis://rules")
@@ -522,6 +602,8 @@ class AegisKernel:
 
         @self.mcp.resource("aegis://baseline")
         def get_baseline() -> str:
+            if self.baseline is None:
+                return json.dumps([])
             entries = self.baseline.load_baseline_raw()
             return json.dumps(entries, indent=2)
 
@@ -596,12 +678,19 @@ class AegisKernel:
             print("WARN: No rules loaded. Run /aegis-init first.")
             return 0
 
+        if self.evaluation is None:
+            print("ERROR: Evaluation engine not initialized.")
+            return -1
+
         violations = self.evaluation.evaluate_workspace(self.workspace_root, rules)
         active = [
             v
             for v in violations
-            if not self.baseline.is_exempt(
-                v, next((r for r in rules if r.id == v.rule_id), None)
+            if not (
+                self.baseline
+                and self.baseline.is_exempt(
+                    v, next((r for r in rules if r.id == v.rule_id), None)
+                )
             )
         ]
 

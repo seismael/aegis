@@ -16,14 +16,15 @@ class LocalJSONExporter(TelemetryExporterInterface):
         self._lock = threading.Lock()
 
     def record_remediation(self, rule_id: str, timestamp: str | None = None) -> None:
-        data = self._load()
-        data.setdefault("remediations", []).append(
-            {
-                "rule_id": rule_id,
-                "timestamp": timestamp or datetime.now(UTC).isoformat(),
-            }
-        )
-        self._save(data)
+        with self._lock:
+            data = self._load_unlocked()
+            data.setdefault("remediations", []).append(
+                {
+                    "rule_id": rule_id,
+                    "timestamp": timestamp or datetime.now(UTC).isoformat(),
+                }
+            )
+            self._save_unlocked(data)
 
     def record_check(
         self,
@@ -31,19 +32,21 @@ class LocalJSONExporter(TelemetryExporterInterface):
         active_violations: int,
         timestamp: str | None = None,
     ) -> None:
-        data = self._load()
-        data.setdefault("checks", []).append(
-            {
-                "timestamp": timestamp or datetime.now(UTC).isoformat(),
-                "violation_count": total_violations,
-                "active_violations": active_violations,
-                "type": "check",
-            }
-        )
-        self._save(data)
+        with self._lock:
+            data = self._load_unlocked()
+            data.setdefault("checks", []).append(
+                {
+                    "timestamp": timestamp or datetime.now(UTC).isoformat(),
+                    "violation_count": total_violations,
+                    "active_violations": active_violations,
+                    "type": "check",
+                }
+            )
+            self._save_unlocked(data)
 
     def get_insights(self) -> dict:
-        data = self._load()
+        with self._lock:
+            data = self._load_unlocked()
         remediations = data.get("remediations", [])
         checks = data.get("checks", [])
 
@@ -62,20 +65,18 @@ class LocalJSONExporter(TelemetryExporterInterface):
             "total_violations_found": total_violations,
         }
 
-    def _load(self) -> dict:
+    def _load_unlocked(self) -> dict:
         if not os.path.exists(self.path):
             return {}
-        with self._lock:
-            try:
-                with open(self.path, encoding="utf-8") as f:
-                    return json.load(f)
-            except (json.JSONDecodeError, OSError):
-                return {}
+        try:
+            with open(self.path, encoding="utf-8") as f:
+                return json.load(f)
+        except (json.JSONDecodeError, OSError):
+            return {}
 
-    def _save(self, data: dict) -> None:
-        with self._lock:
-            try:
-                with open(self.path, "w", encoding="utf-8") as f:
-                    json.dump(data, f, indent=2)
-            except OSError:
-                pass
+    def _save_unlocked(self, data: dict) -> None:
+        try:
+            with open(self.path, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2)
+        except OSError:
+            pass

@@ -26,7 +26,11 @@ class AegisCLI:
         from aegis.infrastructure.installer import AgentNativeInstaller
 
         installer = AgentNativeInstaller()
-        installer.install(target_tool=tool)
+        try:
+            installer.install(target_tool=tool)
+        except Exception as e:
+            typer.echo(f"ERROR: {e}", err=True)
+            raise typer.Exit(code=1) from None
 
     def run(
         self,

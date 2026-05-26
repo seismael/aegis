@@ -39,7 +39,11 @@ class RemediationPromptSynthesizer(RemediationProviderInterface):
             "refactor the following files before proceeding.\n\n"
         )
 
-        for v in violations:
+        max_display = 25
+        displayed = violations[:max_display]
+        truncated = len(violations) - max_display
+
+        for v in displayed:
             rule = rules_map.get(v.rule_id)
             is_security = rule is not None and rule.category.value == "security"
 
@@ -77,13 +81,22 @@ class RemediationPromptSynthesizer(RemediationProviderInterface):
 
             payload += "\n"
 
+        if truncated > 0:
+            payload += (
+                f"\n---\n**Note:** {truncated} additional violations "
+                "truncated. Re-run `validate_architecture_compliance` "
+                "after fixing these to surface remaining violations.\n"
+            )
+
         payload += (
             "**Execution Directive:**\n"
             "1. Read the specified lines in the affected files.\n"
             "2. Refactor the code to eliminate the violation while "
             "preserving all existing business logic.\n"
-            "3. Call the `validate_architecture_compliance` MCP tool "
-            "again to verify your fix."
+            "3. Call `validate_architecture_compliance` with "
+            "`execution_depth` incremented by 1 from your prior call. "
+            "If depth exceeds 3, proceed with remaining violations "
+            "flagged for manual review."
         )
 
         return RemediationResult(

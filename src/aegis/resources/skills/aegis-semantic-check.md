@@ -45,7 +45,10 @@ For each violation found:
 
 ### Step 5: Re-validate
 
-After applying all fixes, call `validate_architecture_compliance` with the modified files to confirm all violations are resolved.
+After applying all fixes, call `validate_architecture_compliance` with
+`execution_depth` incremented by 1 from your prior attempt. If depth
+exceeds 3, Aegis will return a BYPASS — proceed with remaining violations
+documented for manual review.
 
 ## Important
 
