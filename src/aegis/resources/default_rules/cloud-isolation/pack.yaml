@@ -1,4 +1,0 @@
-name: cloud-isolation
-version: 1.0.0
-description: Hexagonal architecture enforcement — domain layers must not import cloud SDKs
-author: Aegis

@@ -1,6 +1,5 @@
-# Default Aegis Security Rule Pack
-# These rules enforce zero-tolerance security policies.
-# Security rules bypass the baseline (never grandfathered as tech debt).
+# Aegis Security Rule Pack
+# Zero-tolerance security policies — hardcoded secrets, injection vectors, insecure patterns.
 
 rules:
   - id: sec-no-hardcoded-aws-keys
@@ -9,19 +8,15 @@ rules:
     severity: CRITICAL
     mode: block
     query: (?i)AKIA[0-9A-Z]{16}
-    rationale: Prevents credential leakage into source control. Use environment variables or IAM roles.
+    rationale: Exposed AWS keys grant unauthorized cloud access. Use IAM roles or environment variables.
 
   - id: sec-no-hardcoded-passwords
     description: Potential hardcoded password assignment detected.
     engine_type: regex
     severity: HIGH
     mode: block
-    query: (?i)(password|passwd|pwd)\s*[=:]\s*["\'][^"\']+["\']
-    excludes:
-      - tests/**
-      - "**/test_*"
-      - "**/*_test.py"
-    rationale: Credentials must never be embedded in source code. Use a secrets manager or environment variables.
+    query: (?i)(password|passwd|pwd)\s*[=:]\s*["'][^"']+["']
+    rationale: Hardcoded credentials in source are exposed to everyone with repository access. Use secrets manager.
 
   - id: sec-no-connection-strings
     description: Database connection string with credentials in source code.
@@ -29,42 +24,42 @@ rules:
     severity: CRITICAL
     mode: block
     query: (postgresql|mysql|mongodb)://[^@]+@
-    rationale: Connection strings with embedded credentials expose the database. Use connection pooling or vault secrets.
+    rationale: Exposed connection strings grant direct database access. Load from environment variables.
 
   - id: sec-no-todo-security
-    description: Security-sensitive TODO/FIXME comments should be tracked externally.
+    description: Security-sensitive TODOs and FIXMEs should be tracked externally.
     engine_type: regex
     severity: MEDIUM
     mode: warn
     query: (TODO|FIXME|XXX).*(security|vuln|secret|credential|auth|password|token)
-    rationale: Security debt recorded in code comments is invisible to tracking systems. File a ticket instead.
+    rationale: Security debt in code comments is invisible to issue trackers and can be forgotten.
 
   - id: sec-no-hardcoded-tokens
     description: Hardcoded API tokens, JWTs, or bearer tokens in source code.
     engine_type: regex
     severity: CRITICAL
     mode: block
-    query: (?i)(api[_-]?key|token|bearer|jwt|secret)\s*[=:]\s*["\'][A-Za-z0-9_\-\.]{16,}["\']
-    rationale: Tokens found in source can be extracted from history. Use a secrets manager at runtime.
+    query: (?i)(api[_-]?key|token|bearer|jwt|secret)\s*[=:]\s*["'][A-Za-z0-9_\-\.]{16,}["']
+    rationale: API tokens in source code can be exfiltrated via repository access. Use environment variables.
 
   - id: sec-no-eval
-    description: Use of eval, exec, or os.system introduces code injection risk.
+    description: eval(), exec(), and compile() introduce arbitrary code execution risk.
     engine_type: regex
     severity: HIGH
     mode: block
     query: (?<!re\.)\b(?:eval|exec|compile)\s*\(
-    rationale: Dynamic code execution bypasses all static analysis and enables arbitrary code injection.
+    rationale: Dynamic code execution allows arbitrary Python to run. Replace with safer alternatives or strict input validation.
 
   - id: sec-no-sql-concatenation
-    description: SQL query built via string concatenation enables injection attacks.
+    description: SQL queries built via string concatenation enable injection attacks.
     engine_type: regex
     severity: HIGH
     mode: block
-    query: (execute|query|cursor)\s*\(\s*["\'][^"\']*\+\s*.*["\']
-    rationale: Parameterized queries prevent SQL injection. Never concatenate user input into SQL strings.
+    query: (execute|query|cursor)\s*\(\s*["'][^"']*\+\s*.*["']
+    rationale: Always use parameterized queries or ORM query builders to prevent SQL injection.
 
   - id: sec-csrf-protection
-    description: State-changing endpoints (POST/PUT/DELETE) should be reviewed for CSRF protection.
+    description: State-changing endpoints should be reviewed for CSRF protection.
     engine_type: regex
     severity: MEDIUM
     mode: warn
@@ -73,7 +68,7 @@ rules:
       - "**/controllers/**"
       - "**/routes/**"
     query: '@(app|route)\.(post|put|delete)'
-    rationale: State-changing endpoints without CSRF protection enable cross-site request forgery. Review each flagged route for CSRF middleware or per-endpoint protection.
+    rationale: State-changing endpoints without CSRF tokens are vulnerable to cross-site request forgery.
 
   - id: sec-insecure-deserialization
     description: pickle.load or yaml.load without SafeLoader enables arbitrary code execution.
@@ -81,23 +76,23 @@ rules:
     severity: HIGH
     mode: block
     query: \b(pickle\.loads|pickle\.load|yaml\.load\s*\((?![^)]*SafeLoader)|shelve\.open)\b
-    rationale: Insecure deserialization can trigger arbitrary code execution during object reconstruction.
+    rationale: Insecure deserialization allows attackers to execute arbitrary code through crafted payloads.
 
   - id: sec-path-traversal
-    description: User input used in open() calls should be validated to prevent directory traversal.
+    description: User input used in file operations should be validated against directory traversal.
     engine_type: regex
     severity: MEDIUM
     mode: warn
     query: open\s*\(\s*(?:request\.|input\(|params\[|args\[|query\.)
-    rationale: Unvalidated file paths allow attackers to read arbitrary files outside the intended directory.
+    rationale: Unvalidated file paths from user input can access arbitrary files on the server.
 
   - id: sec-jwt-validation
-    description: JWT decoding should use algorithm-aware verification, not raw decode without validation.
+    description: JWT decoding should use algorithm-aware verification. Never use decode without verify=True.
     engine_type: regex
     severity: HIGH
     mode: block
     query: jwt\.decode\s*\((?![^)]*verify\s*=)
-    rationale: JWT decode without verification accepts forged tokens using algorithm confusion attacks.
+    rationale: JWTs decoded without verification can be forged. Always validate the signature.
 
   - id: sec-no-subprocess-shell
     description: subprocess calls should avoid shell=True to prevent command injection.
@@ -105,4 +100,41 @@ rules:
     severity: HIGH
     mode: block
     query: subprocess\.\w+\(.*shell\s*=\s*True
-    rationale: shell=True delegates argument parsing to the shell, enabling injection via crafted arguments.
+    rationale: shell=True passes commands through the system shell, enabling injection through unsanitized input.
+
+  - id: sec-no-hardcoded-urls
+    description: Hardcoded URLs and API endpoints should be externalized to configuration.
+    engine_type: regex
+    severity: MEDIUM
+    mode: warn
+    query: (?m)^\s*["']https?://(?:api|service|internal|external)\.[^"']*["']\s*(?:,|\)|$)
+    rationale: Hardcoded URLs cannot change per environment and reveal internal service topology in source code.
+
+  - id: sec-cors-wildcard
+    description: CORS configuration should not use wildcard origins (*) in production.
+    engine_type: regex
+    severity: HIGH
+    mode: block
+    query: (?i)CORSMiddleware\s*\([^)]*allow_origins\s*=\s*\[["']\*["']
+    rationale: Wildcard CORS allows any website to make authenticated requests, enabling CSRF attacks.
+
+  - id: sec-input-validation
+    description: User input used in database or shell operations should be validated and sanitized.
+    engine_type: regex
+    severity: HIGH
+    mode: warn
+    query: (?:execute|cursor|subprocess|os\.system|os\.popen)\s*\([^)]*(?:request\.|input\(|params\[|args\[|form\[)
+    rationale: Unsanitized user input in system calls enables injection attacks.
+
+  - id: sec-no-debug-mode
+    description: Debug mode or verbose error reporting should not be enabled in production configuration.
+    engine_type: regex
+    severity: HIGH
+    mode: block
+    applies_to:
+      - "**/config/**"
+      - "**/settings/**"
+      - "**/*.env"
+      - "**/*.toml"
+    query: (?i)(DEBUG\s*=\s*True|ENVIRONMENT\s*=\s*["']development["']|LOG_LEVEL\s*=\s*["']DEBUG["'])
+    rationale: Debug mode in production exposes stack traces, environment variables, and internal state to attackers.

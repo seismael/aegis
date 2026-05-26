@@ -1,5 +1,5 @@
-# Default Aegis Python Best Practices Rule Pack
-# Idiomatic Python — pathlib, mutable defaults, exception handling, type hints.
+# Aegis Best Practices Rule Pack
+# Idiomatic Python — no hardcoded values, env var configuration, guard clauses, type safety.
 
 rules:
   - id: bp-use-pathlib
@@ -8,23 +8,23 @@ rules:
     severity: LOW
     mode: report
     query: \bos\.path\.(join|exists|isfile|isdir|abspath|dirname|basename|splitext)\b
-    rationale: pathlib provides an object-oriented, cross-platform API that is more readable and testable.
+    rationale: pathlib provides an object-oriented, cross-platform API for file system paths.
 
   - id: bp-no-mutable-defaults
     description: Mutable default arguments cause surprising shared-state bugs.
     engine_type: regex
     severity: MEDIUM
     mode: warn
-    query: 'def \w+\(.*=\s*(\[\s*\]|\{\s*\}|set\s*\(\s*\))'
-    rationale: Mutable defaults are evaluated once at definition time, not at call time, leading to subtle bugs.
+    query: def \w+\(.*=\s*(\[\s*\]|\{\s*\}|set\s*\(\s*\))
+    rationale: Default arguments are evaluated once at function definition time, sharing state across calls.
 
   - id: bp-explicit-exceptions
-    description: 'Bare except: clauses catch unexpected errors and should specify exception types.'
+    description: "Bare except: clauses catch unexpected errors and should specify exception types."
     engine_type: regex
     severity: HIGH
     mode: warn
-    query: '(?m)^\s*except\s*:'
-    rationale: Bare except catches KeyboardInterrupt and SystemExit, making crashes silent and debugging impossible.
+    query: "(?m)^\\s*except\\s*:"
+    rationale: Catching all exceptions silently hides bugs and makes debugging difficult.
 
   - id: bp-context-managers
     description: Use context managers (with statement) for resource handling.
@@ -32,17 +32,15 @@ rules:
     severity: LOW
     mode: report
     query: \bopen\s*\([^)]+\)\s*(?!\s*(?:as|\.))
-    rationale: open() without 'with' can leak file descriptors on exception.
-    excludes:
-      - "**/*.md"
+    rationale: Context managers guarantee cleanup even when exceptions occur.
 
   - id: bp-type-hints
     description: Functions with complex parameters should include type annotations.
     engine_type: regex
     severity: LOW
     mode: report
-    query: '(?m)^def \w+\([^):]{20,}\):'
-    rationale: Type hints enable static analysis, better IDE support, and self-documenting code.
+    query: "(?m)^def \\w+\\([^):]{20,}\\):"
+    rationale: Type hints improve IDE support, enable static analysis, and serve as documentation.
 
   - id: bp-fstring-usage
     description: Prefer f-strings over str.format() or % formatting for string interpolation.
@@ -50,7 +48,7 @@ rules:
     severity: LOW
     mode: report
     query: \.\s*format\s*\(|%\s*\(|%\s+\w
-    rationale: f-strings are more readable, faster, and less error-prone than older formatting styles.
+    rationale: f-strings are more readable, faster, and support expressions directly.
 
   - id: bp-list-comprehension
     description: Use list comprehensions over map/filter with lambda for clarity.
@@ -58,7 +56,7 @@ rules:
     severity: LOW
     mode: report
     query: \b(map|filter)\s*\(\s*lambda
-    rationale: List comprehensions are more Pythonic and readable than lambda-based functional transforms.
+    rationale: List comprehensions are more Pythonic and often faster than functional-style constructs.
 
   - id: bp-walrus-appropriate
     description: Walrus operator (:=) should be used primarily in conditional expressions, not standalone.
@@ -66,7 +64,7 @@ rules:
     severity: LOW
     mode: report
     query: \w+\s*:=\s*\w+\s*(?![=!<>])
-    rationale: Walrus outside conditionals can reduce readability and is often better written as separate lines.
+    rationale: The walrus operator is most effective in if/while conditions, avoiding repeated computation.
 
   - id: bp-dataclass-usage
     description: Prefer dataclasses or Pydantic models over plain dicts for structured data.
@@ -74,7 +72,7 @@ rules:
     severity: LOW
     mode: report
     query: (?m)^class\s+\w+\(\):[\s\S]{0,200}def __init__
-    rationale: dataclasses provide validation, immutability options, and better IDE support than manual init.
+    rationale: Dataclasses provide free __init__, __repr__, and __eq__ with type annotations.
 
   - id: bp-dunder-methods
     description: Classes should implement __str__ or __repr__ for debuggability.
@@ -82,7 +80,7 @@ rules:
     severity: LOW
     mode: report
     query: (?m)^class\s+\w+[\s\S]{0,300}(?!(__str__|__repr__))
-    rationale: Without string representations, instances are indistinguishable in logs and debug output.
+    rationale: A good repr makes debugging and logging significantly easier.
 
   - id: bp-iterator-protocol
     description: Custom iterables should implement __iter__ or __next__, not rely solely on __getitem__.
@@ -90,7 +88,7 @@ rules:
     severity: MEDIUM
     mode: warn
     query: __getitem__[\s\S]{0,50}(?!(__iter__|__next__))
-    rationale: Legacy __getitem__-based iteration is fragile and produces confusing error messages.
+    rationale: Proper iterator protocol enables use with for loops, comprehensions, and itertools.
 
   - id: bp-error-handling-depth
     description: Deeply nested try/except blocks indicate poor error handling design.
@@ -98,4 +96,72 @@ rules:
     severity: MEDIUM
     mode: warn
     query: try[\s\S]{0,500}try[\s\S]{0,500}try
-    rationale: More than two levels of try nesting signals that exception flow is too complex to reason about.
+    rationale: Flatten error handling with early returns or extract nested blocks into helper functions.
+
+  - id: bp-no-hardcoded-strings
+    description: String values used for configuration should be constants, enums, or environment variables, not inline literals.
+    engine_type: regex
+    severity: HIGH
+    mode: warn
+    query: (?m)^\s*(?:HOST|PORT|URL|ENDPOINT|DATABASE|SECRET|REGION|ENV|ENVIRONMENT|API_KEY|API_URL|DEBUG|LOG_LEVEL|TIMEOUT|CACHE)\s*=\s*["'][^"']+["']
+    rationale: Configuration values hardcoded in source cannot change per environment and create security risks.
+
+  - id: bp-use-env-vars
+    description: Configuration should be loaded from environment variables and .env files, not hardcoded at module level.
+    engine_type: regex
+    severity: MEDIUM
+    mode: warn
+    query: (?m)^\s*(?:API_URL|BASE_URL|SERVER_HOST|DATABASE_URL|REDIS_URL|SERVICE_ENDPOINT)\s*=\s*["']https?://
+    rationale: Environment-specific configuration must be externalized for portability across dev, staging, and production.
+
+  - id: bp-no-magic-numbers
+    description: Numeric literals used in business logic should be extracted as named constants or enum values.
+    engine_type: regex
+    severity: LOW
+    mode: report
+    query: (?m)\bif\s+\w+\s*[<>=]+\s*\d{2,}\b(?!\s*#.*(?:constant|threshold|limit))
+    rationale: Named constants self-document intent and centralize value changes to a single location.
+
+  - id: bp-use-constants
+    description: Repeated string or numeric literals used across multiple files should be centralized as constants or enums.
+    engine_type: regex
+    severity: MEDIUM
+    mode: warn
+    query: ~
+    rationale: Duplicated literals create maintenance burden and risk inconsistency when values diverge. ~ means runtime-enforced.
+
+  - id: bp-avoid-globals
+    description: Module-level mutable global state should be avoided; use dependency injection or context objects.
+    engine_type: regex
+    severity: MEDIUM
+    mode: warn
+    query: (?m)^\w+\s*=\s*(?:dict|list|set)\s*\(\s*\)
+    rationale: Global mutable state prevents parallel testing, creates hidden coupling, and makes reasoning about code difficult.
+
+  - id: bp-use-logger
+    description: Production code should use structured logging (logging or structlog) instead of print() for debugging output.
+    engine_type: tree-sitter
+    severity: MEDIUM
+    mode: warn
+    query: |
+      (module
+        (expression_statement
+          (call
+            function: (identifier) @print_call))
+        (#eq? @print_call "print"))
+    rationale: Structured logging provides severity levels, context, and can be routed to external systems. Use only for CLI user output.
+
+  - id: bp-guard-clauses
+    description: Prefer early returns and guard clauses over deeply nested conditional blocks.
+    engine_type: tree-sitter
+    severity: LOW
+    mode: report
+    query: |
+      (function_definition
+        body: (block
+          (if_statement
+            consequence: (block
+              (if_statement
+                consequence: (block
+                  (if_statement))))))
+    rationale: Guard clauses improve readability by handling edge cases up front and reducing cognitive nesting depth.

@@ -26,7 +26,7 @@ class TestRulePackManager:
         assert "testing" in available
         assert "style" in available
         assert "best-practices" in available
-        assert "cloud-isolation" in available
+        assert "design" in available
 
     def test_list_available_returns_meta(self, tmp_path):
         mgr = self._manager(tmp_path)

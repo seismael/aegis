@@ -1,5 +1,5 @@
-# Default Aegis Architecture Rule Pack
-# These rules enforce structural and layered architecture invariants.
+# Aegis Architecture Rule Pack
+# DDD tactical patterns, hexagonal boundaries, layered architecture invariants.
 
 rules:
   - id: arch-no-print
@@ -8,7 +8,7 @@ rules:
     severity: MEDIUM
     mode: warn
     query: (?<!#.*)\bprint\s*\(
-    rationale: Use proper logging instead of print statements for production observability.
+    rationale: Use structured logging (structlog) instead of print statements for production observability.
 
   - id: arch-no-todo
     description: TODO comments indicate incomplete work.
@@ -54,8 +54,8 @@ rules:
     mode: warn
     applies_to:
       - "**/domain/**"
-    query: (?m)^class\s+\w+(Controller|Service|Repository|Manager)
-    rationale: Names like UserService or OrderController in domain layer reveal anemic domain models.
+    query: (?m)^class\s+\w+(Controller|Service|Repository|Manager|Helper|Utils)
+    rationale: Names like UserService or OrderManager in domain layer reveal anemic domain models.
 
   - id: arch-module-boundary
     description: Private module members (leading underscore) should not be imported across package boundaries.
@@ -71,4 +71,109 @@ rules:
     severity: LOW
     mode: report
     query: (?m)^import\s+\w+\s*,
-    rationale: PEP 8 recommends one import per line. Comma-separated imports reduce readability and make version-control diffs noisier.
+    rationale: One import per line improves readability and makes version-control diffs cleaner.
+
+  - id: arch-aggregate-root
+    description: Aggregate roots should be the sole entry point for modifications; other entities should not expose public mutators outside their aggregate.
+    engine_type: regex
+    severity: HIGH
+    mode: warn
+    applies_to:
+      - "**/domain/**"
+    query: (?m)^class\s+\w+[\s\S]{0,500}(def\s+(?:set_\w+|update_\w+|change_\w+|modify_\w+))
+    rationale: Direct mutation of child entities violates the aggregate root pattern and can break invariants.
+
+  - id: arch-value-object-immutability
+    description: Value objects should be immutable; use frozen dataclasses, NamedTuples, or Pydantic models without setters.
+    engine_type: tree-sitter
+    severity: MEDIUM
+    mode: warn
+    applies_to:
+      - "**/domain/**"
+    query: |
+      (class_definition
+        name: (identifier) @name
+        body: (block
+          (function_definition
+            name: (identifier) @method
+            parameters: (parameters
+              (identifier) @param))
+          (#match? @method "^(set_|update_|change_|modify_)")))
+    rationale: Mutable value objects create aliasing bugs and break domain invariants.
+
+  - id: arch-ports-and-adapters
+    description: Domain layer must not import adapter or infrastructure packages directly; use dependency inversion.
+    engine_type: graph
+    severity: HIGH
+    mode: block
+    query: disallowed_import
+    applies_to:
+      - "**/domain/**"
+    metadata:
+      source: domain
+      target: adapter
+    rationale: Ports-and-adapters architecture requires the domain to define interfaces (ports) that adapters implement.
+
+  - id: arch-command-query-separation
+    description: Methods that modify state should return None; query methods should not mutate state.
+    engine_type: tree-sitter
+    severity: MEDIUM
+    mode: warn
+    query: |
+      (function_definition
+        name: (identifier) @name
+        body: (block
+          (expression_statement
+            (assignment)))
+        (#match? @name "^(get_|find_|query_|fetch_|read_)"))
+    rationale: CQRS-lite principle — side-effect-free reads are predictable, traceable, and cacheable.
+
+  - id: arch-domain-event-naming
+    description: Domain events should follow {Aggregate}{PastTenseVerb} naming convention (e.g., OrderPlaced).
+    engine_type: regex
+    severity: LOW
+    mode: report
+    applies_to:
+      - "**/domain/**"
+    query: (?m)^class\s+\w+(Event|DomainEvent)
+    rationale: Consistent domain event naming improves readability and enables automated event discovery.
+
+  - id: arch-no-framework-in-domain
+    description: Domain layer must not import web or application frameworks directly.
+    engine_type: regex
+    severity: HIGH
+    mode: block
+    applies_to:
+      - "**/domain/**"
+    query: (import|from)\s+(fastapi|flask|django|starlette|aiohttp|tornado|quart|sanic)
+    rationale: Web frameworks in domain layer violate hexagonal architecture. Define ports instead.
+
+  - id: arch-no-cloud-sdk-in-domain
+    description: Domain layer must not import cloud provider SDKs; define cloud-agnostic interfaces instead.
+    engine_type: regex
+    severity: HIGH
+    mode: block
+    applies_to:
+      - "**/domain/**"
+    query: (import|from)\s+(boto3|google\.cloud|azure|kubernetes|awscli|aws_)
+    rationale: Cloud SDKs in domain layer couple business logic to a specific provider. Define provider-agnostic ports.
+
+  - id: arch-no-db-driver-in-domain
+    description: Database driver imports must be isolated behind repository interfaces in the domain layer.
+    engine_type: regex
+    severity: HIGH
+    mode: block
+    applies_to:
+      - "**/domain/**"
+    query: (import|from)\s+(psycopg|mysql|sqlite3|sqlalchemy|pymongo|redis|aiomysql|asyncpg)
+    rationale: Direct database access from domain layer violates hexagonal architecture; depend on repository abstractions.
+
+  - id: arch-no-messaging-in-domain
+    description: Message queue and event bus imports must be isolated behind port interfaces.
+    engine_type: regex
+    severity: HIGH
+    mode: block
+    applies_to:
+      - "**/domain/**"
+    query: (import|from)\s+(pika|kafka|celery|nats|sqs|pubsub|confluent_kafka|aiokafka|arq)
+    rationale: Message broker APIs in domain layer couple business logic to transport infrastructure.

@@ -1,9 +1,0 @@
-rules:
-- id: dogfood-fast
-  description: Fast test
-  category: style
-  engine_type: regex
-  severity: LOW
-  mode: block
-  query: _nonexist_
-  language: python

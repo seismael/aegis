@@ -1,5 +1,5 @@
-# Default Aegis Design Patterns Rule Pack
-# SOLID, DDD tactical patterns, and GoF design pattern enforcement.
+# Aegis Design Rule Pack
+# SOLID principles, GoF design patterns, and DDD tactical pattern enforcement.
 
 rules:
   - id: design-srp-class-size
@@ -10,15 +10,15 @@ rules:
     applies_to:
       - "**/*.py"
     query: (?m)^class\s+\w+[\s\S]{0,300}(def \w+[\s\S]{0,300}){10,}
-    rationale: Large classes with many public methods suggest multiple responsibilities needing extraction.
+    rationale: A class with too many responsibilities is harder to test, maintain, and reason about.
 
   - id: design-ocp-type-dispatch
-    description: Repeated isinstance checks indicate missing polymorphism (violates Open-Closed).
+    description: Repeated isinstance checks indicate missing polymorphism and violate Open-Closed principle.
     engine_type: regex
     severity: MEDIUM
     mode: warn
     query: isinstance[\s\S]{0,500}isinstance[\s\S]{0,500}isinstance
-    rationale: Type dispatch chains require modification to extend; polymorphism allows extension without change.
+    rationale: Type-based dispatch should be replaced with polymorphism so new types can be added without modifying existing code.
 
   - id: design-isp-interface-size
     description: Interfaces with many methods force implementors to depend on methods they do not use.
@@ -26,26 +26,26 @@ rules:
     severity: LOW
     mode: report
     query: (?m)^class\s+\w+[\s\S]{0,200}(def \w+[\s\S]{0,200}){6,}
-    rationale: Large interfaces violate Interface Segregation; split into smaller role-specific interfaces.
+    rationale: Split large interfaces into smaller, role-specific ones that clients actually need.
 
   - id: design-dip-abstractions
-    description: High-level modules should depend on abstractions, not concretions.
+    description: High-level modules should depend on abstractions (Protocols, ABCs), not concretions.
     engine_type: graph
     severity: HIGH
     mode: block
     metadata:
       rule: dip
-    rationale: Direct instantiation of concretions in high-level modules creates rigid dependency graphs.
+    rationale: Depending on abstractions enables swapping implementations without changing high-level policy.
 
   - id: design-entity-identity
-    description: Domain entities should have explicit identity fields (id, uuid, or __eq__).
+    description: Domain entities should have explicit identity fields or equality methods.
     engine_type: regex
     severity: LOW
     mode: report
     applies_to:
       - "**/domain/**"
     query: (?m)^class\s+\w+[\s\S]{0,100}(?!(def\s+__eq__|def\s+__hash__|\bid\b|\buuid\b|\bguid\b))
-    rationale: Entities without identity may be better modeled as value objects in DDD.
+    rationale: Entities are defined by their identity, not their attributes. Explicit identity enables equality comparison.
 
   - id: design-aggregate-boundary
     description: Aggregates should reference other aggregates by ID, not by direct object reference.
@@ -55,7 +55,7 @@ rules:
     applies_to:
       - "**/domain/**"
     query: from\s+\S+\.(aggregate|entity)\s+import[\s\S]{0,200}def __init__[\s\S]{0,200}(?<!id)
-    rationale: Direct aggregate references cross consistency boundaries and complicate transaction management.
+    rationale: Cross-aggregate object references create deep object graphs and make transactional boundaries unclear.
 
   - id: design-repository-pattern
     description: Data access should be abstracted behind repository interfaces in the domain layer.
@@ -64,13 +64,87 @@ rules:
     mode: warn
     applies_to:
       - "**/domain/**"
-    query: (import|from)\s+\S+\.(db|database|models)\s+
-    rationale: Direct database access in domain layer couples business logic to persistence infrastructure.
+    query: (import|from)\s+\S+\.(db|database|models|orm)\s+
+    rationale: Repository pattern decouples domain logic from persistence technology.
 
   - id: design-factory-method
-    description: Complex constructors with conditional logic should use factory methods.
+    description: Complex constructors with conditional logic should use factory methods or the Factory pattern.
     engine_type: regex
     severity: LOW
     mode: report
     query: def __init__[\s\S]{0,500}(if|else|try|for|while)
-    rationale: Constructors with branching logic suggest the need for factory methods or builder pattern.
+    rationale: Complex construction logic in __init__ makes testing difficult. Extract to static factory or Builder pattern.
+
+  - id: design-strategy-pattern
+    description: Conditional branches selecting between algorithms should use the Strategy pattern instead.
+    engine_type: tree-sitter
+    severity: LOW
+    mode: report
+    query: |
+      (if_statement
+        consequence: (block)
+        alternative: (elif_clause
+          consequence: (block)
+          alternative: (elif_clause)))
+    rationale: Strategy pattern encapsulates interchangeable algorithms, enabling runtime selection without condition chains.
+
+  - id: design-builder-pattern
+    description: Classes with 5 or more constructor parameters should consider the Builder pattern.
+    engine_type: tree-sitter
+    severity: LOW
+    mode: report
+    query: |
+      (class_definition
+        body: (block
+          (function_definition
+            name: (identifier) @init_name
+            parameters: (parameters
+              (identifier) @p1
+              (identifier) @p2
+              (identifier) @p3
+              (identifier) @p4
+              (identifier) @p5)))
+        (#eq? @init_name "__init__"))
+    rationale: Builder pattern improves readability for complex object construction and enables fluent APIs.
+
+  - id: design-null-object
+    description: Returning None forces every caller to null-check; consider the Null Object pattern.
+    engine_type: regex
+    severity: LOW
+    mode: report
+    query: (?m)^\s*return\s+None\s*$
+    rationale: Null Object pattern provides a do-nothing implementation, eliminating defensive null checks.
+
+  - id: design-composition-over-inheritance
+    description: Deep inheritance hierarchies (>2 levels) should favor composition over inheritance.
+    engine_type: tree-sitter
+    severity: MEDIUM
+    mode: warn
+    query: |
+      (class_definition
+        name: (identifier) @grandchild
+        superclasses: (argument_list
+          (identifier) @parent))
+      (class_definition
+        name: (identifier) @child
+        superclasses: (argument_list
+          (identifier) @parent_ref))
+      (#eq? @parent @child)
+    rationale: Composition provides greater flexibility than deep inheritance by assembling behavior from components.
+
+  - id: design-specification-pattern
+    description: Complex business rule chains should use the Specification pattern rather than inline conditional logic.
+    engine_type: tree-sitter
+    severity: MEDIUM
+    mode: warn
+    query: |
+      (function_definition
+        body: (block
+          (if_statement
+            consequence: (block
+              (if_statement
+                consequence: (block
+                  (if_statement
+                    consequence: (block
+                      (return_statement))))))))
+    rationale: Specification pattern encapsulates business rules as reusable, composable predicates.

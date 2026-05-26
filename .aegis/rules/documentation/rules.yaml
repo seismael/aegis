@@ -1,5 +1,5 @@
-# Default Aegis Documentation Rule Pack
-# Documentation standards — docstrings, README, changelog, and deprecation notices.
+# Aegis Documentation Rule Pack
+# Documentation standards — docstrings, ADRs, type annotations, changelog conventions.
 
 rules:
   - id: docs-module-docstring
@@ -11,7 +11,7 @@ rules:
       - "**/src/**/*.py"
       - "**/*.py"
     query: ^(?!""")
-    rationale: Module docstrings explain the purpose and responsibility of each module.
+    rationale: Module docstrings describe the purpose and contents of a module for other developers.
 
   - id: docs-public-api
     description: Public functions and classes should have docstrings.
@@ -21,7 +21,7 @@ rules:
     applies_to:
       - "**/src/**/*.py"
     query: (?m)^(def|class)\s+(?!_)[\s\S]{0,3}:\n(?!\s*""")
-    rationale: Public APIs without documentation force consumers to read implementation details.
+    rationale: Public API documentation enables users to understand behavior without reading implementation.
 
   - id: docs-stale-markers
     description: FIXME, HACK, and XXX comments indicate untracked technical debt.
@@ -29,7 +29,7 @@ rules:
     severity: LOW
     mode: report
     query: \b(FIXME|HACK|XXX|WORKAROUND)\b
-    rationale: Technical debt markers in code are invisible to project tracking and accumulate silently.
+    rationale: Source-level markers should be converted to issues in the project tracker for visibility.
 
   - id: docs-readme-present
     description: Project root should contain a README.md with setup instructions.
@@ -39,22 +39,45 @@ rules:
     applies_to:
       - "README.md"
     query: .+
-    rationale: A missing README creates onboarding friction and signals unmaintained documentation.
+    rationale: A well-written README is the first documentation users see; it should provide clear setup instructions.
 
   - id: docs-changelog-format
-    description: Changelog should follow keepachangelog conventions (Added, Changed, Fixed, etc).
+    description: Changelog should follow keepachangelog conventions.
     engine_type: regex
     severity: LOW
     mode: report
     applies_to:
       - "CHANGELOG.md"
     query: (## \[|Added|Changed|Deprecated|Fixed|Security)
-    rationale: Standard changelog format enables automated release notes and version comparison.
+    rationale: Consistent changelog format enables automated release note generation and user-facing communication.
 
   - id: docs-deprecation-notice
-    description: Deprecated functions should use a deprecation warning or decorator.
+    description: Deprecated functions should emit DeprecationWarning with migration guidance.
     engine_type: regex
     severity: MEDIUM
     mode: warn
     query: (warnings\.warn|DeprecationWarning|@deprecated)
-    rationale: Undocumented deprecations break consumers silently; explicit notices ease migration.
+    rationale: Proper deprecation warnings give consumers time to migrate before breaking changes.
+
+  - id: docs-adr-present
+    description: Architectural decisions should be documented in docs/adr/ directory.
+    engine_type: regex
+    severity: LOW
+    mode: report
+    applies_to:
+      - "docs/adr/**/*.md"
+    query: .+
+    rationale: Architecture Decision Records capture the context, options, and rationale behind key technical choices.
+
+  - id: docs-type-annotations
+    description: Public API functions should have complete type annotations including return types.
+    engine_type: tree-sitter
+    severity: LOW
+    mode: report
+    query: |
+      (function_definition
+        name: (identifier) @name
+        parameters: (parameters)
+        (not (return_type (type)))
+        (#not-match? @name "^_"))
+    rationale: Complete type annotations serve as machine-checked documentation and enable IDE autocompletion.

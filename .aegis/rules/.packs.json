@@ -1,9 +1,36 @@
 {
   "installed_packs": {
+    "best-practices": {
+      "name": "best-practices",
+      "version": "1.0.0",
+      "install_time": "2026-05-26T14:57:06.103655+00:00",
+      "files": [
+        "best-practices/rules.yaml"
+      ],
+      "custom_overrides": []
+    },
+    "architecture": {
+      "name": "architecture",
+      "version": "1.0.0",
+      "install_time": "2026-05-26T14:57:19.868836+00:00",
+      "files": [
+        "architecture/rules.yaml"
+      ],
+      "custom_overrides": []
+    },
+    "design": {
+      "name": "design",
+      "version": "1.0.0",
+      "install_time": "2026-05-26T14:57:19.932553+00:00",
+      "files": [
+        "design/rules.yaml"
+      ],
+      "custom_overrides": []
+    },
     "security": {
       "name": "security",
       "version": "1.0.0",
-      "install_time": "2026-05-25T23:00:43.520002+00:00",
+      "install_time": "2026-05-26T14:57:19.986558+00:00",
       "files": [
         "security/rules.yaml"
       ],
@@ -12,7 +39,7 @@
     "testing": {
       "name": "testing",
       "version": "1.0.0",
-      "install_time": "2026-05-25T23:00:43.586675+00:00",
+      "install_time": "2026-05-26T14:57:20.084106+00:00",
       "files": [
         "testing/rules.yaml"
       ],
@@ -21,54 +48,36 @@
     "documentation": {
       "name": "documentation",
       "version": "1.0.0",
-      "install_time": "2026-05-25T23:00:43.627358+00:00",
+      "install_time": "2026-05-26T14:57:20.142380+00:00",
       "files": [
         "documentation/rules.yaml"
-      ],
-      "custom_overrides": []
-    },
-    "design": {
-      "name": "design",
-      "version": "1.0.0",
-      "install_time": "2026-05-25T23:00:43.689848+00:00",
-      "files": [
-        "design/rules.yaml"
       ],
       "custom_overrides": []
     },
     "structure": {
       "name": "structure",
       "version": "1.0.0",
-      "install_time": "2026-05-25T23:00:43.756039+00:00",
+      "install_time": "2026-05-26T14:57:20.196339+00:00",
       "files": [
         "structure/rules.yaml"
       ],
       "custom_overrides": []
     },
-    "architecture": {
-      "name": "architecture",
+    "dependencies": {
+      "name": "dependencies",
       "version": "1.0.0",
-      "install_time": "2026-05-25T23:00:43.818537+00:00",
+      "install_time": "2026-05-26T14:57:20.260567+00:00",
       "files": [
-        "architecture/rules.yaml"
+        "dependencies/rules.yaml"
       ],
       "custom_overrides": []
     },
-    "best-practices": {
-      "name": "best-practices",
+    "general": {
+      "name": "general",
       "version": "1.0.0",
-      "install_time": "2026-05-25T23:00:43.894887+00:00",
+      "install_time": "2026-05-26T14:57:20.320801+00:00",
       "files": [
-        "best-practices/rules.yaml"
-      ],
-      "custom_overrides": []
-    },
-    "style": {
-      "name": "style",
-      "version": "1.0.0",
-      "install_time": "2026-05-25T23:00:43.985717+00:00",
-      "files": [
-        "style/rules.yaml"
+        "general/rules.yaml"
       ],
       "custom_overrides": []
     }

@@ -79,6 +79,8 @@ class AegisKernel:
         except Exception:
             self.remediation = None
 
+        self._adjacency_cache_entry: tuple[float, dict] | None = None
+
         self.mcp = FastMCP("Aegis Architecture Engine")
         self._register_tools()
         self._register_resources()
@@ -403,6 +405,7 @@ class AegisKernel:
             new_rule["query"] = query
         if engine_type == "regex" and regex_pattern:
             new_rule["query"] = regex_pattern
+            new_rule["regex_pattern"] = regex_pattern
         if applies_to:
             new_rule["applies_to"] = [applies_to]
         if language:
@@ -561,11 +564,28 @@ class AegisKernel:
         except Exception:
             return []
 
+    def _get_cached_adjacency(self):
+        from time import time
+
+        now = time()
+        if self._adjacency_cache_entry is not None:
+            ts, adj = self._adjacency_cache_entry
+            if now - ts < 5.0:
+                return adj
+        return None
+
+    def _cache_adjacency(self, adjacency: dict):
+        from time import time
+
+        self._adjacency_cache_entry = (time(), adjacency)
+
     def _filter_rules_for_files(self, files_modified: list[str], rules: list) -> list:
-        adjacency = None
-        if self.graph is not None:
+        adjacency = self._get_cached_adjacency()
+        if adjacency is None and self.graph is not None:
             try:
                 adjacency, _ = self.graph.build_import_graph(self.workspace_root)
+                if adjacency:
+                    self._cache_adjacency(adjacency)
             except Exception:
                 pass
 
