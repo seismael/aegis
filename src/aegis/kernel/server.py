@@ -129,7 +129,7 @@ class AegisKernel:
         phase_enum = None
         if phase != "pre-commit":
             try:
-                from aegis.domain.policy.models import EvaluationPhase
+                from aegis.domain.policy.models import EngineType, EvaluationPhase
 
                 phase_enum = EvaluationPhase(phase)
             except ValueError:
@@ -137,6 +137,8 @@ class AegisKernel:
                     f"Unknown phase '{phase}'. "
                     "Valid phases: pre-commit, ci, nightly, on-demand."
                 )
+        else:
+            from aegis.domain.policy.models import EngineType
 
         filtered = self._filter_rules_for_files(files_modified, rules)
 
@@ -162,22 +164,41 @@ class AegisKernel:
             if not self.baseline.is_exempt(v, rule_map.get(v.rule_id))
         ]
 
+        # Semantic Rubric Generation
+        semantic_rubrics = []
+        semantic_rules = [r for r in filtered if r.engine_type == EngineType.SEMANTIC]
+        if semantic_rules and self.semantic:
+            for file_path in files_modified:
+                scoped_semantic = ScopeFilter.filter_rules_for_file(
+                    file_path, semantic_rules, rules
+                )
+                if scoped_semantic:
+                    rubric = self.semantic.build_rubric(file_path, scoped_semantic)
+                    semantic_rubrics.append(rubric)
+
+        remediation_prompt = ""
+        if active:
+            if self.remediation is None:
+                return error(
+                    ERR_SERVICE_UNAVAILABLE,
+                    "Remediation prompt synthesizer not initialized.",
+                )
+            result = self.remediation.generate_remediation(active, rule_map)
+            remediation_prompt = result.handoff_prompt
+
+        if semantic_rubrics:
+            header = "\n\n---\n### 🧠 Re-entrant Semantic Evaluation Required\n"
+            footer = "\n**Note:** Semantic evaluation is mandatory. Please follow the rubrics above before completion.\n"
+            combined_rubrics = header + "\n".join(semantic_rubrics) + footer
+            remediation_prompt += combined_rubrics
+
         if self.telemetry is not None:
-            if not active:
-                self.telemetry.record_check(len(violations), 0)
-                return "SUCCESS: Architecture compliant. Task may be marked complete."
             self.telemetry.record_check(len(violations), len(active))
 
-        if not active:
+        if not active and not semantic_rubrics:
             return "SUCCESS: Architecture compliant. Task may be marked complete."
 
-        if self.remediation is None:
-            return error(
-                ERR_SERVICE_UNAVAILABLE,
-                "Remediation prompt synthesizer not initialized.",
-            )
-        result = self.remediation.generate_remediation(active, rule_map)
-        return result.handoff_prompt
+        return remediation_prompt
 
     async def request_semantic_grading_rubric(
         self,

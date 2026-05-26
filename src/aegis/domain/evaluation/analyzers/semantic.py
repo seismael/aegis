@@ -33,6 +33,11 @@ class SemanticAnalyzer(SemanticAnalyzerInterface):
     def analyze_semantic(
         self, file_path: str, content: str, rules: list[Rule]
     ) -> list[ArchitecturalViolation]:
+        """
+        In an agent-native architecture, analyze_semantic identifies if
+        semantic rules exist. If they do, the engine primarily signals that
+        a rubric-based evaluation is required by the parent LLM.
+        """
         violations: list[ArchitecturalViolation] = []
 
         semantic_rules = [r for r in rules if r.engine_type == "semantic"]
@@ -41,13 +46,12 @@ class SemanticAnalyzer(SemanticAnalyzerInterface):
 
         for rule in semantic_rules:
             self.logger.debug(
-                "Simulating semantic evaluation", rule_id=rule.id, file=file_path
+                "Semantic rule detected", rule_id=rule.id, file=file_path
             )
 
-            # PROOF OF CONCEPT: Simple keyword heuristic to simulate 'LLM Logic'
-            # In production, this would be:
-            # is_compliant = self.llm_judge(content, rule.query)
-
+            # HEURISTIC: We still provide a basic heuristic for immediate feedback
+            # in non-interactive CI environments, but the "re-entrant" rubric
+            # is the primary source of truth for the Agent.
             trigger_keywords = (rule.metadata or {}).get("sim_triggers", [])
             found_triggers = [
                 k for k in trigger_keywords if k.lower() in content.lower()
@@ -57,11 +61,11 @@ class SemanticAnalyzer(SemanticAnalyzerInterface):
                 violations.append(
                     ArchitecturalViolation(
                         file=file_path,
-                        line=1,  # Semantic violations are often file-level
+                        line=1,
                         rule_id=rule.id,
                         description=(
-                            f"SEMANTIC VIOLATION: {rule.description} "
-                            f"(Detected potential issues: {', '.join(found_triggers)})"
+                            f"POTENTIAL SEMANTIC VIOLATION: {rule.description} "
+                            f"(Detected triggers: {', '.join(found_triggers)})"
                         ),
                         severity=rule.severity.value,
                     )
@@ -69,37 +73,28 @@ class SemanticAnalyzer(SemanticAnalyzerInterface):
 
         return violations
 
-    def build_rubric(self, target_file: str, rules: list) -> str:
+    def build_rubric(self, target_file: str, rules: list[Rule]) -> str:
         """
         Builds a re-entrant grading rubric for the parent LLM.
         The LLM reads this rubric, grades its own code, and applies fixes natively.
         """
         if not rules:
-            return "NO_SEMANTIC_RULES for this file."
+            return f"NO_SEMANTIC_RULES for `{target_file}`."
 
-        rubric = f"## Semantic Grading Rubric for `{target_file}`\n\n"
-        rubric += "Please evaluate the following rules using your semantic reasoning.\n"
-        rubric += "For each violation found, output the fix inline.\n\n"
+        rubric = f"### 🧩 Semantic Grading Rubric for `{target_file}`\n\n"
+        rubric += "This file is subject to high-level architectural intents that require your semantic reasoning to validate.\n\n"
+        rubric += "| Rule ID | Intent / Description | Severity |\n"
+        rubric += "| :--- | :--- | :--- |\n"
 
-        for i, rule in enumerate(rules, 1):
-            rubric += f"### {i}. **{rule.id}**\n"
-            rubric += f"**Rule:** {rule.description}\n"
-            if hasattr(rule, "rationale") and rule.rationale:
-                rubric += f"**Rationale:** {rule.rationale}\n"
-            rubric += f"**Severity:** {rule.severity.value}\n"
-            if hasattr(rule, "query") and rule.query:
-                rubric += f"**Check pattern:** `{rule.query}`\n"
-            rubric += "\n"
+        for rule in rules:
+            rubric += f"| **{rule.id}** | {rule.description} | `{rule.severity.value}` |\n"
 
-        rubric += "---\n"
-        rubric += "**Instructions:**\n"
-        rubric += "1. Read the file content.\n"
-        rubric += "2. For each rule above, determine if the code violates it.\n"
-        rubric += "3. If a violation is found, output:\n"
-        rubric += (
-            "   `VIOLATION: <rule_id> - <line> - <description> - FIX: <remediation>`\n"
-        )
-        rubric += "4. Apply all fixes to the file.\n"
-        rubric += "5. Re-run `validate_architecture_compliance` to confirm.\n"
+        rubric += "\n#### 📋 Instructions for Agent-Native Self-Evaluation:\n\n"
+        rubric += "1. **Analyze**: Review the file content against the intents listed above.\n"
+        rubric += "2. **Identify**: If any code block violates these intents, you MUST report it.\n"
+        rubric += "3. **Report Format**: Use the following format for each violation:\n"
+        rubric += "   - `VIOLATION: <rule_id> - <line_number> - <reasoning> - FIX: <suggested_change>`\n"
+        rubric += "4. **Remediate**: Apply the necessary changes to align the code with the architectural intent.\n"
+        rubric += "5. **Verify**: After fixing, call `validate_architecture_compliance` again to ensure no further issues exist.\n"
 
         return rubric

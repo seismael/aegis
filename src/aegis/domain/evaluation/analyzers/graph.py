@@ -17,6 +17,9 @@ class GraphAnalyzer(GraphAnalyzerInterface):
     and detects disallowed-import and circular-dependency violations.
     """
 
+    def __init__(self):
+        self._cache: dict[str, tuple[float, tuple[dict, dict]]] = {}
+
     def analyze_graph(
         self, root_dir: str, rules: list[Rule]
     ) -> list[ArchitecturalViolation]:
@@ -36,6 +39,24 @@ class GraphAnalyzer(GraphAnalyzerInterface):
 
         return violations
 
+    def _get_workspace_hash(self, root_dir: str) -> float:
+        """
+        Computes a workspace hash based on the maximum mtime of all .py files.
+        """
+        max_mtime = 0.0
+        for root, _, files in os.walk(root_dir):
+            if any(part in IGNORE_DIRS for part in root.split(os.sep)):
+                continue
+            for file in files:
+                if file.endswith(".py"):
+                    try:
+                        mtime = os.path.getmtime(os.path.join(root, file))
+                        if mtime > max_mtime:
+                            max_mtime = mtime
+                    except OSError:
+                        continue
+        return max_mtime
+
     def build_import_graph(
         self, root_dir: str
     ) -> tuple[dict[str, set[str]], dict[str, list[tuple[int, str]]]]:
@@ -46,6 +67,12 @@ class GraphAnalyzer(GraphAnalyzerInterface):
 
         Returns empty dicts if no Python files found.
         """
+        current_hash = self._get_workspace_hash(root_dir)
+        if root_dir in self._cache:
+            cached_hash, (cached_adj, cached_imports) = self._cache[root_dir]
+            if cached_hash == current_hash:
+                return cached_adj, cached_imports
+
         adjacency: dict[str, set[str]] = defaultdict(set)
         file_imports: dict[str, list[tuple[int, str]]] = defaultdict(list)
 
@@ -95,6 +122,7 @@ class GraphAnalyzer(GraphAnalyzerInterface):
                                 adjacency[module].add(root_pkg)
                                 file_imports[module].append((node.lineno, node.module))
 
+        self._cache[root_dir] = (current_hash, (adjacency, file_imports))
         return adjacency, file_imports
 
     def _check_disallowed_imports(

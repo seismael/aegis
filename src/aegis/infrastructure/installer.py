@@ -14,6 +14,7 @@ from aegis.infrastructure.harnesses.base import (
 )
 from aegis.infrastructure.harnesses.claude import ClaudeHarness
 from aegis.infrastructure.harnesses.aider import AiderHarness
+from aegis.infrastructure.harnesses.gemini import GeminiHarness
 
 
 class AgentNativeInstaller:
@@ -27,6 +28,7 @@ class AgentNativeInstaller:
         self.harnesses = {
             "claude": ClaudeHarness(self.home),
             "aider": AiderHarness(self.home),
+            "gemini": GeminiHarness(self.home),
         }
 
     def install(self, target_tool: str | None = None, workspace_root: str | None = None):

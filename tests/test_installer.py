@@ -19,6 +19,18 @@ def test_installer_claude_harness_usage():
     mock_harness.deploy_skills.assert_called_once()
 
 
+def test_installer_gemini_harness_usage():
+    installer = AgentNativeInstaller()
+    
+    mock_harness = MagicMock()
+    installer.harnesses["gemini"] = mock_harness
+    
+    installer.install(target_tool="gemini")
+    
+    mock_harness.install.assert_called_once()
+    mock_harness.deploy_skills.assert_called_once()
+
+
 def test_installer_target_filter():
     installer = AgentNativeInstaller()
     
