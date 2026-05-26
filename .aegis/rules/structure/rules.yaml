@@ -1,58 +1,56 @@
-# Default Aegis Structure Rule Pack
-# Module boundaries, file organization, and directory convention enforcement.
-
 rules:
-  - id: struct-module-boundaries
-    description: Star imports bypass module boundaries and make public interfaces implicit.
-    engine_type: regex
-    severity: MEDIUM
-    mode: warn
-    query: (?m)^from\s+\S+\s+import\s+\*(?![^#]*noqa)
-    rationale: Explicit __all__ or named imports define the public surface of each module.
-
-  - id: struct-file-per-concept
-    description: Files containing multiple public classes indicate missing decomposition.
-    engine_type: regex
-    severity: LOW
-    mode: report
-    applies_to:
-      - "**/domain/**"
-      - "**/models/**"
-    query: (?m)^class\s+\w+[\s\S]{0,200}^class\s+\w+
-    rationale: Multiple public classes per file suggest reduced cohesion and violated SRP.
-
-  - id: struct-max-file-length
-    description: Source files should not exceed 500 lines for maintainability.
-    engine_type: regex
-    severity: LOW
-    mode: report
-    applies_to:
-      - "**/*.py"
-    query: ^.{1,}$
-    rationale: Files over 500 lines indicate a missing abstraction or violated single-responsibility principle.
-
-  - id: struct-no-utils
-    description: Modules named utils, helpers, or common often become incoherent dumping grounds.
-    engine_type: regex
-    severity: LOW
-    mode: report
-    query: (?m)^(import|from)\s+\S+\.(utils|helpers|common)\.
-    rationale: Utility modules lack cohesive purpose and encourage procedural programming patterns.
-
-  - id: struct-no-init-logic
-    description: __init__.py should not contain executable logic beyond imports.
-    engine_type: regex
-    severity: MEDIUM
-    mode: warn
-    applies_to:
-      - "**/__init__.py"
-    query: (?m)^(def |class )
-    rationale: Executable logic in __init__.py causes import-order side effects and hidden coupling.
-
-  - id: struct-circular-package
-    description: Packages should not form circular import chains.
-    engine_type: graph
-    severity: HIGH
-    mode: block
-    query: circular_dependency
-    rationale: Circular package references prevent clean module decomposition and cause import errors.
+- id: struct-module-boundaries
+  description: Star imports bypass module boundaries and make public interfaces implicit.
+  engine_type: regex
+  severity: MEDIUM
+  mode: warn
+  query: (?m)^from\s+\S+\s+import\s+\*(?![^#]*noqa)
+  rationale: Explicit __all__ or named imports define the public surface of each module.
+- id: struct-file-per-concept
+  description: Files containing multiple public classes indicate missing decomposition.
+  engine_type: regex
+  severity: LOW
+  mode: report
+  applies_to:
+  - '**/domain/**'
+  - '**/models/**'
+  query: (?m)^class\s+\w+[\s\S]{0,200}^class\s+\w+
+  rationale: Multiple public classes per file suggest reduced cohesion and violated
+    SRP.
+- id: struct-max-file-length
+  description: Source files should not exceed 500 lines for maintainability.
+  engine_type: regex
+  severity: WARN
+  mode: report
+  applies_to:
+  - '**/*.py'
+  query: ^.{1,}$
+  rationale: Files over 500 lines indicate a missing abstraction or violated single-responsibility
+    principle.
+- id: struct-no-utils
+  description: Modules named utils, helpers, or common often become incoherent dumping
+    grounds.
+  engine_type: regex
+  severity: LOW
+  mode: report
+  query: (?m)^(import|from)\s+\S+\.(utils|helpers|common)\.
+  rationale: Utility modules lack cohesive purpose and encourage procedural programming
+    patterns.
+- id: struct-no-init-logic
+  description: __init__.py should not contain executable logic beyond imports.
+  engine_type: regex
+  severity: MEDIUM
+  mode: warn
+  applies_to:
+  - '**/__init__.py'
+  query: (?m)^(def |class )
+  rationale: Executable logic in __init__.py causes import-order side effects and
+    hidden coupling.
+- id: struct-circular-package
+  description: Packages should not form circular import chains.
+  engine_type: graph
+  severity: HIGH
+  mode: block
+  query: circular_dependency
+  rationale: Circular package references prevent clean module decomposition and cause
+    import errors.

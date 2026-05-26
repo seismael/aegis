@@ -10,17 +10,16 @@ class TestTelemetryRecorder:
         """A remediation event is written then readable."""
         t = TelemetryRecorder(str(tmp_path))
         t.record_remediation("r1")
-        data = t._load()
-        assert len(data["remediations"]) == 1
-        assert data["remediations"][0]["rule_id"] == "r1"
+        insights = t.get_insights()
+        assert insights["total_remediations"] == 1
 
     def test_record_check(self, tmp_path):
         """A check event is written then readable."""
         t = TelemetryRecorder(str(tmp_path))
         t.record_check(3, 0)
-        data = t._load()
-        assert len(data["checks"]) == 1
-        assert data["checks"][0]["violation_count"] == 3
+        insights = t.get_insights()
+        assert insights["total_checks"] == 1
+        assert insights["total_violations_found"] == 3
 
     def test_insights_empty(self, tmp_path):
         """Insights on empty telemetry returns zeros."""

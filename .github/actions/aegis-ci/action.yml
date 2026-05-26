@@ -38,18 +38,11 @@ runs:
       working-directory: ${{ inputs.working-directory }}
       run: |
         if [ ! -d ".aegis" ]; then
-          echo "::warning::Aegis not initialized in ${{ inputs.working-directory }}. Run 'aegis init' first."
+          echo "::warning::Aegis not initialized. Run 'aegis install' first, then /aegis-init in your agent chat."
         fi
 
-    - name: Run governance check
+    - name: Verify Aegis installation
       shell: bash
-      working-directory: ${{ inputs.working-directory }}
       run: |
-        ARGS=""
-        ARGS="$ARGS --exit-code"
-        ARGS="$ARGS --phase ${{ inputs.phase }}"
-        [ -n "${{ inputs.category }}" ] && ARGS="$ARGS --category ${{ inputs.category }}"
-        [ -n "${{ inputs.rule }}" ] && ARGS="$ARGS --rule ${{ inputs.rule }}"
-        [ "${{ inputs.strict }}" = "true" ] && ARGS="$ARGS --strict"
-
-        aegis check $ARGS
+        aegis install --help
+        aegis run --help

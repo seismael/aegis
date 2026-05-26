@@ -31,7 +31,7 @@ rules:
     engine_type: regex
     severity: LOW
     mode: report
-    query: \bopen\s*\([^)]+\)\s*(?!\.)
+    query: \bopen\s*\([^)]+\)\s*(?!\s*(?:as|\.))
     rationale: open() without 'with' can leak file descriptors on exception.
     excludes:
       - "**/*.md"

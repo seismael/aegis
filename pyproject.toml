@@ -1,6 +1,6 @@
 [project]
 name = "aegis"
-version = "0.1.0"
+version = "0.4.0"
 description = "Universal Architectural Governance Protocol. Enforce structural compliance, prevent drift, and automate code quality through real-time AST analysis and seamless tool integration."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -57,7 +57,6 @@ dev = [
 
 [project.scripts]
 aegis = "aegis.cli.main:AegisCLI.entry_point"
-aegis-kernel = "aegis.kernel.server:AegisKernel.entry_point"
 
 [build-system]
 requires = ["hatchling"]
@@ -84,3 +83,4 @@ ignore = []
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = "test_*.py"
+asyncio_mode = "auto"

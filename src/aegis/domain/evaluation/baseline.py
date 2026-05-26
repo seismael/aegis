@@ -71,7 +71,7 @@ class BaselineManager:
                 logger.warning(
                     "Baseline has grown unusually large",
                     size=len(baseline),
-                    hint="Run 'aegis baseline --prune' to clean stale entries",
+                    hint="Use evolve_ruleset(action='suppress') to prune stale entries",
                 )
 
             now = datetime.now(UTC).isoformat()

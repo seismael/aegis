@@ -1,30 +1,11 @@
-import json
 import os
-import threading
-from collections import Counter
-from datetime import UTC, datetime
+from abc import ABC, abstractmethod
 
 
-class TelemetryRecorder:
-    """Persists and aggregates architectural telemetry to .aegis/telemetry.json."""
+class TelemetryExporterInterface(ABC):
+    """Generic telemetry sink for architectural observability."""
 
-    def __init__(self, workspace_root: str):
-        self.root_dir = workspace_root
-        self.path = os.path.join(workspace_root, ".aegis", "telemetry.json")
-        os.makedirs(os.path.dirname(self.path), exist_ok=True)
-        self._lock = threading.Lock()
-
-    def record_remediation(self, rule_id: str, timestamp: str | None = None) -> None:
-        """Log a single apply_architectural_remediation call."""
-        data = self._load()
-        data.setdefault("remediations", []).append(
-            {
-                "rule_id": rule_id,
-                "timestamp": (timestamp or datetime.now(UTC).isoformat()),
-            }
-        )
-        self._save(data)
-
+    @abstractmethod
     def record_check(
         self,
         total_violations: int,
@@ -32,41 +13,53 @@ class TelemetryRecorder:
         timestamp: str | None = None,
     ) -> None:
         """Record a compliance check event."""
-        data = self._load()
-        data.setdefault("checks", []).append(
-            {
-                "timestamp": timestamp or datetime.now(UTC).isoformat(),
-                "violation_count": total_violations,
-                "active_violations": active_violations,
-                "type": "check",
-            }
-        )
-        self._save(data)
+        ...
 
+    @abstractmethod
+    def record_remediation(
+        self,
+        rule_id: str,
+        timestamp: str | None = None,
+    ) -> None:
+        """Log a single remediation call."""
+        ...
+
+    @abstractmethod
     def get_insights(self) -> dict:
         """Aggregate telemetry into a scorecard dict."""
-        data = self._load()
-        remediations = data.get("remediations", [])
-        checks = data.get("checks", [])
+        ...
 
-        rule_counter = Counter(r["rule_id"] for r in remediations)
 
-        success = sum(1 for c in checks if c["violation_count"] == 0)
-        total_violations = sum(c["violation_count"] for c in checks)
+class TelemetryRecorder:
+    """
+    Facade over a TelemetryExporterInterface.
+    Delegates persistence to the exporter; adds display formatting and
+    config-driven exporter resolution.
+    """
 
-        return {
-            "total_remediations": len(remediations),
-            "total_checks": len(checks),
-            "remediation_by_rule": dict(rule_counter.most_common(10)),
-            "check_success_rate": (success / len(checks) if checks else 0.0),
-            "avg_violations_per_check": (
-                total_violations / len(checks) if checks else 0.0
-            ),
-            "total_violations_found": total_violations,
-        }
+    def __init__(
+        self,
+        workspace_root: str,
+        exporter: TelemetryExporterInterface | None = None,
+    ):
+        self.root_dir = workspace_root
+        self._exporter = exporter or self._resolve_exporter(workspace_root)
+
+    def record_remediation(self, rule_id: str, timestamp: str | None = None) -> None:
+        self._exporter.record_remediation(rule_id, timestamp)
+
+    def record_check(
+        self,
+        total_violations: int,
+        active_violations: int,
+        timestamp: str | None = None,
+    ) -> None:
+        self._exporter.record_check(total_violations, active_violations, timestamp)
+
+    def get_insights(self) -> dict:
+        return self._exporter.get_insights()
 
     def display_insights(self) -> str:
-        """Return a human-readable scorecard string."""
         insights = self.get_insights()
         lines = ["## Aegis Insights Scorecard\n"]
         lines.append(f"- **Total checks run:** {insights['total_checks']}")
@@ -87,22 +80,9 @@ class TelemetryRecorder:
                 lines.append(f"- **{rid}:** {count} remediations")
         return "\n".join(lines)
 
-    def _load(self) -> dict:
-        """Thread-safe load from disk."""
-        if not os.path.exists(self.path):
-            return {}
-        with self._lock:
-            try:
-                with open(self.path, encoding="utf-8") as f:
-                    return json.load(f)
-            except (json.JSONDecodeError, OSError):
-                return {}
+    @staticmethod
+    def _resolve_exporter(workspace_root: str) -> TelemetryExporterInterface:
+        from aegis.domain.observability.exporters.local import LocalJSONExporter
 
-    def _save(self, data: dict) -> None:
-        """Thread-safe save to disk."""
-        with self._lock:
-            try:
-                with open(self.path, "w", encoding="utf-8") as f:
-                    json.dump(data, f, indent=2)
-            except OSError:
-                pass
+        telemetry_path = os.path.join(workspace_root, ".aegis", "telemetry.json")
+        return LocalJSONExporter(telemetry_path)

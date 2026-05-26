@@ -35,11 +35,22 @@ class AegisCLI:
         ),
         host: str = typer.Option("127.0.0.1", "--host", help="Bind host (SSE/HTTP)"),
         port: int = typer.Option(8000, "--port", help="Bind port (SSE/HTTP)"),
+        headless_check: bool = typer.Option(
+            False,
+            "--headless-check",
+            help="Run a single compliance check and exit (for CI/Aider test-cmd)",
+        ),
     ):
         """Start the headless Aegis MCP microkernel server."""
         from aegis.kernel.server import AegisKernel
 
         kernel = AegisKernel()
+        if headless_check:
+            violations = kernel.run_headless_check()
+            if violations > 0:
+                raise typer.Exit(code=1)
+            raise typer.Exit(code=0)
+
         kernel.run(transport=transport, host=host, port=port)
 
     @staticmethod

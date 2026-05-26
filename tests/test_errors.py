@@ -3,7 +3,7 @@
 import json
 
 from aegis.kernel.errors import (
-    ERR_CONTAINER_NOT_INIT,
+    ERR_KERNEL_NOT_INIT,
     error,
     ok,
     warn,
@@ -12,10 +12,10 @@ from aegis.kernel.errors import (
 
 class TestErrorFunction:
     def test_error_returns_json_string(self):
-        result = error(ERR_CONTAINER_NOT_INIT, "Test error")
+        result = error(ERR_KERNEL_NOT_INIT, "Test error")
         data = json.loads(result)
         assert data["success"] is False
-        assert data["error_code"] == ERR_CONTAINER_NOT_INIT
+        assert data["error_code"] == ERR_KERNEL_NOT_INIT
         assert data["message"] == "Test error"
 
     def test_error_with_hint(self):

@@ -43,3 +43,9 @@ Use `validate_architecture_compliance` before completing any task.
 - NEVER skip the hypothesis step — discover, don't guess.
 - NEVER scaffold without user approval of the architecture.
 - ALWAYS include `security` in the recommended packs.
+
+## Related Skills
+
+- `/aegis-principal-architect` — Load after init as your ongoing persona
+- `/aegis-architect` — Create custom rules after governance is scaffolded
+- `/aegis-semantic-check` — Audit naming conventions as you build features

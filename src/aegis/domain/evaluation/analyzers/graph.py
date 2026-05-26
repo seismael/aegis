@@ -133,6 +133,49 @@ class GraphAnalyzer(GraphAnalyzerInterface):
 
         return violations
 
+    def build_dependency_graph(self, root_dir: str, target: str | None = None) -> dict:
+        """
+        Build a structured dependency graph for the workspace.
+        Returns nodes, edges, and tier information.
+        """
+        adjacency, file_imports = self.build_import_graph(root_dir)
+
+        if target:
+            adjacency = {
+                k: v
+                for k, v in adjacency.items()
+                if k.startswith(target) or any(t.startswith(target) for t in v)
+            }
+
+        nodes: list[dict] = []
+        edges: list[dict] = []
+        seen: set[str] = set()
+
+        for module, deps in adjacency.items():
+            if module not in seen:
+                seen.add(module)
+                tier = module.split(".")[0] if "." in module else "root"
+                nodes.append({"id": module, "tier": tier})
+            for dep in deps:
+                edges.append({"source": module, "target": dep})
+                if dep not in seen:
+                    seen.add(dep)
+                    tier = dep.split(".")[0] if "." in dep else "root"
+                    nodes.append({"id": dep, "tier": tier})
+
+        tiers: dict[str, list[str]] = {}
+        for node in nodes:
+            t = node["tier"]
+            tiers.setdefault(t, []).append(node["id"])
+
+        return {
+            "nodes": nodes,
+            "edges": edges,
+            "tiers": {k: len(v) for k, v in tiers.items()},
+            "total_modules": len(seen),
+            "total_edges": len(edges),
+        }
+
     def _check_circular_dependencies(
         self,
         adjacency: dict[str, set[str]],

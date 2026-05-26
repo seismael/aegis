@@ -1,4 +1,5 @@
 import json
+import os
 import re
 from pathlib import Path
 
@@ -63,7 +64,9 @@ class AegisKernel:
         except Exception:
             self.baseline = None
         try:
-            self.packs = RulePackManager(self._workspace_root)
+            self.packs = RulePackManager(
+                os.path.join(self._workspace_root, ".aegis", "rules")
+            )
         except Exception:
             self.packs = None
         try:
@@ -167,7 +170,7 @@ class AegisKernel:
     ) -> str:
         """
         Agent-driven project bootstrap. Writes default rule packs
-        from bundled resources to .aegis/rules/.
+        from bundled resources to .aegis/rules/ and generates AGENTS.md.
         """
         installed = []
         for pack_name in target_packs:
@@ -177,8 +180,13 @@ class AegisKernel:
             except ValueError as e:
                 return error("SCAFFOLD_FAILED", str(e))
 
+        self._generate_agents_md()
+
         packs_str = ", ".join(installed)
-        return f"SUCCESS: Governance framework scaffolded with packs: {packs_str}"
+        return (
+            f"SUCCESS: Governance framework scaffolded with packs: {packs_str}."
+            " AGENTS.md generated in workspace root."
+        )
 
     async def query_knowledge_graph(
         self,
@@ -239,52 +247,136 @@ class AegisKernel:
         self,
         action: str,
         target: str | None = None,
+        rule_id: str | None = None,
+        description: str | None = None,
+        severity: str = "HIGH",
+        engine_type: str = "regex",
+        category: str = "architecture",
+        rationale: str | None = None,
+        query: str | None = None,
+        regex_pattern: str | None = None,
+        applies_to: str | None = None,
+        language: str = "python",
     ) -> str:
         """
         Agent-driven rule lifecycle management.
-        action: suppress | install_pack | remove_pack
+        action: suppress | remove_pack | add_rule
         """
         if action == "suppress":
-            if not target:
-                return error(ERR_INVALID_INPUT, "target rule_id required for suppress")
-            rules = self._load_rules()
-            rule = next((r for r in rules if r.id == target), None)
-            if not rule:
-                return error("RULE_NOT_FOUND", f"Rule '{target}' not found")
-            violations = self.evaluation.evaluate_workspace(self.workspace_root, [rule])
-            self.baseline.add_all_to_baseline(violations)
-            return (
-                f"SUCCESS: Suppressed {len(violations)} violations for rule '{target}'"
-            )
-
-        if action == "install_pack":
-            if not target:
-                return error(ERR_INVALID_INPUT, "target pack_name required")
-            try:
-                self.packs.install(target)
-                return f"SUCCESS: Installed rule pack '{target}'"
-            except ValueError as e:
-                return error("INSTALL_FAILED", str(e))
+            return await self._evolve_suppress(target)
 
         if action == "remove_pack":
-            if not target:
-                return error(ERR_INVALID_INPUT, "target pack_name required")
-            try:
-                self.packs.remove(target)
-                return f"SUCCESS: Removed rule pack '{target}'"
-            except ValueError as e:
-                return error("REMOVE_FAILED", str(e))
+            return await self._evolve_remove_pack(target)
+
+        if action == "add_rule":
+            return await self._evolve_add_rule(
+                rule_id,
+                description,
+                severity,
+                engine_type,
+                category,
+                rationale,
+                query,
+                regex_pattern,
+                applies_to,
+                language,
+            )
 
         return error(ERR_INVALID_INPUT, f"Unknown action: {action}")
+
+    async def _evolve_suppress(self, target: str | None) -> str:
+        if not target:
+            return error(ERR_INVALID_INPUT, "target rule_id required for suppress")
+        rules = self._load_rules()
+        rule = next((r for r in rules if r.id == target), None)
+        if not rule:
+            return error("RULE_NOT_FOUND", f"Rule '{target}' not found")
+        violations = self.evaluation.evaluate_workspace(self.workspace_root, [rule])
+        self.baseline.add_all_to_baseline(violations)
+        return f"SUCCESS: Suppressed {len(violations)} violations for rule '{target}'"
+
+    async def _evolve_remove_pack(self, target: str | None) -> str:
+        if not target:
+            return error(ERR_INVALID_INPUT, "target pack_name required")
+        try:
+            self.packs.remove(target)
+            return f"SUCCESS: Removed rule pack '{target}'"
+        except ValueError as e:
+            return error("REMOVE_FAILED", str(e))
+
+    async def _evolve_add_rule(
+        self,
+        rule_id: str | None,
+        description: str | None,
+        severity: str,
+        engine_type: str,
+        category: str,
+        rationale: str | None,
+        query: str | None,
+        regex_pattern: str | None,
+        applies_to: str | None,
+        language: str,
+    ) -> str:
+        from pathlib import Path
+
+        import yaml
+
+        if not rule_id or not description:
+            return error(
+                ERR_INVALID_INPUT,
+                "rule_id and description are required for add_rule",
+            )
+
+        custom_path = Path(self.workspace_root) / ".aegis" / "rules" / "custom.yaml"
+        custom_path.parent.mkdir(parents=True, exist_ok=True)
+
+        new_rule: dict = {
+            "id": rule_id,
+            "description": description,
+            "category": category,
+            "engine_type": engine_type,
+            "severity": severity,
+            "mode": "block",
+        }
+        if rationale:
+            new_rule["rationale"] = rationale
+        if engine_type == "tree-sitter" and query:
+            new_rule["query"] = query
+        if engine_type == "regex" and regex_pattern:
+            new_rule["query"] = regex_pattern
+        if applies_to:
+            new_rule["applies_to"] = [applies_to]
+        if language:
+            new_rule["language"] = language
+
+        data: dict = {"rules": []}
+        if custom_path.exists():
+            existing = yaml.safe_load(custom_path.read_text())
+            if existing and "rules" in existing:
+                data["rules"] = existing["rules"]
+
+        if any(r.get("id") == rule_id for r in data["rules"]):
+            return error(
+                "DUPLICATE_RULE",
+                f"Rule ID '{rule_id}' already exists. Use a unique ID.",
+            )
+
+        data["rules"].append(new_rule)
+        custom_path.write_text(yaml.dump(data, sort_keys=False))
+        return f"SUCCESS: Rule '{rule_id}' appended to {custom_path}"
 
     async def plan_architecture(
         self,
         intent: str,
         file_path: str | None = None,
+        code_string: str | None = None,
+        language: str = "python",
     ) -> str:
         """
         Pre-emptive task alignment. Returns JIT-scoped rules
         that govern the file the agent is about to edit.
+        If code_string is provided, validates the snippet in-memory
+        and returns violations alongside scoped rules.
         """
         rules = self._load_rules()
         if file_path:
@@ -295,14 +387,36 @@ class AegisKernel:
         lines = [f"## Architectural Context for: {intent}\n"]
         for r in relevant[:15]:
             lines.append(f"- **{r.id}** [{r.severity.value}] — {r.description}")
+
+        if code_string and self.evaluation:
+            try:
+                violations = self.evaluation.evaluate_code_string(
+                    code_string, language, relevant
+                )
+                if violations:
+                    lines.append("\n### Code Violations Detected\n")
+                    for v in violations[:10]:
+                        lines.append(
+                            f"- **{v.rule_id}** (line {v.line}): {v.description}"
+                        )
+                    rule_ids = {v.rule_id for v in violations}
+                    lines.append(
+                        f"\nFix these {len(rule_ids)} rule violations"
+                        " before proceeding."
+                    )
+                else:
+                    lines.append("\nNo violations detected in provided code snippet.")
+            except Exception:
+                pass
+
         return "\n".join(lines)
 
     def _hypothesize_workspace_architecture(self) -> str:
         root = Path(self.workspace_root)
+        findings: list[str] = []
+
         pyproject = root / "pyproject.toml"
         package_json = root / "package.json"
-
-        findings = []
 
         if pyproject.exists():
             findings.append("Detected: Python project (pyproject.toml)")
@@ -312,22 +426,61 @@ class AegisKernel:
         if package_json.exists():
             findings.append("Detected: Node.js/TypeScript project (package.json)")
 
-        src_dir = root / "src"
-        if src_dir.exists():
-            packages = [
-                d.name
-                for d in src_dir.iterdir()
-                if d.is_dir() and not d.name.startswith("_")
-            ]
-            if packages:
-                findings.append(f"Source packages: {', '.join(packages[:10])}")
+        if self.graph is not None and pyproject.exists():
+            try:
+                g = self.graph.build_dependency_graph(self.workspace_root)
+                tiers = g.get("tiers", {})
+                if tiers:
+                    tier_names = ", ".join(tiers.keys())
+                    findings.append(f"\nImport tiers detected: {tier_names}")
+                    findings.append(f"Module count: {g['total_modules']}")
 
-        findings.append(
-            "\nProposed architecture: Layered (Domain-Driven) with hexagonal isolation."
-        )
-        findings.append(
-            "Recommended packs: architecture, security, best-practices, style"
-        )
+                    layered = any(
+                        t in ("api", "domain", "infra", "infrastructure", "core")
+                        for t in tiers
+                    )
+                    if layered:
+                        findings.append(
+                            "Architecture: Layered (Domain-Driven) detected"
+                            " via import boundaries."
+                        )
+                        findings.append(
+                            "Recommended packs: architecture, security, "
+                            "best-practices, style"
+                        )
+                    else:
+                        findings.append(
+                            "Architecture: Monolithic or flat structure detected."
+                        )
+                        findings.append(
+                            "Recommended packs: architecture, best-practices, "
+                            "structure, style"
+                        )
+                else:
+                    findings.append(
+                        "\nProposed architecture: Layered (Domain-Driven) "
+                        "with hexagonal isolation."
+                    )
+                    findings.append(
+                        "Recommended packs: architecture, security, "
+                        "best-practices, style"
+                    )
+            except Exception:
+                findings.append(
+                    "\nProposed architecture: Layered (Domain-Driven) "
+                    "with hexagonal isolation."
+                )
+                findings.append(
+                    "Recommended packs: architecture, security, best-practices, style"
+                )
+        else:
+            findings.append(
+                "\nProposed architecture: Layered (Domain-Driven) "
+                "with hexagonal isolation."
+            )
+            findings.append(
+                "Recommended packs: architecture, security, best-practices, style"
+            )
 
         return "\n".join(findings)
 
@@ -393,7 +546,10 @@ class AegisKernel:
             spec_path = Path(self.workspace_root) / "SPEC.md"
             if spec_path.exists():
                 return spec_path.read_text()
-            return "No SPEC.md found."
+            return warn(
+                "No SPEC.md found in workspace. "
+                "Create one via /aegis-init or scaffold_governance_framework."
+            )
 
     def _register_prompts(self):
         @self.mcp.prompt()
@@ -427,6 +583,39 @@ class AegisKernel:
                 f"Call query_knowledge_graph(query_type='dependency_graph', "
                 f"target='{module}') to inspect dependencies."
             )
+
+    def _generate_agents_md(self):
+        from aegis.infrastructure.installer import AgentNativeInstaller
+
+        AgentNativeInstaller.generate_agents_template(self.workspace_root)
+
+    def run_headless_check(self) -> int:
+        """Run a single compliance check and return violation count."""
+        rules = self._load_rules()
+        if not rules:
+            print("WARN: No rules loaded. Run /aegis-init first.")
+            return 0
+
+        violations = self.evaluation.evaluate_workspace(self.workspace_root, rules)
+        active = [
+            v
+            for v in violations
+            if not self.baseline.is_exempt(
+                v, next((r for r in rules if r.id == v.rule_id), None)
+            )
+        ]
+
+        if self.telemetry:
+            self.telemetry.record_check(len(violations), len(active))
+
+        if active:
+            print(f"Violations found: {len(active)}")
+            for v in active[:20]:
+                print(f"  {v.file}:{v.line}  [{v.rule_id}] {v.description}")
+            return len(active)
+
+        print("SUCCESS: Architecture compliant.")
+        return 0
 
     def run(self, transport: str = "stdio", host: str = "127.0.0.1", port: int = 8000):
         if transport == "stdio":

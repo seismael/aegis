@@ -3,15 +3,12 @@
 
 rules:
   - id: test-naming-convention
-    description: Test files should follow test_<name>.py or <name>_test.py convention.
+    description: Prefer pytest style (plain assert, test functions) over unittest.TestCase.
     engine_type: regex
     severity: LOW
     mode: report
-    applies_to:
-      - "**/test*/**"
-      - "**/*test*/**"
-    query: ^$
-    rationale: Consistent test file naming enables automated test discovery across all tools.
+    query: \bunittest\.TestCase\b|class\s+\w+\(unittest\.TestCase\)
+    rationale: pytest-style tests are more concise, produce better failure messages, and support fixtures natively.
 
   - id: test-no-focused
     description: Focused tests (pytest.mark.focus, fit, fdescribe) should not be committed.
@@ -46,6 +43,7 @@ rules:
     engine_type: regex
     severity: LOW
     mode: report
+    language: ""
     applies_to:
       - ".coveragerc"
       - "pyproject.toml"

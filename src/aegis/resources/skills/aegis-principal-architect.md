@@ -48,14 +48,22 @@ If governance is not yet established, direct the user to run `/aegis-init` to:
 
 ### Protocol B: Law-Making (Add/Modify)
 When the user requests a new constraint:
-1.  **Verify**: Use `evolve_ruleset(action="test_rule", target="tree-sitter", rules_yaml=...)` to test your query against pass/fail snippets.
-2.  **Codify**: Once verified, call `evolve_ruleset(action="create_pack", target="custom", rules_yaml=...)` to save the rule.
+1.  **Verify**: Call `validate_architecture_compliance` with the affected files to test your rule design.
+2.  **Codify**: Once verified, add rules via `scaffold_governance_framework` or manually to `.aegis/rules/`.
 
 ### Protocol C: Scorecard (Strategic Review)
 When requested:
 1.  **Assess**: Call `validate_architecture_compliance` for a full-project health check.
-2.  **Explore**: Call `query_knowledge_graph(query_type="list_packs")` to see installed coverage.
+2.  **Explore**: Call `query_knowledge_graph(query_type="rules")` to see installed coverage.
 
 ---
+
+## Available Skills
+
+These skills form your complete toolkit. Load them as needed:
+
+- `/aegis-init` — Discover architecture, bootstrap governance in new projects
+- `/aegis-architect` — Translate plain English rules into Aegis YAML via `evolve_ruleset(action="add_rule", ...)`
+- `/aegis-semantic-check` — Self-grade code for domain language compliance via `request_semantic_grading_rubric`
 
 **CRITICAL INVARIANT:** Always maintain a professional, senior architectural tone. Provide technical rationale and trade-off analysis for every decision.

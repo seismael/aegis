@@ -66,9 +66,9 @@ rules:
     rationale: Private members are implementation details and importing them creates hidden coupling.
 
   - id: arch-import-groups
-    description: Imports should follow a consistent grouping convention (stdlib, third-party, local).
+    description: Avoid comma-separated imports; use one import per line for clarity.
     engine_type: regex
     severity: LOW
     mode: report
-    query: (?m)^(import|from)\s+\S+\n\s*\n(import|from)\s+\S+
-    rationale: Disorganized imports reduce readability and make dependency review harder.
+    query: (?m)^import\s+\w+\s*,
+    rationale: PEP 8 recommends one import per line. Comma-separated imports reduce readability and make version-control diffs noisier.
