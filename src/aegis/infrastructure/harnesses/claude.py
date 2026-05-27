@@ -59,10 +59,10 @@ class ClaudeHarness(BaseHarness):
                 content = (
                     resources.files("aegis.resources.skills")
                     .joinpath(skill_name)
-                    .read_text()
+                    .read_text(encoding="utf-8")
                 )
                 target = skills_dir / skill_name
-                target.write_text(content)
+                target.write_text(content, encoding="utf-8")
                 deployed += 1
             except Exception as e:
                 errors.append(f"Failed to deploy skill {skill_name}: {e}")
@@ -80,7 +80,7 @@ class ClaudeHarness(BaseHarness):
             "Please refer to the [AGENTS.md](./AGENTS.md) for the full governance protocol.\n"
         )
         try:
-            claude_md.write_text(content)
+            claude_md.write_text(content, encoding="utf-8")
             print(f"[Aegis] Generated {claude_md}")
         except OSError as e:
             errors.append(f"Failed to write {claude_md}: {e}")

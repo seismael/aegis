@@ -17,7 +17,7 @@ class AiderHarness(BaseHarness):
         )
 
         try:
-            with open(aider_config, "a") as f:
+            with open(aider_config, "a", encoding="utf-8") as f:
                 f.write(directive)
             print(f"[Aegis] Injected MCP configuration into {aider_config}")
         except OSError as e:
@@ -34,7 +34,7 @@ class AiderHarness(BaseHarness):
         errors = []
         path = Path(workspace_root) / "AGENTS.md"
         try:
-            path.write_text(AGENTS_TEMPLATE)
+            path.write_text(AGENTS_TEMPLATE, encoding="utf-8")
             print(f"[Aegis] Generated {path}")
         except OSError as e:
             errors.append(f"Failed to write {path}: {e}")

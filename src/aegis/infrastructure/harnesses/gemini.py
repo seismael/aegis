@@ -61,7 +61,7 @@ class GeminiHarness(BaseHarness):
             "Refer to this `GEMINI.md` for specific instructions on how to operate in this repository.\n"
         )
         try:
-            gemini_md.write_text(content)
+            gemini_md.write_text(content, encoding="utf-8")
             print(f"[Aegis] Generated {gemini_md}")
         except OSError as e:
             errors.append(f"Failed to write {gemini_md}: {e}")
