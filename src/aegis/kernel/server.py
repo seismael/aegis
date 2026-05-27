@@ -108,6 +108,7 @@ class AegisKernel:
         self.mcp.tool()(self.evolve_ruleset)
         self.mcp.tool()(self.plan_architecture)
         self.mcp.tool()(self.discover_architectural_patterns)
+        self.mcp.tool()(self.apply_governance_law)
 
     async def validate_architecture_compliance(
         self,
@@ -542,6 +543,37 @@ class AegisKernel:
         content += "\n\n**Action**: Call `apply_governance_law` to adopt any of these proposals."
 
         return content
+
+    async def apply_governance_law(
+        self,
+        law_id: str,
+        custom_description: str | None = None,
+    ) -> str:
+        """
+        Adopts a governance law for the project.
+        law_id: Either a rule pack name (e.g., 'architecture') or a unique ID for a custom law.
+        custom_description: If creating a custom law, provide its natural language definition.
+        """
+        # Case A: Rule Pack
+        if self.packs and law_id in [p["name"] for p in self.packs.list_available()]:
+            return await self.scaffold_governance_framework(target_packs=[law_id])
+
+        # Case B: Custom Law (Natural Language)
+        if custom_description:
+            # For simplicity, we use the existing evolve_ruleset logic for 'add_rule'
+            # But we wrap it into a "Semantic" rule by default for custom laws
+            return await self.evolve_ruleset(
+                action="add_rule",
+                rule_id=law_id,
+                description=custom_description,
+                engine_type="semantic",
+                category="architecture",
+            )
+
+        return error(
+            "INVALID_LAW",
+            f"Law '{law_id}' not recognized. Provide custom_description for new laws.",
+        )
 
     def _hypothesize_workspace_architecture(self) -> str:
         root = Path(self.workspace_root)
