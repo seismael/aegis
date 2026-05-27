@@ -10,7 +10,10 @@ def test_aider_harness_install():
 
     with patch("builtins.open", mock_open()) as mocked_file:
         harness.install()
-        mocked_file.assert_called_once_with(home / ".aider.conf.yml", "a", encoding="utf-8")
+        mocked_file.assert_called_once_with(
+            home / ".aider.conf.yml", "a", encoding="utf-8"
+        )
+
 
 def test_aider_harness_deploy_workspace_instructions():
     with patch("pathlib.Path.write_text") as mock_write:

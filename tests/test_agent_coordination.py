@@ -1,6 +1,4 @@
 import os
-import shutil
-import tempfile
 
 import pytest
 
@@ -8,12 +6,10 @@ from aegis.kernel.server import AegisKernel
 
 
 @pytest.fixture
-def workspace_root():
-    # Create a temp dir inside the project root to avoid permission issues with system temp
-    project_root = "C:\\dev\\projects\\aegis"
-    tmp_dir = tempfile.mkdtemp(dir=project_root)
-    yield tmp_dir
-    shutil.rmtree(tmp_dir)
+def workspace_root(tmp_path):
+    # Create a temp dir using pytest's tmp_path fixture
+    tmp_dir = str(tmp_path)
+    return tmp_dir
 
 
 @pytest.mark.asyncio
