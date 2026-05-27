@@ -1,7 +1,8 @@
 import os
 import shutil
+from pathlib import Path
 import pytest
-from aegis.domain.evaluation.scorecard import ScorecardService
+from aegis.domain.evaluation.scorecard import Scorecard
 
 @pytest.fixture
 def local_tmp_path():
@@ -14,7 +15,7 @@ def local_tmp_path():
 
 def test_scorecard_health_calculation(local_tmp_path):
     root = local_tmp_path
-    service = ScorecardService(root)
+    service = Scorecard(root)
     # Mock data: 10 rules, 2 active violations
     content = service.generate(
         rules=[{"id": str(i)} for i in range(10)],
@@ -23,16 +24,26 @@ def test_scorecard_health_calculation(local_tmp_path):
     )
     assert "Health Score: 80%" in content
 
+def test_scorecard_health_clamping(local_tmp_path):
+    root = local_tmp_path
+    service = Scorecard(root)
+    # 5 rules, 10 violations -> health should be 0, not negative
+    content = service.generate(
+        rules=[{"id": str(i)} for i in range(5)],
+        violations=[{"rule_id": str(i)} for i in range(10)],
+        exceptions=[]
+    )
+    assert "Health Score: 0%" in content
+
 def test_scorecard_sync_to_disk(local_tmp_path):
     root = local_tmp_path
-    service = ScorecardService(root)
+    service = Scorecard(root)
     content = "# Test Scorecard"
     service.sync_to_disk(content)
     
-    expected_path = os.path.join(root, "AEGIS.md")
-    assert os.path.exists(expected_path)
-    with open(expected_path, "r", encoding="utf-8") as f:
-        assert f.read() == content
+    expected_path = Path(root) / "AEGIS.md"
+    assert expected_path.exists()
+    assert expected_path.read_text(encoding="utf-8") == content
 
 def test_scorecard_with_objects(local_tmp_path):
     class MockRule:
@@ -40,7 +51,7 @@ def test_scorecard_with_objects(local_tmp_path):
             self.id = id
             
     root = local_tmp_path
-    service = ScorecardService(root)
+    service = Scorecard(root)
     content = service.generate(
         rules=[MockRule("rule-1")],
         violations=[],

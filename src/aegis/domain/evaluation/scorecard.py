@@ -1,12 +1,13 @@
 import os
+from pathlib import Path
 
-class ScorecardService:
+class Scorecard:
     """
-    Service for managing the root-level AEGIS.md scorecard.
+    Manages the root-level AEGIS.md scorecard.
     """
     def __init__(self, workspace_root: str):
-        self.root = workspace_root
-        self.path = os.path.join(workspace_root, "AEGIS.md")
+        self.root = Path(workspace_root)
+        self.path = self.root / "AEGIS.md"
 
     def generate(self, rules: list, violations: list, exceptions: list) -> str:
         """
@@ -14,7 +15,14 @@ class ScorecardService:
         """
         total_rules = len(rules)
         active_violations = len(violations)
-        health = 100 if total_rules == 0 else int((1 - (active_violations / total_rules)) * 100)
+        
+        if total_rules == 0:
+            health = 100
+        else:
+            health = int((1 - (active_violations / total_rules)) * 100)
+        
+        # Clamp health score between 0 and 100
+        health = max(0, min(100, health))
         
         content = "# 🛡️ Aegis Project Health Scorecard\n\n"
         content += f"**Health Score: {health}%**\n\n"
@@ -33,7 +41,10 @@ class ScorecardService:
 
     def sync_to_disk(self, content: str):
         """
-        Writes the scorecard content to AEGIS.md.
+        Writes the scorecard content to AEGIS.md atomically.
         """
-        with open(self.path, "w", encoding="utf-8") as f:
+        tmp = str(self.path) + ".tmp"
+        os.makedirs(os.path.dirname(self.path), exist_ok=True)
+        with open(tmp, "w", encoding="utf-8") as f:
             f.write(content)
+        os.replace(tmp, self.path)

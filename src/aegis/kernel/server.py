@@ -14,6 +14,7 @@ from aegis.domain.evaluation.analyzers.semantic import SemanticAnalyzer
 from aegis.domain.evaluation.baseline import BaselineManager
 from aegis.domain.evaluation.prompt_synthesizer import RemediationPromptSynthesizer
 from aegis.domain.evaluation.scoping import ScopeFilter
+from aegis.domain.evaluation.scorecard import Scorecard
 from aegis.domain.evaluation.service import EvaluationService
 from aegis.domain.evaluation.session import SessionManager
 from aegis.domain.observability.telemetry import TelemetryRecorder
@@ -78,6 +79,10 @@ class AegisKernel:
         except Exception:
             self.telemetry = None
         try:
+            self.scorecard = Scorecard(self._workspace_root)
+        except Exception:
+            self.scorecard = None
+        try:
             self.remediation = RemediationPromptSynthesizer()
         except Exception:
             self.remediation = None
@@ -109,6 +114,63 @@ class AegisKernel:
         self.mcp.tool()(self.plan_architecture)
         self.mcp.tool()(self.discover_architectural_patterns)
         self.mcp.tool()(self.apply_governance_law)
+        self.mcp.tool()(self.request_exception)
+        self.mcp.tool()(self.generate_health_scorecard)
+
+    async def request_exception(
+        self,
+        rule_id: str,
+        reason: str,
+        file_path: str | None = None,
+    ) -> str:
+        """
+        Petitions for an architectural exception.
+        Records the technical debt and suppresses the violation for this session.
+        """
+        # Logic:
+        # 1. Use BaselineManager to mark this rule as exempt.
+        # 2. For simplicity, we reuse '_evolve_suppress'
+        # 3. Update the Session for the handoff note
+
+        result = await self._evolve_suppress(rule_id)
+        if "SUCCESS" in result:
+            state = self.session.load()
+            note = f"EXCEPTION GRANTED: {rule_id} because {reason}"
+            if state.handoff_notes:
+                state.handoff_notes += f"\n{note}"
+            else:
+                state.handoff_notes = note
+            self.session.save(state)
+            return f"SUCCESS: Exception granted for '{rule_id}'. Reason: {reason}"
+
+        return result
+
+    async def generate_health_scorecard(self) -> str:
+        """
+        (Re)generates the root AEGIS.md dashboard for agent/human visibility.
+        Calculates health score and lists active rules.
+        """
+        if not self.scorecard:
+            return error(ERR_SERVICE_UNAVAILABLE, "Scorecard service not initialized.")
+
+        rules = self._load_rules()
+        if not rules:
+            return warn("No rules loaded. Run /aegis-init first.")
+
+        if self.evaluation is None:
+            return error(ERR_SERVICE_UNAVAILABLE, "Evaluation engine not initialized.")
+
+        # Full workspace evaluation for health scorecard
+        violations = self.evaluation.evaluate_workspace(self.workspace_root, rules)
+
+        exceptions = []
+        if self.baseline:
+            exceptions = [e.rule_id for e in self.baseline.load_baseline_raw()]
+
+        content = self.scorecard.generate(rules, violations, exceptions)
+        self.scorecard.sync_to_disk(content)
+
+        return f"SUCCESS: AEGIS.md generated in {self.workspace_root}."
 
     async def validate_architecture_compliance(
         self,
@@ -283,6 +345,7 @@ class AegisKernel:
                 return error("SCAFFOLD_FAILED", str(e))
 
         self._deploy_all_workspace_instructions()
+        await self.generate_health_scorecard()
 
         packs_str = ", ".join(installed)
         return (

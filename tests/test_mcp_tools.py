@@ -172,3 +172,33 @@ class TestRunHeadlessCheck:
     def test_headless_check_finds_violations(self, kernel):
         violations = kernel.run_headless_check()
         assert violations > 0
+
+
+class TestRequestException:
+    @pytest.mark.asyncio
+    async def test_request_exception_granted(self, kernel):
+        # 1. Verify violation exists
+        result = await kernel.validate_architecture_compliance(["src/module.py"])
+        assert "test-no-print" in result
+
+        # 2. Request exception
+        reason = "Needed for legacy debugging"
+        exc_result = await kernel.request_exception(
+            rule_id="test-no-print",
+            reason=reason
+        )
+        assert "SUCCESS" in exc_result
+        assert "test-no-print" in exc_result
+        assert reason in exc_result
+
+        # 3. Verify violation is now suppressed
+        result_after = await kernel.validate_architecture_compliance(["src/module.py"])
+        assert "SUCCESS" in result_after
+        # It might be in the coordination info, so we check if it's NOT in a violation-like format
+        assert "[test-no-print]" not in result_after or "SUCCESS" in result_after.split("\n")[0]
+
+        # 4. Verify handoff note contains exception
+        state = kernel.session.load()
+        assert "EXCEPTION GRANTED" in state.handoff_notes
+        assert "test-no-print" in state.handoff_notes
+        assert reason in state.handoff_notes
