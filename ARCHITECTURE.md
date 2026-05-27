@@ -1,62 +1,61 @@
-# Aegis V4 Architecture
+# Aegis V4 Architecture: Universal Agent-Native Microkernel
 
 ## The Symbiotic Model
 
-Aegis V4 is a purely Agent-Native microkernel. It does not run on the operating system — it runs inside AI coding agents via MCP.
+Aegis V4 is a purely **Agent-Native microkernel**. It does not run as a background OS process or a CI gate — it lives inside the AI agent's cognition loop via the **Model Context Protocol (MCP)**.
 
-### Why No Git Hooks
+### Why No OS Hooks
 
-V3 used `.pre-commit-config.yaml` and `.git/hooks/pre-commit` to enforce governance. V4 eliminates this entirely:
+Previous versions relied on git hooks and file watchers. V4 eliminates this friction:
 
-- Claude receives the Governance Directive in `customInstructions`, making validation mandatory before task completion.
-- Aider loops against `aegis run --check` via `--test-cmd`, creating a native self-healing cycle.
-- The agent, not the OS, enforces governance.
+- **Claude/Gemini** receive a **Governance Directive** in their system prompts, making validation a native part of their "thinking" process.
+- **Aider** uses a self-healing loop via `--test-cmd`, automatically fixing architectural drift without human intervention.
+- **Protocol-First**: The agent, not the developer, is responsible for maintaining the project's structural integrity.
 
-### How Aegis Leverages the Parent LLM
+---
 
-Aegis is a **deterministic** kernel:
+## The Tri-Core Architecture
 
-- **AST/Graph/Regex analyzers** — Pure Python math. No LLM calls.
-- **Semantic rules** — Aegis returns a grading rubric. The parent LLM self-evaluates.
-- **Memory** — Aegis has none. The agent's context window holds session state.
-- **Evolution** — SPEC.md and agent project knowledge capture architectural decisions.
+Aegis is composed of three decoupled domains orchestrated by a headless MCP server.
 
-### Tri-Core Microkernel
+### 1. Policy Domain
+- **Universal Harnesses**: Plugin-based system (`ClaudeHarness`, `AiderHarness`, `GeminiHarness`) that injects Aegis into any AI environment.
+- **Rule Packs**: 15+ bundled resource packs (Architecture, Security, DDD, etc.) that can be scaffolded JIT.
+- **Semantic Engine**: Natural language design intents that the agent must self-evaluate using a re-entrant rubric.
 
+### 2. Evaluation Domain
+- **Polyglot AST**: Tree-sitter powered structural analysis for Python, TS/JS, and Rust.
+- **Import Graph**: Detects layer violations and circular dependencies across the entire workspace.
+- **JIT Graph Cache**: Mtime-based adjacency caching makes validation $O(1)$ during iterative development.
+- **Baseline Ledger**: Atomic, thread-safe tracking of technical debt in `.aegis/baseline.json`.
+
+### 3. Coordination Domain (Memory)
+- **Cross-Agent Session**: `.aegis/session.json` tracks last validation, active tasks, and handoff notes.
+- **Inter-Agent Handoff**: Allows different agents (e.g., Aider for refactoring, Claude for features) to see each other's coordination notes natively.
+
+---
+
+## Process Flow: The "Plan-Act-Validate" Loop
+
+```mermaid
+graph TD
+    Agent[AI Agent] -->|1. Plan| Plan[plan_architecture]
+    Plan -->|Context| Agent
+    Agent -->|2. Act| Edit[File Edit]
+    Edit -->|3. Validate| Gate[validate_architecture_compliance]
+    Gate -->|Violations| Agent
+    Gate -->|Rubric| Agent
+    Agent -->|4. Fix| Edit
+    Gate -->|SUCCESS| Done[Task Complete]
 ```
-Agent (Claude/Aider)
-  |
-  ├── plan_architecture()
-  ├── validate_architecture_compliance()
-  ├── request_semantic_grading_rubric()
-  |
-  v
-+-----------------------------------+
-|         FastMCP Server             |
-|                                    |
-|  +------------+  +------------+    |
-|  |   Policy    |  | Evaluation |    |
-|  |  Packs      |  | Analyzers  |    |
-|  |  Parser     |  | Scoping    |    |
-|  |  Models     |  | Baseline   |    |
-|  +------------+  +------------+    |
-|                                    |
-|  +------------+                     |
-|  |Observability|                    |
-|  | Telemetry   |                    |
-|  | Exporters   |                    |
-|  +------------+                     |
-+-----------------------------------+
-```
 
-### The Installer
+## The Universal Harness Installer
 
-`aegis install` is the sole bridge between the host machine and the agent ecosystem:
+`aegis install` is the "bridge" that configures the agent's world:
+1. **Global Injection**: Mutates `~/.claude.json`, `~/.gemini.json`, etc.
+2. **Skill Deployment**: Copies markdown-based "Expert Personas" to agent registries.
+3. **Workspace Onboarding**: Generates `.claude.md`, `GEMINI.md`, and `AGENTS.md` automatically during scaffolding.
 
-- Mutates `~/.claude.json` (MCP server + customInstructions)
-- Mutates `~/.aider.conf.yml` (MCP server + test-cmd + auto-test)
-- No other tool-specific code exists at runtime
+## Design Decisions
 
-### Design Decisions
-
-See `docs/adr/001-microkernel-architecture.md` for the original microkernel ADR.
+See `docs/adr/` for detailed architectural logs.
