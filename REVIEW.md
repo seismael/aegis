@@ -1,49 +1,37 @@
 # Aegis V4 Project Review & Evaluation
 
 **Date:** Wednesday, 27 May 2026
-**Status:** In-Progress Analysis
+**Status:** Phase 1 Complete / Phase 2 In-Progress
 **Core Vision:** Agent-Native Governance Protocol for AI Agent Harnesses.
 
 ## 1. Executive Summary
 
-Aegis V4 presents a paradigm shift from traditional OS-level governance (git hooks, CI gates) to **Agent-Native Governance**. By living inside the AI agent's cognition loop via the Model Context Protocol (MCP), it enables JIT architectural enforcement that is self-healing and stateless.
+Aegis V4 has successfully transitioned to a **Universal Harness Architecture**. It is now capable of governing Claude Code, Aider, and Gemini CLI natively through a plugin-based system.
 
-### Core Strengths
-- **Microkernel Architecture:** Clean separation between Policy, Evaluation, and Observability.
-- **MCP-Native:** Seamlessly integrates with modern AI IDEs and agents (Claude Code, Aider).
-- **Multi-Engine Routing:** Orchestrates AST (Tree-sitter), Graph, Regex, and Semantic analyzers for comprehensive coverage.
-- **Statelessness:** Leverages the agent's context window for session state, reducing architectural overhead.
-- **Polyglot Support:** Tree-sitter integration for Python, TypeScript, JavaScript, and Rust.
+### Core Strengths (Updated)
+- **Microkernel Architecture:** Verified separation of concerns.
+- **Universal Harnesses:** Plugin-based support for Claude, Aider, and Gemini. [NEW]
+- **Re-entrant Semantics:** Mandatory rubric-based evaluation for LLMs. [NEW]
+- **Incremental Graph:** JIT Adjacency caching for performance. [NEW]
+- **Statelessness:** Preserved while adding coordination memory.
 
-### Significant Gaps & Risks
-- **Gemini Integration:** Currently no native installer or wrapper for Gemini CLI or other Google-harness agents.
-- **Semantic Engine (PoC):** The `SemanticAnalyzer` is a Proof-of-Concept using simple heuristics rather than actual re-entrant LLM calls.
-- **Installer Scope:** `aegis install` is limited to Claude and Aider; it lacks a universal or pluggable plugin system for new harnesses.
-- **User Experience:** The "intuitive agent-native experience" is heavily dependent on `customInstructions` which can be brittle if the agent ignores them.
-- **Performance:** Graph analysis on large workspaces may become a bottleneck if not optimized for incremental updates.
+### Remaining Gaps (Phase 2 Focus)
+- **Agent Coordination:** Currently, agents working on the same repo don't share validation state. [IN PROGRESS]
+- **Scaffolding Alignment:** `aegis-init` needs to natively deploy all instruction files (.claude.md, GEMINI.md, AGENTS.md). [IN PROGRESS]
+- **Cross-Agent Memory:** Implementation of `.aegis/session.json`. [PLANNED]
 
 ---
 
 ## 2. Architectural Deep-Dive
 
 ### 2.1 The MCP Surface
-The 6 core tools provided by the `AegisKernel` cover the essential lifecycle of governance:
-- `validate_architecture_compliance`: The mandatory gate.
-- `plan_architecture`: Pre-emptive alignment.
-- `request_semantic_grading_rubric`: Re-entrant self-evaluation.
-- `scaffold_governance_framework`: Initial setup.
-- `query_knowledge_graph`: Deep introspection.
-- `evolve_ruleset`: Lifecycle management.
-
-**Evaluation:** The tool surface is well-designed and covers the "Plan -> Act -> Validate" loop perfectly.
+(No changes needed to this section)
 
 ### 2.2 Evaluation Engines
-- **AST:** Strong implementation using `tree-sitter`. Supports positive/negative rules.
-- **Graph:** Handles cross-file dependencies and layer violations.
-- **Regex:** Fast fallback for simple patterns.
-- **Semantic:** **MAJOR GAP.** Currently simulates evaluation. Needs a real implementation that either:
-    1. Returns a rubric for the parent LLM (Re-entrant).
-    2. Calls a dedicated sub-agent/API for grading.
+- **AST:** Verified.
+- **Graph:** **OPTIMIZED.** Now uses mtime-based adjacency caching.
+- **Regex:** Verified.
+- **Semantic:** **HARDENED.** Now uses a re-entrant rubric handback that blocks SUCCESS until evaluation is confirmed.
 
 ### 2.3 Policy Layer
 Rules are YAML-based, categorized, and phase-aware. The `RulePackManager` effectively handles bundled resources.

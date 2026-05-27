@@ -31,7 +31,12 @@ class AgentNativeInstaller:
             "gemini": GeminiHarness(self.home),
         }
 
-    def install(self, target_tool: str | None = None, workspace_root: str | None = None):
+    def install(
+        self,
+        target_tool: str | None = None,
+        workspace_root: str | None = None,
+        instructions_only: bool = False,
+    ):
         if target_tool and target_tool not in self.harnesses:
             raise ValueError(
                 f"Unsupported tool: {target_tool}. Supported: {', '.join(self.harnesses.keys())}"
@@ -43,8 +48,9 @@ class AgentNativeInstaller:
         for t in targets:
             h = self.harnesses.get(t)
             if h:
-                errors.extend(h.install())
-                errors.extend(h.deploy_skills())
+                if not instructions_only:
+                    errors.extend(h.install())
+                    errors.extend(h.deploy_skills())
                 if workspace_root:
                     errors.extend(h.deploy_workspace_instructions(workspace_root))
 

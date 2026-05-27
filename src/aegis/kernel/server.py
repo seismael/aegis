@@ -246,12 +246,12 @@ class AegisKernel:
             except ValueError as e:
                 return error("SCAFFOLD_FAILED", str(e))
 
-        self._generate_agents_md()
+        self._deploy_all_workspace_instructions()
 
         packs_str = ", ".join(installed)
         return (
             f"SUCCESS: Governance framework scaffolded with packs: {packs_str}."
-            " AGENTS.md generated in workspace root."
+            " AGENTS.md, .claude.md, and GEMINI.md generated in workspace root."
         )
 
     async def query_knowledge_graph(
@@ -707,10 +707,11 @@ class AegisKernel:
                 f"target='{module}') to inspect dependencies."
             )
 
-    def _generate_agents_md(self):
+    def _deploy_all_workspace_instructions(self):
         from aegis.infrastructure.installer import AgentNativeInstaller
 
-        AgentNativeInstaller.generate_agents_template(self.workspace_root)
+        installer = AgentNativeInstaller()
+        installer.install(workspace_root=self.workspace_root, instructions_only=True)
 
     def run_headless_check(self) -> int:
         """Run a single compliance check and return violation count."""
