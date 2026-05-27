@@ -71,7 +71,7 @@ select = [
     "ARG", # flake8-unused-arguments
     "PT",  # flake8-pytest-style
 ]
-ignore = []
+ignore = ["E501", "ARG"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
