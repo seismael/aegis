@@ -49,6 +49,6 @@ Aegis is a self-referential system. We use the engine to enforce the project's o
 ---
 
 ## ⚖️ License & Attribution
-By contributing to Aegis, you agree that your contributions will be licensed under the **Apache License 2.0**. We strive for a professional environment where all contributors are respected and recognized.
+By contributing to Aegis, you agree that your contributions will be licensed under the **MIT License**. We strive for a professional environment where all contributors are respected and recognized.
 
 **Thank you for helping us build the future of architectural governance.**

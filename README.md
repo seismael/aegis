@@ -69,4 +69,4 @@ Aegis comes bundled with 18+ battle-tested rule packs:
 
 ## 📄 License
 
-Apache 2.0
+MIT License
