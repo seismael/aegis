@@ -7,13 +7,12 @@ No adapters. MCP is the universal protocol.
 """
 
 from pathlib import Path
+
+from aegis.infrastructure.harnesses.aider import AiderHarness
 from aegis.infrastructure.harnesses.base import (
-    AEGIS_GOVERNANCE_DIRECTIVE,
-    AEGIS_SKILL_FILES,
     AGENTS_TEMPLATE,
 )
 from aegis.infrastructure.harnesses.claude import ClaudeHarness
-from aegis.infrastructure.harnesses.aider import AiderHarness
 from aegis.infrastructure.harnesses.gemini import GeminiHarness
 
 

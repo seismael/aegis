@@ -1,45 +1,41 @@
-from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
+from aegis.infrastructure.harnesses.base import AEGIS_GOVERNANCE_DIRECTIVE
 from aegis.infrastructure.installer import (
-    AEGIS_GOVERNANCE_DIRECTIVE,
     AgentNativeInstaller,
 )
 
 
 def test_installer_claude_harness_usage():
     installer = AgentNativeInstaller()
-    
+
     mock_harness = MagicMock()
     installer.harnesses["claude"] = mock_harness
-    
+
     installer.install(target_tool="claude")
-    
+
     mock_harness.install.assert_called_once()
     mock_harness.deploy_skills.assert_called_once()
 
 
 def test_installer_gemini_harness_usage():
     installer = AgentNativeInstaller()
-    
+
     mock_harness = MagicMock()
     installer.harnesses["gemini"] = mock_harness
-    
+
     installer.install(target_tool="gemini")
-    
+
     mock_harness.install.assert_called_once()
     mock_harness.deploy_skills.assert_called_once()
 
 
 def test_installer_target_filter():
     installer = AgentNativeInstaller()
-    
+
     mock_claude = MagicMock()
     mock_aider = MagicMock()
-    installer.harnesses = {
-        "claude": mock_claude,
-        "aider": mock_aider
-    }
+    installer.harnesses = {"claude": mock_claude, "aider": mock_aider}
 
     installer.install(target_tool="claude")
     mock_claude.install.assert_called_once()

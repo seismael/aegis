@@ -45,9 +45,7 @@ class SemanticAnalyzer(SemanticAnalyzerInterface):
             return []
 
         for rule in semantic_rules:
-            self.logger.debug(
-                "Semantic rule detected", rule_id=rule.id, file=file_path
-            )
+            self.logger.debug("Semantic rule detected", rule_id=rule.id, file=file_path)
 
             # HEURISTIC: We still provide a basic heuristic for immediate feedback
             # in non-interactive CI environments, but the "re-entrant" rubric
@@ -87,7 +85,9 @@ class SemanticAnalyzer(SemanticAnalyzerInterface):
         rubric += "| :--- | :--- | :--- |\n"
 
         for rule in rules:
-            rubric += f"| **{rule.id}** | {rule.description} | `{rule.severity.value}` |\n"
+            rubric += (
+                f"| **{rule.id}** | {rule.description} | `{rule.severity.value}` |\n"
+            )
 
         rubric += "\n#### 📋 Instructions for Agent-Native Self-Evaluation:\n\n"
         rubric += "1. **Analyze**: Review the file content against the intents listed above.\n"

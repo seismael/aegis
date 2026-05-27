@@ -1,9 +1,11 @@
 import json
 from pathlib import Path
+
 from aegis.infrastructure.harnesses.base import (
-    BaseHarness,
     AEGIS_GOVERNANCE_DIRECTIVE,
+    BaseHarness,
 )
+
 
 class GeminiHarness(BaseHarness):
     @property
@@ -26,7 +28,7 @@ class GeminiHarness(BaseHarness):
             config["mcpServers"] = {}
         config["mcpServers"]["aegis"] = {"command": "aegis", "args": ["run"]}
 
-        # Gemini might use different fields for custom instructions, 
+        # Gemini might use different fields for custom instructions,
         # but following the task description to be similar to Claude's structure.
         existing_instructions = config.get("customInstructions", "")
         if "Aegis Microkernel" not in existing_instructions:

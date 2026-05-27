@@ -1,5 +1,7 @@
 from pathlib import Path
-from aegis.infrastructure.harnesses.base import BaseHarness, AGENTS_TEMPLATE
+
+from aegis.infrastructure.harnesses.base import AGENTS_TEMPLATE, BaseHarness
+
 
 class AiderHarness(BaseHarness):
     @property
@@ -22,7 +24,7 @@ class AiderHarness(BaseHarness):
             print(f"[Aegis] Injected MCP configuration into {aider_config}")
         except OSError as e:
             errors.append(f"Failed to write {aider_config}: {e}")
-        
+
         return errors
 
     def deploy_skills(self) -> list[str]:

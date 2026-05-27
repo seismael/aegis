@@ -144,11 +144,14 @@ class AegisKernel:
         self.session.save(state)
 
         if execution_depth > 3:
-            return warn(
-                f"BYPASS: Execution depth {execution_depth} exceeds limit (3). "
-                "Remaining violations will not block task completion. "
-                "Flag the following rules for manual architectural review."
-            ) + coordination_info
+            return (
+                warn(
+                    f"BYPASS: Execution depth {execution_depth} exceeds limit (3). "
+                    "Remaining violations will not block task completion. "
+                    "Flag the following rules for manual architectural review."
+                )
+                + coordination_info
+            )
 
         rules = self._load_rules()
         if not rules:
@@ -224,7 +227,10 @@ class AegisKernel:
             self.telemetry.record_check(len(violations), len(active))
 
         if not active and not semantic_rubrics:
-            return "SUCCESS: Architecture compliant. Task may be marked complete." + coordination_info
+            return (
+                "SUCCESS: Architecture compliant. Task may be marked complete."
+                + coordination_info
+            )
 
         return remediation_prompt + coordination_info
 

@@ -1,11 +1,13 @@
 import json
 from importlib import resources
 from pathlib import Path
+
 from aegis.infrastructure.harnesses.base import (
-    BaseHarness,
     AEGIS_GOVERNANCE_DIRECTIVE,
     AEGIS_SKILL_FILES,
+    BaseHarness,
 )
+
 
 class ClaudeHarness(BaseHarness):
     @property
