@@ -44,24 +44,33 @@ Dispatches structural analysis to specialized engines. JIT-scopes rules to the f
 - **Telemetry Recorder**: Persists check/remediation events to `.aegis/telemetry.json`.
 - **OTLP Exporter**: Opt-in gRPC streaming for Datadog/Grafana enterprise observability.
 
-## Layer 2: The MCP Tool Surface (6 Tools)
+## Layer 2: The MCP Tool Surface (Core & Skills)
 
+### 2.1 Core Governance Tools
 | Tool | Purpose |
 |------|---------|
 | `validate_architecture_compliance` | JIT compliance gate — evaluates modified files, returns SUCCESS or violation report |
 | `request_semantic_grading_rubric` | Re-entrant LLM self-grading rubric for domain language rules |
-| `scaffold_governance_framework` | Agent-driven project bootstrap — writes rule packs to `.aegis/rules/` |
-| `query_knowledge_graph` | Dependency graphs, workspace hypothesis, module health |
-| `evolve_ruleset` | Rule suppression, pack install/remove, baseline management |
 | `plan_architecture` | Pre-emptive task alignment — returns JIT-scoped rules for intent + file |
+
+### 2.2 Agent-Native "On-Demand" Skills (Higher-Level)
+These skills wrap complex core operations into intuitive, project-wide commands for the agent.
+
+| Skill | Purpose |
+|-------|---------|
+| `discover_architectural_patterns` | Scans workspace, detects frameworks, and proposes new governance laws |
+| `apply_governance_law` | Formally adopts a rule pack or custom law; manages project-wide YAML generation |
+| `request_exception` | Petitions for a documented exception to a law; records debt in `baseline.json` |
+| `generate_health_scorecard` | (Re)generates the root `AEGIS.md` dashboard for agent/human visibility |
 
 ## Layer 3: The Agent-Native Execution Guarantee
 
 Aegis V4 enforces governance through the agent's native tool execution loop:
-- **Claude Code**: Governance Directive injected into `customInstructions` makes validation mandatory before task completion.
-- **Aider**: `--test-cmd` and `--auto-test` flags create a native self-healing loop.
-- **No OS hooks**: No git hooks, no file watchers, no I/O middleware.
-- **Stateless**: Aegis has no session memory. The parent agent's context window holds state.
+- **Agent Entry Point (`AEGIS.md`)**: A root-level scorecard that onboards entering agents by listing active laws, pending proposals, and current health score.
+- **Claude Code**: Governance Directive in `customInstructions` + `.claude.md`.
+- **Aider**: Native self-healing loop via `--test-cmd`.
+- **Gemini CLI**: `GEMINI.md` integration.
+- **Cross-Agent Memory**: Coordination via `.aegis/session.json`.
 
 ## Layer 4: Active Rule Matrix
 - Bundled rule packs in `src/aegis/resources/default_rules/` (18 packs: architecture, security, testing, and more).

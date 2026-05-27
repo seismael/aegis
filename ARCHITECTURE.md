@@ -35,6 +35,20 @@ Aegis is composed of three decoupled domains orchestrated by a headless MCP serv
 
 ---
 
+## Agent Interface Layer (High-Level Skills)
+
+To ensure simplicity and intuitive adoption, Aegis exposes a set of **On-Demand Skills** that orchestrate the microkernel's domains.
+
+### 1. The Scorecard (`AEGIS.md`)
+A markdown facade that acts as the agent's "front door." It is managed by a `ScorecardService` and reflects the project's living architectural state.
+
+### 2. The Skills
+- **Discover**: Enhances `query_knowledge_graph` to provide actionable, natural-language law proposals.
+- **Apply**: Automates the lifecycle of `RulePackManager` and `PolicyParser` project-wide.
+- **Exception**: Streamlines `BaselineManager` via a "petition" workflow.
+
+---
+
 ## Process Flow: The "Plan-Act-Validate" Loop
 
 ```mermaid

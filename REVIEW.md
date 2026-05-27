@@ -1,37 +1,34 @@
 # Aegis V4 Project Review & Evaluation
 
 **Date:** Wednesday, 27 May 2026
-**Status:** Phase 1 Complete / Phase 2 In-Progress
+**Status:** Phase 2 Complete / "Architect-on-Demand" Enhancement In-Progress
 **Core Vision:** Agent-Native Governance Protocol for AI Agent Harnesses.
 
 ## 1. Executive Summary
 
-Aegis V4 has successfully transitioned to a **Universal Harness Architecture**. It is now capable of governing Claude Code, Aider, and Gemini CLI natively through a plugin-based system.
+Aegis V4 has successfully transitioned to a **Universal Harness Architecture**. It is now capable of governing Claude Code, Aider, and Gemini CLI natively. The next strategic shift is the **Architect-on-Demand** protocol, which simplifies adoption by providing an intuitive, conversational interface for project-wide governance.
 
-### Core Strengths (Updated)
-- **Microkernel Architecture:** Verified separation of concerns.
-- **Universal Harnesses:** Plugin-based support for Claude, Aider, and Gemini. [NEW]
-- **Re-entrant Semantics:** Mandatory rubric-based evaluation for LLMs. [NEW]
-- **Incremental Graph:** JIT Adjacency caching for performance. [NEW]
-- **Statelessness:** Preserved while adding coordination memory.
+### Core Strengths (Verified)
+- **Universal Harnesses**: Plugin-based support for Claude, Aider, and Gemini.
+- **Re-entrant Semantics**: Mandatory rubric-based evaluation for LLMs.
+- **Incremental Graph**: JIT Adjacency caching for performance.
+- **Cross-Agent Memory**: Coordination via `.aegis/session.json`.
 
-### Remaining Gaps (Phase 2 Focus)
-- **Agent Coordination:** Currently, agents working on the same repo don't share validation state. [IN PROGRESS]
-- **Scaffolding Alignment:** `aegis-init` needs to natively deploy all instruction files (.claude.md, GEMINI.md, AGENTS.md). [IN PROGRESS]
-- **Cross-Agent Memory:** Implementation of `.aegis/session.json`. [PLANNED]
+### Strategic Objectives (Architect-on-Demand)
+- **Ambient Awareness (`AEGIS.md`)**: A root-level scorecard that onboards entering agents without intrusive prompts. [IN PROGRESS]
+- **High-Level Skills**: Move from low-level YAML management to high-level commands like `discover`, `apply`, and `petition_exception`. [PLANNED]
+- **Project-Wide Simplicity**: Strictly enforce project-wide rules to eliminate configuration complexity. [MANDATE]
 
 ---
 
-## 2. Architectural Deep-Dive
+## 2. Architectural Evolution
 
-### 2.1 The MCP Surface
-(No changes needed to this section)
+### 2.1 The Agent Interface Layer
+We are adding a high-level service layer that orchestrates the microkernel. This layer is responsible for translating technical violations into human-friendly remediation actions and project health scores.
 
 ### 2.2 Evaluation Engines
-- **AST:** Verified.
-- **Graph:** **OPTIMIZED.** Now uses mtime-based adjacency caching.
-- **Regex:** Verified.
-- **Semantic:** **HARDENED.** Now uses a re-entrant rubric handback that blocks SUCCESS until evaluation is confirmed.
+- **AST/Graph/Regex**: Fully operational and optimized.
+- **Semantic**: Hardened. Ready for deep intent-level checks.
 
 ### 2.3 Policy Layer
 Rules are YAML-based, categorized, and phase-aware. The `RulePackManager` effectively handles bundled resources.
