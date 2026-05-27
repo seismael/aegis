@@ -107,6 +107,7 @@ class AegisKernel:
         self.mcp.tool()(self.query_knowledge_graph)
         self.mcp.tool()(self.evolve_ruleset)
         self.mcp.tool()(self.plan_architecture)
+        self.mcp.tool()(self.discover_architectural_patterns)
 
     async def validate_architecture_compliance(
         self,
@@ -527,6 +528,20 @@ class AegisKernel:
                 pass
 
         return "\n".join(lines)
+
+    async def discover_architectural_patterns(self) -> str:
+        """
+        Scans the workspace to detect frameworks and patterns.
+        Returns a list of proposed governance laws for the team to review.
+        """
+        hypothesis = self._hypothesize_workspace_architecture()
+
+        content = "## 🔍 Architectural Discovery: Proposed Laws\n\n"
+        content += "Aegis has analyzed your project and proposes the following governance laws:\n\n"
+        content += hypothesis
+        content += "\n\n**Action**: Call `apply_governance_law` to adopt any of these proposals."
+
+        return content
 
     def _hypothesize_workspace_architecture(self) -> str:
         root = Path(self.workspace_root)
