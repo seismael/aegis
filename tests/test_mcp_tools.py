@@ -184,8 +184,7 @@ class TestRequestException:
         # 2. Request exception
         reason = "Needed for legacy debugging"
         exc_result = await kernel.request_exception(
-            rule_id="test-no-print",
-            reason=reason
+            rule_id="test-no-print", reason=reason
         )
         assert "SUCCESS" in exc_result
         assert "test-no-print" in exc_result
@@ -195,7 +194,10 @@ class TestRequestException:
         result_after = await kernel.validate_architecture_compliance(["src/module.py"])
         assert "SUCCESS" in result_after
         # It might be in the coordination info, so we check if it's NOT in a violation-like format
-        assert "[test-no-print]" not in result_after or "SUCCESS" in result_after.split("\n")[0]
+        assert (
+            "[test-no-print]" not in result_after
+            or "SUCCESS" in result_after.split("\n")[0]
+        )
 
         # 4. Verify handoff note contains exception
         state = kernel.session.load()

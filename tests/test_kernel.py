@@ -1,5 +1,6 @@
 import pytest
 
+
 class TestKernelInit:
     def test_kernel_constructs(self):
         from aegis.kernel.server import AegisKernel
