@@ -1,6 +1,7 @@
 import json
 import os
 import re
+from datetime import datetime
 from pathlib import Path
 
 import structlog
@@ -14,6 +15,7 @@ from aegis.domain.evaluation.baseline import BaselineManager
 from aegis.domain.evaluation.prompt_synthesizer import RemediationPromptSynthesizer
 from aegis.domain.evaluation.scoping import ScopeFilter
 from aegis.domain.evaluation.service import EvaluationService
+from aegis.domain.evaluation.session import SessionManager
 from aegis.domain.observability.telemetry import TelemetryRecorder
 from aegis.domain.policy.pack_manager import RulePackManager
 from aegis.domain.policy.parser import PolicyParser
@@ -40,6 +42,7 @@ class AegisKernel:
     ):
         self.logger = structlog.get_logger()
         self._workspace_root = workspace_root or self._discover_root()
+        self.session = SessionManager(self._workspace_root)
 
         try:
             self.policy = PolicyParser(self._workspace_root)
@@ -110,17 +113,42 @@ class AegisKernel:
         files_modified: list[str],
         phase: str = "pre-commit",
         execution_depth: int = 0,
+        handoff_note: str | None = None,
     ) -> str:
         """
         JIT Compliance Gate. Call before declaring any task complete.
         Returns SUCCESS string or formatted violation report with remediation.
         """
+        # Session Coordination Logic
+        state = self.session.load()
+        current_agent = self._get_agent_id()
+        coordination_info = ""
+
+        if state.handoff_notes or (
+            state.last_validation_time and state.last_agent_id != current_agent
+        ):
+            coordination_info = "\n\n### 🤝 Coordination Info\n"
+            if state.last_agent_id and state.last_agent_id != current_agent:
+                coordination_info += f"- Last validated by: **{state.last_agent_id}**"
+                if state.last_validation_time:
+                    coordination_info += f" at {state.last_validation_time.isoformat()}"
+                coordination_info += "\n"
+            if state.handoff_notes:
+                coordination_info += f"- Handoff Notes: {state.handoff_notes}\n"
+
+        # Update and save session
+        state.last_validation_time = datetime.now()
+        state.last_agent_id = current_agent
+        if handoff_note:
+            state.handoff_notes = handoff_note
+        self.session.save(state)
+
         if execution_depth > 3:
             return warn(
                 f"BYPASS: Execution depth {execution_depth} exceeds limit (3). "
                 "Remaining violations will not block task completion. "
                 "Flag the following rules for manual architectural review."
-            )
+            ) + coordination_info
 
         rules = self._load_rules()
         if not rules:
@@ -196,9 +224,9 @@ class AegisKernel:
             self.telemetry.record_check(len(violations), len(active))
 
         if not active and not semantic_rubrics:
-            return "SUCCESS: Architecture compliant. Task may be marked complete."
+            return "SUCCESS: Architecture compliant. Task may be marked complete." + coordination_info
 
-        return remediation_prompt
+        return remediation_prompt + coordination_info
 
     async def request_semantic_grading_rubric(
         self,
@@ -761,3 +789,12 @@ class AegisKernel:
             uvicorn.run(app, host=host, port=port)
         else:
             raise ValueError(f"Unknown transport: {transport}")
+
+    def _get_agent_id(self) -> str:
+        """Detect agent ID from environment variables."""
+        return (
+            os.getenv("CLAUDE_AGENT_ID")
+            or os.getenv("AIDER_AGENT_ID")
+            or os.getenv("AEGIS_AGENT_ID")
+            or "unknown"
+        )
