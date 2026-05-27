@@ -21,7 +21,7 @@ async def test_agent_coordination_persistence(workspace_root):
     
     # Create a dummy rule pack so _load_rules returns something
     with open(os.path.join(workspace, ".aegis", "rules", "custom.yaml"), "w") as f:
-        f.write("rules:\n  - id: dummy\n    description: dummy\n    engine_type: regex\n    query: dummy\n")
+        f.write("rules:\n  - id: dummy\n    description: dummy\n    engine_type: regex\n    category: architecture\n    mode: block\n    query: dummy\n")
     
     # Initialize kernel with temp workspace
     kernel = AegisKernel(workspace_root=workspace)
@@ -68,7 +68,11 @@ async def test_agent_coordination_persistence(workspace_root):
 @pytest.mark.asyncio
 async def test_agent_coordination_same_agent_no_info(workspace_root):
     workspace = workspace_root
-    os.makedirs(os.path.join(workspace, ".aegis"), exist_ok=True)
+    os.makedirs(os.path.join(workspace, ".aegis", "rules"), exist_ok=True)
+    
+    # Create a dummy rule pack so _load_rules returns something
+    with open(os.path.join(workspace, ".aegis", "rules", "custom.yaml"), "w") as f:
+        f.write("rules:\n  - id: dummy\n    description: dummy\n    engine_type: regex\n    category: architecture\n    mode: block\n    query: dummy\n")
     
     kernel = AegisKernel(workspace_root=workspace)
     
