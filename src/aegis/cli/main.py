@@ -19,7 +19,7 @@ class AegisCLI:
     def install(
         self,
         tool: str | None = typer.Option(
-            None, "--tool", help="Target tool: claude, aider (omit for all)"
+            None, "--tool", help="Target tool: claude, aider, gemini (omit for all)"
         ),
     ):
         """Inject Aegis MCP server config and cognitive directives into Claude/Aider."""
