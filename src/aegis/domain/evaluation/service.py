@@ -250,7 +250,9 @@ class EvaluationService:
         for v in violations:
             rule = rules_map.get(v.rule_id)
             if rule:
-                v.proposed_patch = self._generate_patch(v, rule, code_string=code_string)
+                v.proposed_patch = self._generate_patch(
+                    v, rule, code_string=code_string
+                )
 
         return violations
 

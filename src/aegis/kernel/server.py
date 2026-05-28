@@ -686,7 +686,9 @@ class AegisKernel:
         if import_tiers:
             arch_reason += f" Import tiers detected: {import_tiers}."
         if is_layered:
-            arch_reason += " Layered (Domain-Driven) architecture detected via import boundaries."
+            arch_reason += (
+                " Layered (Domain-Driven) architecture detected via import boundaries."
+            )
         else:
             arch_reason += " Monolithic or flat structure detected."
 
@@ -828,7 +830,7 @@ class AegisKernel:
             """
             rules = self._load_rules()
             scoped = ScopeFilter.filter_rules_for_file(path, rules, rules)
-            
+
             # 1. Health Score for this file
             health_score = 100
             if self.evaluation and scoped:
@@ -840,32 +842,42 @@ class AegisKernel:
                     active_violations = len(file_violations)
                     total_rules = len(scoped)
                     if total_rules > 0:
-                        health_score = max(0, min(100, int((1 - (active_violations / total_rules)) * 100)))
+                        health_score = max(
+                            0,
+                            min(
+                                100, int((1 - (active_violations / total_rules)) * 100)
+                            ),
+                        )
 
             # 2. Top 3 most critical rules
             from aegis.domain.policy.models import Severity
+
             severity_order = {
                 Severity.CRITICAL: 0,
                 Severity.HIGH: 1,
                 Severity.MEDIUM: 2,
                 Severity.LOW: 3,
-                Severity.WARN: 4
+                Severity.WARN: 4,
             }
-            top_rules = sorted(scoped, key=lambda r: severity_order.get(r.severity, 99))[:3]
+            top_rules = sorted(
+                scoped, key=lambda r: severity_order.get(r.severity, 99)
+            )[:3]
 
             # 3. Formatted Law Summary
             summary = [f"### 🛡️ Aegis Law Summary for: `{path}`"]
             summary.append(f"**Module Health: {health_score}%**\n")
-            
+
             if top_rules:
                 summary.append("#### 📜 Top Critical Rules:")
                 for r in top_rules:
-                    summary.append(f"- **{r.id}** [{r.severity.value}]: {r.description}")
+                    summary.append(
+                        f"- **{r.id}** [{r.severity.value}]: {r.description}"
+                    )
             else:
                 summary.append("No specific rules apply to this file.")
 
-            summary.append(f"\n[View full AEGIS.md scorecard](aegis://scorecard)")
-            
+            summary.append("\n[View full AEGIS.md scorecard](aegis://scorecard)")
+
             return "\n".join(summary)
 
         @self.mcp.resource("aegis://scorecard")
@@ -876,7 +888,7 @@ class AegisKernel:
             scorecard_path = Path(self.workspace_root) / "AEGIS.md"
             if scorecard_path.exists():
                 return scorecard_path.read_text()
-            
+
             return (
                 "# 🛡️ Aegis Project Health Scorecard\n\n"
                 "AEGIS.md not found. Run `aegis scaffold_governance_framework` to generate it."
