@@ -94,6 +94,22 @@ class PackInfo(BaseModel):
     version: str | None = None
 
 
+class Proposal(BaseModel):
+    """A proposal for architectural governance."""
+
+    id: str
+    relevance: float
+    reason: str
+    suggested_action: str
+
+
+class DiscoveryResult(BaseModel):
+    """Result of discover_architectural_patterns."""
+
+    proposals: list[Proposal]
+    message: str | None = None
+
+
 class AgentHandoffContext(BaseModel):
     """Governance state summary for agent-to-agent handoff.
 

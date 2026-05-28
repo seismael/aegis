@@ -6,43 +6,33 @@ You are the Aegis Governance Bootstrapper. When invoked via `/aegis-init`, follo
 
 ### Step 1: Discover the Workspace Architecture
 
-Call the `query_knowledge_graph` MCP tool with `query_type="hypothesis"`.
+Call the `discover_architectural_patterns` MCP tool. This tool returns a structured list of governance proposals based on your project's technology stack and structure.
 
-### Step 2: Present the Architecture Proposal
+### Step 2: Negotiate the Governance Proposals
 
-Read the hypothesis result. Present it to the user in a clear format:
+Aegis prefers negotiation over automatic scaffolding. Review the `proposals` returned in Step 1 and present them to the user. For each proposal, explain *why* it is being recommended (using the `reason` field).
 
-```
-Detected: Python project (pyproject.toml)
-Key dependencies: fastapi, pydantic, sqlalchemy
-Source packages: api, domain, infrastructure
+**Dialogue pattern:**
+"I've analyzed your project and I see you are using [Technology X]. I propose enforcing [Governance Law Y] because [Reason]. Would you like to enable it?"
 
-Proposed architecture: Layered (Domain-Driven) with hexagonal isolation.
-Recommended packs: architecture, security, best-practices, style
-```
+### Step 3: Adopt Approved Laws
 
-Ask the user: "Does this architecture look correct? I can adjust the rule packs before scaffolding."
-
-### Step 3: Scaffold the Governance Framework
-
-Once the user approves, call `scaffold_governance_framework` with the approved pack list.
-
-Example: `scaffold_governance_framework(target_packs=["architecture", "security", "best-practices", "style"])`
+For each proposal the user approves, call the `suggested_action` provided in the structured data (usually `apply_governance_law(law_id='...')`).
 
 ### Step 4: Confirm Initialization
 
-Report back:
+Once the initial laws are adopted, report back:
 ```
 Aegis V4 Governance initialized.
-Active packs: architecture, security, best-practices, style
+Active laws: [List of adopted law IDs]
 Use `validate_architecture_compliance` before completing any task.
 ```
 
 ## Important
 
-- NEVER skip the hypothesis step — discover, don't guess.
-- NEVER scaffold without user approval of the architecture.
-- ALWAYS include `security` in the recommended packs.
+- NEVER skip the discovery step — discover, don't guess.
+- NEVER adopt a law without explicit user approval. "Negotiate everything."
+- ALWAYS recommend the `security` law, as it is foundational.
 
 ## Related Skills
 

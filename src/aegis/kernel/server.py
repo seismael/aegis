@@ -26,6 +26,7 @@ from aegis.kernel.errors import (
     error,
     warn,
 )
+from aegis.kernel.models import DiscoveryResult, Proposal
 
 _VERSION = "0.4.0"
 
@@ -593,19 +594,17 @@ class AegisKernel:
 
         return "\n".join(lines)
 
-    async def discover_architectural_patterns(self) -> str:
+    async def discover_architectural_patterns(self) -> DiscoveryResult:
         """
         Scans the workspace to detect frameworks and patterns.
         Returns a list of proposed governance laws for the team to review.
         """
-        hypothesis = self._hypothesize_workspace_architecture()
+        proposals = self._discover_proposals()
 
-        content = "## 🔍 Architectural Discovery: Proposed Laws\n\n"
-        content += "Aegis has analyzed your project and proposes the following governance laws:\n\n"
-        content += hypothesis
-        content += "\n\n**Action**: Call `apply_governance_law` to adopt any of these proposals."
-
-        return content
+        return DiscoveryResult(
+            proposals=proposals,
+            message="Aegis has analyzed your project and proposes the following governance laws.",
+        )
 
     async def apply_governance_law(
         self,
@@ -638,76 +637,105 @@ class AegisKernel:
             f"Law '{law_id}' not recognized. Provide custom_description for new laws.",
         )
 
-    def _hypothesize_workspace_architecture(self) -> str:
+    def _discover_proposals(self) -> list[Proposal]:
         root = Path(self.workspace_root)
-        findings: list[str] = []
+        proposals: list[Proposal] = []
 
         pyproject = root / "pyproject.toml"
         package_json = root / "package.json"
 
+        findings = []
         if pyproject.exists():
-            findings.append("Detected: Python project (pyproject.toml)")
+            findings.append("Python project (pyproject.toml)")
             deps = self._scan_pyproject_deps(pyproject)
             if deps:
                 findings.append(f"Key dependencies: {', '.join(deps[:10])}")
         if package_json.exists():
-            findings.append("Detected: Node.js/TypeScript project (package.json)")
+            findings.append("Node.js/TypeScript project (package.json)")
 
+        base_reason = " ".join(findings) if findings else "Generic project structure."
+
+        # Determine architecture
+        is_layered = False
+        import_tiers = ""
         if self.graph is not None and pyproject.exists():
             try:
                 g = self.graph.build_dependency_graph(self.workspace_root)
                 tiers = g.get("tiers", {})
                 if tiers:
-                    tier_names = ", ".join(tiers.keys())
-                    findings.append(f"\nImport tiers detected: {tier_names}")
-                    findings.append(f"Module count: {g['total_modules']}")
-
-                    layered = any(
+                    import_tiers = ", ".join(tiers.keys())
+                    is_layered = any(
                         t in ("api", "domain", "infra", "infrastructure", "core")
                         for t in tiers
                     )
-                    if layered:
-                        findings.append(
-                            "Architecture: Layered (Domain-Driven) detected"
-                            " via import boundaries."
-                        )
-                        findings.append(
-                            "Recommended packs: architecture, security, "
-                            "best-practices, style"
-                        )
-                    else:
-                        findings.append(
-                            "Architecture: Monolithic or flat structure detected."
-                        )
-                        findings.append(
-                            "Recommended packs: architecture, best-practices, "
-                            "structure, style"
-                        )
-                else:
-                    findings.append(
-                        "\nProposed architecture: Layered (Domain-Driven) "
-                        "with hexagonal isolation."
-                    )
-                    findings.append(
-                        "Recommended packs: architecture, security, "
-                        "best-practices, style"
-                    )
             except Exception:
-                findings.append(
-                    "\nProposed architecture: Layered (Domain-Driven) "
-                    "with hexagonal isolation."
-                )
-                findings.append(
-                    "Recommended packs: architecture, security, best-practices, style"
-                )
+                pass
+
+        # Security Proposal (Always)
+        proposals.append(
+            Proposal(
+                id="security",
+                relevance=1.0,
+                reason=f"{base_reason} Security governance is mandatory for all projects.",
+                suggested_action="apply_governance_law(law_id='security')",
+            )
+        )
+
+        # Architecture Proposal
+        arch_reason = base_reason
+        if import_tiers:
+            arch_reason += f" Import tiers detected: {import_tiers}."
+        if is_layered:
+            arch_reason += " Layered (Domain-Driven) architecture detected via import boundaries."
         else:
-            findings.append(
-                "\nProposed architecture: Layered (Domain-Driven) "
-                "with hexagonal isolation."
+            arch_reason += " Monolithic or flat structure detected."
+
+        proposals.append(
+            Proposal(
+                id="architecture",
+                relevance=1.0,
+                reason=arch_reason,
+                suggested_action="apply_governance_law(law_id='architecture')",
             )
-            findings.append(
-                "Recommended packs: architecture, security, best-practices, style"
+        )
+
+        # Best Practices
+        proposals.append(
+            Proposal(
+                id="best-practices",
+                relevance=0.9,
+                reason="Standardized best practices for code quality and maintainability.",
+                suggested_action="apply_governance_law(law_id='best-practices')",
             )
+        )
+
+        # Style
+        proposals.append(
+            Proposal(
+                id="style",
+                relevance=0.8,
+                reason="Enforce consistent naming and formatting conventions across the codebase.",
+                suggested_action="apply_governance_law(law_id='style')",
+            )
+        )
+
+        if not is_layered:
+            proposals.append(
+                Proposal(
+                    id="structure",
+                    relevance=0.7,
+                    reason="Flat structure detected. Structure law helps organize modules as the project grows.",
+                    suggested_action="apply_governance_law(law_id='structure')",
+                )
+            )
+
+        return proposals
+
+    def _hypothesize_workspace_architecture(self) -> str:
+        proposals = self._discover_proposals()
+        findings: list[str] = []
+        for p in proposals:
+            findings.append(f"Proposed: {p.id} (Relevance: {p.relevance}) - {p.reason}")
 
         return "\n".join(findings)
 
@@ -794,18 +822,64 @@ class AegisKernel:
 
         @self.mcp.resource("aegis://context/{path}")
         def get_context(path: str) -> str:
+            """
+            Returns a Law Summary for the given path.
+            Includes health score, top 3 critical rules, and link to scorecard.
+            """
             rules = self._load_rules()
             scoped = ScopeFilter.filter_rules_for_file(path, rules, rules)
-            return json.dumps(
-                [
-                    {
-                        "id": r.id,
-                        "description": r.description,
-                        "severity": r.severity.value,
-                    }
-                    for r in scoped[:15]
-                ],
-                indent=2,
+            
+            # 1. Health Score for this file
+            health_score = 100
+            if self.evaluation and scoped:
+                abs_path = os.path.join(self.workspace_root, path)
+                if os.path.exists(abs_path):
+                    file_violations = self.evaluation.evaluate_file(
+                        abs_path, scoped, root_dir=self.workspace_root
+                    )
+                    active_violations = len(file_violations)
+                    total_rules = len(scoped)
+                    if total_rules > 0:
+                        health_score = max(0, min(100, int((1 - (active_violations / total_rules)) * 100)))
+
+            # 2. Top 3 most critical rules
+            from aegis.domain.policy.models import Severity
+            severity_order = {
+                Severity.CRITICAL: 0,
+                Severity.HIGH: 1,
+                Severity.MEDIUM: 2,
+                Severity.LOW: 3,
+                Severity.WARN: 4
+            }
+            top_rules = sorted(scoped, key=lambda r: severity_order.get(r.severity, 99))[:3]
+
+            # 3. Formatted Law Summary
+            summary = [f"### 🛡️ Aegis Law Summary for: `{path}`"]
+            summary.append(f"**Module Health: {health_score}%**\n")
+            
+            if top_rules:
+                summary.append("#### 📜 Top Critical Rules:")
+                for r in top_rules:
+                    summary.append(f"- **{r.id}** [{r.severity.value}]: {r.description}")
+            else:
+                summary.append("No specific rules apply to this file.")
+
+            summary.append(f"\n[View full AEGIS.md scorecard](aegis://scorecard)")
+            
+            return "\n".join(summary)
+
+        @self.mcp.resource("aegis://scorecard")
+        def get_scorecard() -> str:
+            """
+            Returns the full content of AEGIS.md.
+            """
+            scorecard_path = Path(self.workspace_root) / "AEGIS.md"
+            if scorecard_path.exists():
+                return scorecard_path.read_text()
+            
+            return (
+                "# 🛡️ Aegis Project Health Scorecard\n\n"
+                "AEGIS.md not found. Run `aegis scaffold_governance_framework` to generate it."
             )
 
         @self.mcp.resource("aegis://spec")

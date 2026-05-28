@@ -351,7 +351,8 @@ class TestKnowledgeGraph:
         k = AegisKernel(str(graph_workspace))
         result = await k.query_knowledge_graph("hypothesis")
         assert "Proposed" in result or "Detected" in result
-        assert "Recommended packs" in result
+        assert "architecture" in result
+        assert "security" in result
 
     async def test_rules_lists_all_installed(self, governed_workspace):
         k = AegisKernel(str(governed_workspace))
