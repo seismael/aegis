@@ -1,4 +1,6 @@
+import difflib
 import os
+import re
 
 import structlog
 
@@ -142,6 +144,13 @@ class EvaluationService:
         # Normalize paths to relative for consistent baseline matching
         self._normalize_violation_paths(all_violations, root_dir)
 
+        # Enrich with proposed patches for simple violations
+        rules_map = {r.id: r for r in rules}
+        for v in all_violations:
+            rule = rules_map.get(v.rule_id)
+            if rule:
+                v.proposed_patch = self._generate_patch(v, rule, root_dir)
+
         # Lifecycle hook: End
         for extra in self.extra_analyzers:
             try:
@@ -236,6 +245,13 @@ class EvaluationService:
             except Exception:
                 pass
 
+        # Enrich with proposed patches
+        rules_map = {r.id: r for r in rules}
+        for v in violations:
+            rule = rules_map.get(v.rule_id)
+            if rule:
+                v.proposed_patch = self._generate_patch(v, rule, code_string=code_string)
+
         return violations
 
     def evaluate_file(
@@ -267,7 +283,68 @@ class EvaluationService:
 
         root_dir = root_dir or os.path.dirname(file_path)
         self._normalize_violation_paths(file_violations, root_dir)
+
+        # Enrich with proposed patches
+        rules_map = {r.id: r for r in rules}
+        for v in file_violations:
+            rule = rules_map.get(v.rule_id)
+            if rule:
+                v.proposed_patch = self._generate_patch(v, rule, root_dir)
+
         return ScopeFilter.filter_violations(file_violations, rules)
+
+    def _generate_patch(
+        self,
+        violation: ArchitecturalViolation,
+        rule: Rule,
+        root_dir: str | None = None,
+        code_string: str | None = None,
+    ) -> str | None:
+        """Generates a unified diff patch for a violation if a replacement is known."""
+        suggested_replacement = rule.metadata.get("suggested_replacement")
+        if not suggested_replacement:
+            return None
+
+        # Determine original content
+        original_content = code_string
+        if original_content is None:
+            file_path = violation.file
+            if root_dir and not os.path.isabs(file_path):
+                file_path = os.path.join(root_dir, file_path)
+            try:
+                original_content = self._get_file_content(file_path)
+            except Exception:
+                return None
+
+        if not original_content:
+            return None
+
+        new_content = None
+        if rule.engine_type == EngineType.REGEX and rule.query:
+            new_content = self._apply_regex_replacement(
+                original_content, rule.query, suggested_replacement, violation.line
+            )
+
+        if new_content and new_content != original_content:
+            diff = difflib.unified_diff(
+                original_content.splitlines(keepends=True),
+                new_content.splitlines(keepends=True),
+                fromfile=violation.file,
+                tofile=violation.file,
+            )
+            return "".join(diff)
+
+        return None
+
+    def _apply_regex_replacement(
+        self, content: str, pattern: str, replacement: str, target_line: int
+    ) -> str:
+        """Applies a regex replacement ONLY on the target line."""
+        lines = content.splitlines(keepends=True)
+        if 1 <= target_line <= len(lines):
+            line_idx = target_line - 1
+            lines[line_idx] = re.sub(pattern, replacement, lines[line_idx])
+        return "".join(lines)
 
     def _get_file_content(self, file_path: str) -> str:
         with open(file_path, encoding="utf-8") as f:

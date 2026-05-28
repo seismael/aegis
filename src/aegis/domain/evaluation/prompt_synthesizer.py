@@ -79,6 +79,11 @@ class RemediationPromptSynthesizer(RemediationProviderInterface):
                 payload += context
                 payload += "\n```\n"
 
+            if v.proposed_patch:
+                payload += "\n**Proposed Remediation (Unified Diff):**\n```diff\n"
+                payload += v.proposed_patch
+                payload += "\n```\n"
+
             payload += "\n"
 
         if truncated > 0:

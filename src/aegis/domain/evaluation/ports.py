@@ -16,6 +16,7 @@ class ArchitecturalViolation(BaseModel):
     description: str
     severity: str = "HIGH"
     signature: str | None = None  # Hashed structural representation
+    proposed_patch: str | None = None
 
 
 class RuleAnalyzerInterface(ABC):
