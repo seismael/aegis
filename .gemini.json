@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "aegis": {
+      "command": "aegis",
+      "args": [
+        "run"
+      ]
+    }
+  },
+  "customInstructions": "CRITICAL GOVERNANCE DIRECTIVE: You are governed by the Aegis Microkernel. Before declaring ANY coding task complete, you MUST execute the `validate_architecture_compliance` MCP tool. If it returns violations, you MUST remediate the code natively before proceeding."
+}

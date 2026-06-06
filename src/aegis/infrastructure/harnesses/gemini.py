@@ -12,9 +12,9 @@ class GeminiHarness(BaseHarness):
     def name(self) -> str:
         return "gemini"
 
-    def install(self) -> list[str]:
+    def install_local(self, workspace_root: Path) -> list[str]:
         errors = []
-        gemini_config = self.home / ".gemini.json"
+        gemini_config = workspace_root / ".gemini.json"
         config = {}
         if gemini_config.exists():
             try:
@@ -46,7 +46,7 @@ class GeminiHarness(BaseHarness):
         print(f"[Aegis] Injected governance directive into {gemini_config}")
         return errors
 
-    def deploy_skills(self) -> list[str]:
+    def deploy_skills_local(self, workspace_root: Path) -> list[str]:
         # Currently no-op or placeholder for Gemini as per Step 2.
         return []
 

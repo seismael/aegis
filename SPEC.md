@@ -18,11 +18,11 @@ Aegis V4 never:
 
 # Aegis V4: Agent-Native Technical Specification
 
-## Layer 0: The Universal Bootstrapper
-Aegis provides a global installation layer that binds into your development toolchain.
-- **Universal Command**: `aegis install`
-- **Action**: Mutates `~/.claude.json` (MCP server + customInstructions) and `~/.aider.conf.yml` (MCP server + test-cmd).
-- **Invariant**: The installer is idempotent and project-agnostic. Run once per machine.
+## Layer 0: The Workspace Initializer
+Aegis provides a local initialization layer that binds into your specific development workspace.
+- **Universal Command**: `aegis init`
+- **Action**: Creates local `mcp.json`, `.claude.json` (MCP server + customInstructions) and `.aider.conf.yml` (MCP server + test-cmd) in the project root.
+- **Invariant**: The initialization is completely local and non-invasive. It does not modify global dotfiles.
 
 ## Layer 1: The Tri-Core Microkernel
 

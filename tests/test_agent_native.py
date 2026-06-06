@@ -1,9 +1,10 @@
 """
 Post-install agent-native simulation tests.
-Simulates the complete agent experience after `aegis install` has been run:
-skills deployed, customInstructions injected, MCP server available.
+Simulates the complete agent experience after `aegis init` has been run:
+- Tests the mandatory Plan-Act-Validate governance loop.
+- No human CLI intervention beyond the one-time `aegis init`.
 Verifies that ALL capabilities work natively through MCP tools without
-any human CLI intervention beyond the one-time `aegis install`.
+any human CLI intervention beyond the one-time `aegis init`.
 """
 
 import json
@@ -180,7 +181,7 @@ class TestAgentReadableOutputs:
 
 
 class TestPostInstallAgentLifecycle:
-    """Complete agent-native journey: everything through MCP after aegis install."""
+    """Complete agent-native journey: everything through MCP after aegis init."""
 
     async def test_complete_agent_journey(self, tmp_path):
         ws = tmp_path / "agent-journey"

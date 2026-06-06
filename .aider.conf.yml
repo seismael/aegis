@@ -1,6 +1,5 @@
-mcp-servers:
-- uv run aegis-kernel
-read:
-- AGENTS.md
-- SPEC.md
-- .aegis/rules.yaml
+
+# Aegis Native Integration
+mcp-server: aegis run
+test-cmd: aegis run --headless-check
+auto-test: true

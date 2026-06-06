@@ -8,9 +8,9 @@ class AiderHarness(BaseHarness):
     def name(self) -> str:
         return "aider"
 
-    def install(self) -> list[str]:
+    def install_local(self, workspace_root: Path) -> list[str]:
         errors = []
-        aider_config = self.home / ".aider.conf.yml"
+        aider_config = workspace_root / ".aider.conf.yml"
         directive = (
             "\n# Aegis Native Integration\n"
             "mcp-server: aegis run\n"
@@ -27,7 +27,7 @@ class AiderHarness(BaseHarness):
 
         return errors
 
-    def deploy_skills(self) -> list[str]:
+    def deploy_skills_local(self, workspace_root: Path) -> list[str]:
         # Aider doesn't have a separate global skills registry in the same way Claude does
         # or it uses AGENTS.md/instructions.
         return []

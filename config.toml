@@ -1,4 +1,0 @@
-[mcp_servers.aegis-kernel]
-command = "aegis"
-args = ["run"]
-env = { AEGIS_AGENT_MODE = "true" }

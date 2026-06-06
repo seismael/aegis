@@ -14,9 +14,9 @@ class ClaudeHarness(BaseHarness):
     def name(self) -> str:
         return "claude"
 
-    def install(self) -> list[str]:
+    def install_local(self, workspace_root: Path) -> list[str]:
         errors = []
-        claude_config = self.home / ".claude.json"
+        claude_config = workspace_root / ".claude.json"
         config = {}
         if claude_config.exists():
             try:
@@ -46,9 +46,9 @@ class ClaudeHarness(BaseHarness):
         print(f"[Aegis] Injected governance directive into {claude_config}")
         return errors
 
-    def deploy_skills(self) -> list[str]:
+    def deploy_skills_local(self, workspace_root: Path) -> list[str]:
         errors = []
-        skills_dir = self.home / ".claude" / "skills"
+        skills_dir = workspace_root / ".aegis" / "skills"
         try:
             skills_dir.mkdir(parents=True, exist_ok=True)
         except OSError as e:

@@ -63,12 +63,13 @@ graph TD
     Gate -->|SUCCESS| Done[Task Complete]
 ```
 
-## The Universal Harness Installer
+## The Workspace-Scoped Initializer
 
-`aegis install` is the "bridge" that configures the agent's world:
-1. **Global Injection**: Mutates `~/.claude.json`, `~/.gemini.json`, etc.
-2. **Skill Deployment**: Copies markdown-based "Expert Personas" to agent registries.
+`aegis init` is the "bridge" that configures the agent's world for a specific repository:
+1. **Local Configuration**: Generates `.claude.json`, `.aider.conf.yml`, `.gemini.json`, and a universal `mcp.json` at the root of your workspace.
+2. **Skill Deployment**: Copies markdown-based "Expert Personas" to local `.aegis/skills/`.
 3. **Workspace Onboarding**: Generates `.claude.md`, `GEMINI.md`, and `AGENTS.md` automatically during scaffolding.
+This ensures Aegis is completely opt-in and does not mutate your global machine state.
 
 ## Design Decisions
 

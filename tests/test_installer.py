@@ -12,10 +12,10 @@ def test_installer_claude_harness_usage():
     mock_harness = MagicMock()
     installer.harnesses["claude"] = mock_harness
 
-    installer.install(target_tool="claude")
+    installer.init_workspace(target_tool="claude")
 
-    mock_harness.install.assert_called_once()
-    mock_harness.deploy_skills.assert_called_once()
+    mock_harness.install_local.assert_called_once()
+    mock_harness.deploy_skills_local.assert_called_once()
 
 
 def test_installer_gemini_harness_usage():
@@ -24,10 +24,10 @@ def test_installer_gemini_harness_usage():
     mock_harness = MagicMock()
     installer.harnesses["gemini"] = mock_harness
 
-    installer.install(target_tool="gemini")
+    installer.init_workspace(target_tool="gemini")
 
-    mock_harness.install.assert_called_once()
-    mock_harness.deploy_skills.assert_called_once()
+    mock_harness.install_local.assert_called_once()
+    mock_harness.deploy_skills_local.assert_called_once()
 
 
 def test_installer_target_filter():
@@ -37,9 +37,9 @@ def test_installer_target_filter():
     mock_aider = MagicMock()
     installer.harnesses = {"claude": mock_claude, "aider": mock_aider}
 
-    installer.install(target_tool="claude")
-    mock_claude.install.assert_called_once()
-    mock_aider.install.assert_not_called()
+    installer.init_workspace(target_tool="claude")
+    mock_claude.install_local.assert_called_once()
+    mock_aider.install_local.assert_not_called()
 
 
 def test_installer_unsupported_tool():
@@ -47,7 +47,7 @@ def test_installer_unsupported_tool():
 
     installer = AgentNativeInstaller()
     with pytest.raises(ValueError, match="Unsupported tool"):
-        installer.install(target_tool="copilot")
+        installer.init_workspace(target_tool="copilot")
 
 
 def test_governance_directive_mentions_validate():

@@ -43,4 +43,6 @@ env/
 
 # Aegis Local State (Ignore session state, keep rules/baseline)
 .aegis/discovery_state.json
+.aegis/session.json
+.aegis/telemetry.json
 .aegis/plugins/__pycache__/

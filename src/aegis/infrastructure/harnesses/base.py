@@ -59,17 +59,14 @@ Do NOT disable or bypass Aegis governance for any reason.
 
 
 class BaseHarness(ABC):
-    def __init__(self, home: Path):
-        self.home = home
-
     @abstractmethod
-    def install(self) -> list[str]:
-        """Inject Aegis into the harness global config. Returns list of error messages."""
+    def install_local(self, workspace_root: Path) -> list[str]:
+        """Inject Aegis into the harness local config. Returns list of error messages."""
         pass
 
     @abstractmethod
-    def deploy_skills(self) -> list[str]:
-        """Deploy markdown skills to the harness global registry."""
+    def deploy_skills_local(self, workspace_root: Path) -> list[str]:
+        """Deploy markdown skills to the local registry."""
         pass
 
     @abstractmethod

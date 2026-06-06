@@ -13,21 +13,24 @@ class AegisCLI:
 
     def __init__(self):
         self.app = typer.Typer(help="Aegis V4: Agent-Native Architectural Microkernel")
-        self.app.command()(self.install)
+        self.app.command()(self.init)
         self.app.command()(self.run)
 
-    def install(
+    def init(
         self,
+        workspace_root: str = typer.Option(
+            ".", "--workspace", help="Path to the workspace root"
+        ),
         tool: str | None = typer.Option(
             None, "--tool", help="Target tool: claude, aider, gemini (omit for all)"
         ),
     ):
-        """Inject Aegis MCP server config and cognitive directives into Claude/Aider."""
+        """Initialize Aegis in the local workspace by creating local agent config overrides."""
         from aegis.infrastructure.installer import AgentNativeInstaller
 
         installer = AgentNativeInstaller()
         try:
-            installer.install(target_tool=tool)
+            installer.init_workspace(workspace_root=workspace_root, target_tool=tool)
         except Exception as e:
             typer.echo(f"ERROR: {e}", err=True)
             raise typer.Exit(code=1) from None

@@ -29,7 +29,7 @@ cd aegis
 uv sync
 
 # Install the Aegis protocol globally for local testing
-uv run aegis install
+uv run aegis init
 ```
 
 ---

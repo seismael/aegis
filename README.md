@@ -8,7 +8,7 @@ Aegis is an **Agent-Native Architectural Microkernel** that mathematically gover
 
 ```bash
 pip install aegis
-aegis install          # Injects Aegis into Claude, Aider, and Gemini
+aegis init             # Initializes local workspace configuration for Claude, Aider, and Gemini
 ```
 
 ### 1. Initialize
