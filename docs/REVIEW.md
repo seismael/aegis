@@ -20,7 +20,7 @@ Aegis V4 has successfully evolved into a **Proactive & Self-Healing Architectura
 ## 2. Architectural Deep-Dive
 
 ### 2.1 The Agent Interface Layer
-The implementation of the `Scorecard` service and the root-level `AEGIS.md` provides a high-signal "onboarding" surface. Agents entering the repo immediately understand the architectural laws without human prompting.
+The implementation of the `Scorecard` service and the `.aegis/AEGIS.md` provides a high-signal "onboarding" surface. Agents entering the repo immediately understand the architectural laws without human prompting.
 
 ### 2.2 Evaluation Engines
 - **AST/Graph/Regex**: Fully operational. Graph analysis is $O(1)$ due to JIT mtime caching.

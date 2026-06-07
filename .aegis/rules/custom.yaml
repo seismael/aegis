@@ -1,0 +1,12 @@
+rules:
+- id: no-print
+  description: No hardcoded print statements in domain logic
+  category: architecture
+  engine_type: regex
+  severity: HIGH
+  mode: block
+  query: print\(
+  regex_pattern: print\(
+  applies_to:
+  - '**/*.py'
+  language: python

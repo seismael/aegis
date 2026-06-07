@@ -1,0 +1,43 @@
+# Default Aegis Rust Rule Pack
+# Safety idioms, unwrap discipline, unsafe justification, and output hygiene.
+
+rules:
+  - id: rs-no-unwrap
+    description: Avoid .unwrap() in non-test code; use ? operator or pattern matching.
+    engine_type: regex
+    severity: MEDIUM
+    mode: warn
+    applies_to:
+      - "**/*.rs"
+    query: \.unwrap\(\)|\.expect\(
+    rationale: unwrap/expect panic on None/Err; prefer ? propagation or explicit match.
+
+  - id: rs-unsafe-justification
+    description: Unsafe blocks must include a safety comment justifying their use.
+    engine_type: regex
+    severity: MEDIUM
+    mode: warn
+    applies_to:
+      - "**/*.rs"
+    query: unsafe\s*\{[\s\S]{0,200}(?!(// Safety:))
+    rationale: Unsafe code bypasses memory safety guarantees and requires documented justification.
+
+  - id: rs-large-enum-variants
+    description: Enum variants with large size differences indicate poor data modeling.
+    engine_type: regex
+    severity: LOW
+    mode: report
+    applies_to:
+      - "**/*.rs"
+    query: enum\s+\w+[\s\S]{0,500}\{[\s\S]{0,200}\(\S+\)[\s\S]{0,200}\(\S+\)
+    rationale: Wide variant size variance causes unnecessary memory overhead from enum padding.
+
+  - id: rs-no-println
+    description: Use the log crate instead of println! for production logging.
+    engine_type: regex
+    severity: LOW
+    mode: report
+    applies_to:
+      - "**/*.rs"
+    query: \bprintln!\b|\beprintln!\b
+    rationale: println! bypasses structured logging and cannot be filtered or configured at runtime.

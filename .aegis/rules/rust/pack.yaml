@@ -1,0 +1,4 @@
+name: rust
+version: 1.0.0
+description: Rust safety idioms — unwrap discipline, unsafe justification, and output hygiene
+author: Aegis

@@ -67,7 +67,8 @@ async def test_get_context_resource(kernel, tmp_path):
     assert "RULE2" in content
     assert "RULE3" in content
     assert "RULE4" not in content  # Only top 3
-    assert "[View full AEGIS.md scorecard](aegis://scorecard)" in content
+    scorecard_link = "[View full AEGIS.md scorecard](file:///" + str(tmp_path / ".aegis" / "AEGIS.md").replace("\\", "/") + ")"
+    assert scorecard_link in content
 
 
 @pytest.mark.asyncio
@@ -79,7 +80,9 @@ async def test_get_scorecard_resource_not_found(kernel):
 
 @pytest.mark.asyncio
 async def test_get_scorecard_resource_found(kernel, tmp_path):
-    scorecard_file = tmp_path / "AEGIS.md"
+    aegis_dir = tmp_path / ".aegis"
+    aegis_dir.mkdir(exist_ok=True)
+    scorecard_file = aegis_dir / "AEGIS.md"
     scorecard_content = "# Project Health\nScore: 100%"
     scorecard_file.write_text(scorecard_content)
 

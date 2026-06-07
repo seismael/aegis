@@ -47,7 +47,7 @@ Aegis provides a robust suite of Model Context Protocol (MCP) tools for your AI 
 | `fetch_rubric` | **The Brain.** Re-entrant LLM self-grading for design intents. |
 | `manage_rules` | **The Editor.** Evolve, add, or suppress active governance rules. |
 | `query_graph` | **The Map.** $O(1)$ adjacency queries to understand module boundaries. |
-| `get_scorecard` | **The Dashboard.** Updates the root-level `AEGIS.md` scorecard. |
+| `get_scorecard` | **The Dashboard.** Updates the `.aegis/AEGIS.md` scorecard. |
 | `plan_architecture` | **The Blueprint.** Plan cross-cutting structural modifications. |
 | `request_exception` | **The Lawyer.** Petition for documented exceptions to specific laws. |
 
@@ -76,7 +76,7 @@ Aegis comes bundled with 18+ battle-tested rule packs:
 
 ## 🌐 Enterprise & Observability
 
-- **Scorecard (`AEGIS.md`)**: A root-level Markdown dashboard for human and agent visibility.
+- **Scorecard (`.aegis/AEGIS.md`)**: A markdown dashboard for human and agent visibility.
 - **Telemetry**: Local JSON check history in `.aegis/telemetry.json`.
 - **OTLP Export**: Native support for Datadog, Grafana, and OpenTelemetry.
 

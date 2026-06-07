@@ -1,0 +1,4 @@
+name: dependencies
+version: 1.0.0
+description: Dependency hygiene — version pinning, license compliance, and vulnerability gates
+author: Aegis

@@ -1,0 +1,4 @@
+name: go
+version: 1.0.0
+description: Go best practices — error handling, concurrency, and common anti-patterns
+author: Aegis

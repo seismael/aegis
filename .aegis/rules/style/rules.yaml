@@ -1,0 +1,70 @@
+# Default Aegis Style Rule Pack
+# Code style conventions — line length, naming, whitespace, imports.
+
+rules:
+  - id: style-line-length
+    description: Lines should not exceed 88 characters (Black-compatible).
+    engine_type: regex
+    severity: LOW
+    mode: report
+    query: (?m)^.{89,}$
+    rationale: Excessively long lines reduce readability and code review effectiveness.
+
+  - id: style-naming-convention
+    description: Classes should use PascalCase; functions and variables should use snake_case.
+    engine_type: regex
+    severity: LOW
+    mode: report
+    query: (?m)^class\s+[a-z_]|^def\s+[A-Z]
+    rationale: Consistent naming conventions improve code navigation and readability.
+
+  - id: style-no-trailing-whitespace
+    description: Lines should not contain trailing whitespace.
+    engine_type: regex
+    severity: LOW
+    mode: report
+    applies_to:
+      - "**/*.py"
+      - "**/*.js"
+      - "**/*.ts"
+      - "**/*.md"
+    query: \s+$
+    rationale: Trailing whitespace clutters diffs and violates common editor conventions.
+
+  - id: style-consistent-imports
+    description: Group imports consistently (stdlib, third-party, local) with a blank line between groups.
+    engine_type: regex
+    severity: LOW
+    mode: report
+    query: (?m)^import\s+\S+\nimport\s+\S+
+    rationale: Consistent import ordering signals project maturity and aids readability.
+
+  - id: style-consistent-quotes
+    description: Prefer double quotes over single quotes for string literals.
+    engine_type: regex
+    severity: LOW
+    mode: report
+    applies_to:
+      - "**/*.py"
+    query: "'[^']*'"
+    rationale: Consistent quote usage reduces diff noise and enforces project coding standards.
+
+  - id: style-max-complexity
+    description: Functions with excessive branches and conditionals indicate high cyclomatic complexity.
+    engine_type: regex
+    severity: LOW
+    mode: report
+    applies_to:
+      - "**/*.py"
+    query: (?m)^(if |elif |for |while |and |or |except|with )[\s\S]{0,200}(if |elif |for |while |and |or |except|with )[\s\S]{0,200}(if |elif |for |while |and |or |except|with )
+    rationale: High cyclomatic complexity makes code difficult to test, review, and maintain.
+
+  - id: style-blank-lines
+    description: Top-level functions and classes should be separated by two blank lines (PEP 8).
+    engine_type: regex
+    severity: LOW
+    mode: report
+    applies_to:
+      - "**/*.py"
+    query: \n\s+(class|def)\s+\w+
+    rationale: PEP 8 requires two blank lines around top-level definitions and one around methods.

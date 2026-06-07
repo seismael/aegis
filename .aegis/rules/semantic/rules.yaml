@@ -1,0 +1,33 @@
+# Default Aegis Semantic Rule Pack
+# These rules enforce high-level architectural intent using natural language.
+
+rules:
+  - id: semantic-no-pii-exposure
+    description: "Ensure no Personally Identifiable Information (PII) is exposed in logs or API responses."
+    category: semantic
+    engine_type: semantic
+    severity: HIGH
+    mode: block
+    query: "Does this code log or return sensitive data like SSNs, emails, or phone numbers?"
+    metadata:
+      sim_triggers:
+        - "SSN"
+        - "social_security"
+        - "credit_card"
+        - "passport_number"
+    rationale: "Compliance with global data privacy regulations (GDPR, SOC2) requires strict isolation of PII."
+
+  - id: semantic-retry-policy
+    description: "All external network calls must implement a retry policy with exponential backoff."
+    category: semantic
+    engine_type: semantic
+    severity: MEDIUM
+    mode: report
+    query: "Does this code perform an external API call without a retry wrapper?"
+    metadata:
+      sim_triggers:
+        - "requests.get"
+        - "requests.post"
+        - "httpx.get"
+        - "urllib.request"
+    rationale: "Ensures resilience and reliability in distributed systems."

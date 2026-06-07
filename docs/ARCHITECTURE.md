@@ -39,7 +39,7 @@ Aegis is composed of three decoupled domains orchestrated by a headless MCP serv
 
 To ensure simplicity and intuitive adoption, Aegis exposes a set of **On-Demand Skills** that orchestrate the microkernel's domains.
 
-### 1. The Scorecard (`AEGIS.md`)
+### 1. The Scorecard (`.aegis/AEGIS.md`)
 A markdown facade that acts as the agent's "front door." It is managed by a `ScorecardService` and reflects the project's living architectural state.
 
 ### 2. The Skills

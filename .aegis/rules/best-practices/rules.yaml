@@ -71,7 +71,7 @@ rules:
     engine_type: regex
     severity: LOW
     mode: report
-    query: (?m)^class\s+\w+\(\):[\s\S]{0,200}def __init__
+    query: (?m)^class\s+\w+\(\):[\s\S]{0,200}?def __init__
     rationale: Dataclasses provide free __init__, __repr__, and __eq__ with type annotations.
 
   - id: bp-dunder-methods
@@ -79,7 +79,7 @@ rules:
     engine_type: regex
     severity: LOW
     mode: report
-    query: (?m)^class\s+\w+[\s\S]{0,300}(?!(__str__|__repr__))
+    query: (?m)^class\s+\w+[\s\S]{0,300}?(?!(__str__|__repr__))
     rationale: A good repr makes debugging and logging significantly easier.
 
   - id: bp-iterator-protocol
@@ -87,7 +87,7 @@ rules:
     engine_type: regex
     severity: MEDIUM
     mode: warn
-    query: __getitem__[\s\S]{0,50}(?!(__iter__|__next__))
+    query: __getitem__[\s\S]{0,50}?(?!(__iter__|__next__))
     rationale: Proper iterator protocol enables use with for loops, comprehensions, and itertools.
 
   - id: bp-error-handling-depth
@@ -95,7 +95,7 @@ rules:
     engine_type: regex
     severity: MEDIUM
     mode: warn
-    query: try[\s\S]{0,500}try[\s\S]{0,500}try
+    query: try[\s\S]{0,500}?try[\s\S]{0,500}?try
     rationale: Flatten error handling with early returns or extract nested blocks into helper functions.
 
   - id: bp-no-hardcoded-strings

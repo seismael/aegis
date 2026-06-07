@@ -47,7 +47,7 @@ def test_scorecard_sync_to_disk(local_tmp_path):
     content = "# Test Scorecard"
     service.sync_to_disk(content)
 
-    expected_path = Path(root) / "AEGIS.md"
+    expected_path = Path(root) / ".aegis" / "AEGIS.md"
     assert expected_path.exists()
     assert expected_path.read_text(encoding="utf-8") == content
 
@@ -62,6 +62,6 @@ def test_scorecard_with_objects(local_tmp_path):
     content = service.generate(
         rules=[MockRule("rule-1")], violations=[], exceptions=["debt-1"]
     )
-    assert "- rule-1" in content
+    assert "- **rule-1**: No description provided." in content
     assert "Exceptions (Technical Debt)" in content
-    assert "- debt-1" in content
+    assert "- **debt-1**: 1 baselined location" in content

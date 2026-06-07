@@ -66,7 +66,9 @@ class AegisKernel:
             self.graph = self.semantic = None
             self.evaluation = None
         try:
-            self.baseline = BaselineManager(self._workspace_root)
+            self.baseline = BaselineManager(
+                os.path.join(self._workspace_root, ".aegis")
+            )
         except Exception:
             self.baseline = None
         try:
@@ -156,7 +158,7 @@ class AegisKernel:
 
     async def get_scorecard(self) -> str:
         """
-        (Re)generates the root AEGIS.md dashboard for agent/human visibility.
+        (Re)generates the .aegis/AEGIS.md dashboard for agent/human visibility.
         Calculates health score and lists active rules.
         """
         if not self.scorecard:
@@ -174,12 +176,12 @@ class AegisKernel:
 
         exceptions = []
         if self.baseline:
-            exceptions = [e.rule_id for e in self.baseline.load_baseline_raw()]
+            exceptions = [e.get("rule_id") for e in self.baseline.load_baseline_raw()]
 
         content = self.scorecard.generate(rules, violations, exceptions)
         self.scorecard.sync_to_disk(content)
 
-        return f"SUCCESS: AEGIS.md generated in {self.workspace_root}."
+        return f"SUCCESS: AEGIS.md generated in {self.workspace_root}/.aegis."
 
     async def check_architecture(
         self,
@@ -625,7 +627,7 @@ class AegisKernel:
         custom_description: If creating a custom law, provide its natural language definition.
         """
         # Case A: Rule Pack
-        if self.packs and law_id in [p["name"] for p in self.packs.list_available()]:
+        if self.packs and law_id in self.packs.list_available():
             return await self.init_governance(target_packs=[law_id])
 
         # Case B: Custom Law (Natural Language)
@@ -884,16 +886,20 @@ class AegisKernel:
             else:
                 summary.append("No specific rules apply to this file.")
 
-            summary.append("\n[View full AEGIS.md scorecard](aegis://scorecard)")
+            summary.append(
+                "\n[View full AEGIS.md scorecard](file:///"
+                + str(Path(self.workspace_root) / ".aegis" / "AEGIS.md").replace("\\", "/")
+                + ")"
+            )
 
             return "\n".join(summary)
 
         @self.mcp.resource("aegis://scorecard")
-        def get_scorecard() -> str:
+        def _read_scorecard() -> str:
             """
             Returns the full content of AEGIS.md.
             """
-            scorecard_path = Path(self.workspace_root) / "AEGIS.md"
+            scorecard_path = Path(self.workspace_root) / ".aegis" / "AEGIS.md"
             if scorecard_path.exists():
                 return scorecard_path.read_text()
 

@@ -1,0 +1,57 @@
+# Default Aegis Infrastructure Rule Pack
+# Infrastructure and deployment — Docker, CI/CD, IaC security.
+
+rules:
+  - id: infra-docker-latest
+    description: Docker images should not use the 'latest' tag in production configurations.
+    engine_type: regex
+    severity: HIGH
+    mode: block
+    applies_to:
+      - "docker-compose*.yml"
+      - "Dockerfile*"
+      - "deployments/**"
+    query: :latest\b
+    rationale: The 'latest' tag is mutable and non-deterministic, causing unreproducible deployments.
+
+  - id: infra-docker-root
+    description: Docker containers should not run as root user.
+    engine_type: regex
+    severity: HIGH
+    mode: block
+    applies_to:
+      - "Dockerfile*"
+    query: ^(?!.*USER\s+\d+|.*USER\s+\w+)
+    rationale: Root-privileged containers create security escalation paths from container escape.
+
+  - id: infra-privileged-mode
+    description: Containers should not run in privileged mode.
+    engine_type: regex
+    severity: HIGH
+    mode: block
+    applies_to:
+      - "docker-compose*.yml"
+      - "kubernetes/**/*.yml"
+    query: privileged\s*:\s*true
+    rationale: Privileged mode bypasses all container security isolation and exposes the host kernel.
+
+  - id: infra-ci-secret-exposure
+    description: CI configuration should not hardcode secrets or access keys.
+    engine_type: regex
+    severity: CRITICAL
+    mode: block
+    applies_to:
+      - ".github/workflows/*.yml"
+      - ".gitlab-ci.yml"
+    query: 'env[\s\S]{0,500}(ACCESS_KEY|SECRET_KEY|PASSWORD|TOKEN)\s*:'
+    rationale: Hardcoded CI secrets are visible to all contributors and branch runners.
+
+  - id: infra-iac-hardcoded
+    description: IaC should use variables, not hardcoded environment-specific values.
+    engine_type: regex
+    severity: MEDIUM
+    mode: warn
+    applies_to:
+      - "**/*.tf"
+    query: ("|')(localhost|127\.0\.0\.1|development|staging)("|')
+    rationale: Hardcoded environment values in IaC prevent portability and promote configuration drift.

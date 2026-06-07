@@ -1,0 +1,53 @@
+# Default Aegis Go Rule Pack
+# Go idioms, error handling, concurrency safety, and common anti-patterns.
+
+rules:
+  - id: go-no-panic
+    description: Panic should not be used for routine error handling; return errors instead.
+    engine_type: regex
+    severity: HIGH
+    mode: block
+    applies_to:
+      - "**/*.go"
+    query: \bpanic\(
+    rationale: Panic crashes the goroutine and bypasses deferred recovery; return errors for predictable handling.
+
+  - id: go-error-return
+    description: Error returns should be checked, not silently discarded with underscore.
+    engine_type: regex
+    severity: HIGH
+    mode: block
+    applies_to:
+      - "**/*.go"
+    query: \b_\s*:=\s*\w+\.\w+\(
+    rationale: Ignoring error returns discards failure information and leads to undefined program state.
+
+  - id: go-defer-cleanup
+    description: Resources requiring cleanup should use defer for guaranteed release.
+    engine_type: regex
+    severity: MEDIUM
+    mode: warn
+    applies_to:
+      - "**/*.go"
+    query: \b(Open|Lock)\s*\([\s\S]{0,200}(?!(defer))
+    rationale: Resources without deferred cleanup can leak under error paths.
+
+  - id: go-init-function
+    description: Avoid init() functions; use explicit initialization instead.
+    engine_type: regex
+    severity: LOW
+    mode: report
+    applies_to:
+      - "**/*.go"
+    query: ^func\s+init\s*\(
+    rationale: init functions execute in unpredictable order and make testing difficult.
+
+  - id: go-goroutine-lifecycle
+    description: Goroutines should have a cancellation mechanism (context or channel close).
+    engine_type: regex
+    severity: MEDIUM
+    mode: warn
+    applies_to:
+      - "**/*.go"
+    query: go\s+func\([\s\S]{0,300}(?!(context|ctx\.Done|select|close))
+    rationale: Goroutines without cancellation mechanisms leak resources when the parent scope exits.

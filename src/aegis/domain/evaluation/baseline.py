@@ -41,6 +41,8 @@ class BaselineManager:
         os.makedirs(os.path.dirname(self.path), exist_ok=True)
         with open(tmp, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
+            f.flush()
+            os.fsync(f.fileno())
         os.replace(tmp, self.path)
 
     def save_baseline(self, violations: list[ArchitecturalViolation]) -> None:

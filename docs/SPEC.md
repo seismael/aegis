@@ -61,12 +61,12 @@ These skills wrap complex core operations into intuitive, project-wide commands 
 | `find_patterns` | Scans workspace, detects frameworks, and proposes new governance laws |
 | `apply_rules` | Formally adopts a rule pack or custom law; manages project-wide YAML generation |
 | `request_exception` | Petitions for a documented exception to a law; records debt in `baseline.json` |
-| `get_scorecard` | (Re)generates the root `AEGIS.md` dashboard for agent/human visibility |
+| `get_scorecard` | (Re)generates the `.aegis/AEGIS.md` dashboard for agent/human visibility |
 
 ## Layer 3: The Agent-Native Execution Guarantee
 
 Aegis V4 enforces governance through the agent's native tool execution loop:
-- **Agent Entry Point (`AEGIS.md`)**: A root-level scorecard that onboards entering agents by listing active laws, pending proposals, and current health score.
+- **Agent Entry Point (`.aegis/AEGIS.md`)**: A scorecard that onboards entering agents by listing active laws, pending proposals, and current health score.
 - **Claude Code**: Governance Directive in `customInstructions` + `.claude.md`.
 - **Aider**: Native self-healing loop via `--test-cmd`.
 - **Gemini CLI**: `GEMINI.md` integration.
