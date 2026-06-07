@@ -10,20 +10,20 @@ class AiderHarness(BaseHarness):
 
     def install_local(self, workspace_root: Path) -> list[str]:
         errors = []
-        aider_config = workspace_root / ".aider.conf.yml"
+        aider_config = Path.home() / ".aider.conf.yml"
+
         directive = (
             "\n# Aegis Native Integration\n"
-            "mcp-server: aegis run\n"
-            "test-cmd: aegis run --headless-check\n"
+            "mcp-server: uvx aegis run\n"
+            "test-cmd: uvx aegis run --headless-check\n"
             "auto-test: true\n"
         )
 
         try:
-            with open(aider_config, "a", encoding="utf-8") as f:
-                f.write(directive)
-            print(f"[Aegis] Injected MCP configuration into {aider_config}")
+            self.safe_append_instruction(aider_config, directive)
+            print(f"[Aegis] Injected governance directive into {aider_config}")
         except OSError as e:
-            errors.append(f"Failed to write {aider_config}: {e}")
+            errors.append(f"Failed to update Aider config {aider_config}: {e}")
 
         return errors
 
@@ -33,11 +33,5 @@ class AiderHarness(BaseHarness):
         return []
 
     def deploy_workspace_instructions(self, workspace_root: str) -> list[str]:
-        errors = []
         path = Path(workspace_root) / "AGENTS.md"
-        try:
-            path.write_text(AGENTS_TEMPLATE, encoding="utf-8")
-            print(f"[Aegis] Generated {path}")
-        except OSError as e:
-            errors.append(f"Failed to write {path}: {e}")
-        return errors
+        return self.safe_append_instruction(path, AGENTS_TEMPLATE, "Aegis V4 Governance")

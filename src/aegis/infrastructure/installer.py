@@ -65,7 +65,14 @@ class AgentNativeInstaller:
     def _generate_mcp_json(self, workspace_path: Path) -> list[str]:
         import json
         errors = []
-        mcp_json_path = workspace_path / "mcp.json"
+        aegis_dir = workspace_path / ".aegis"
+        try:
+            aegis_dir.mkdir(parents=True, exist_ok=True)
+        except OSError as e:
+            errors.append(f"Failed to create directory {aegis_dir}: {e}")
+            return errors
+
+        mcp_json_path = aegis_dir / "mcp.json"
         config = {
             "mcpServers": {
                 "aegis-kernel": {

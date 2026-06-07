@@ -1,5 +1,0 @@
-
-# Aegis Native Integration
-mcp-server: aegis run
-test-cmd: aegis run --headless-check
-auto-test: true

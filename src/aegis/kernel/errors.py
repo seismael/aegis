@@ -14,8 +14,9 @@ Usage:
     return ok("All clear.")
     # -> "All clear."
 
-    return warn("No SPEC.md found.")
-    # -> "WARN: No SPEC.md found."
+    def err_no_spec() -> str:
+        return warn("No docs/SPEC.md found.")
+    # -> "WARN: No docs/SPEC.md found."
 """
 
 import json

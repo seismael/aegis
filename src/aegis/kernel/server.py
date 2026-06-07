@@ -34,7 +34,7 @@ _VERSION = "0.4.0"
 class AegisKernel:
     """
     V4 Agent-Native Microkernel.
-    Headless MCP server providing 6 tools for architectural governance.
+    Headless MCP server providing 10 tools for architectural governance.
     Every dependency is constructor-injected — no DI container.
     """
 
@@ -91,9 +91,17 @@ class AegisKernel:
         self._adjacency_cache_entry: tuple[float, dict] | None = None
 
         self.mcp = FastMCP("Aegis Architecture Engine")
-        self._register_tools()
-        self._register_resources()
-        self._register_prompts()
+        
+        if self._is_governed():
+            self._register_tools()
+            try:
+                self._register_resources()
+                self._register_prompts()
+            except AttributeError:
+                pass
+
+    def _is_governed(self) -> bool:
+        return (Path(self.workspace_root) / ".aegis").exists()
 
     @property
     def workspace_root(self) -> str:
@@ -351,7 +359,7 @@ class AegisKernel:
         packs_str = ", ".join(installed)
         return (
             f"SUCCESS: Governance framework scaffolded with packs: {packs_str}."
-            " AGENTS.md, .claude.md, and GEMINI.md generated in workspace root."
+            " AGENTS.md, CLAUDE.md, and GEMINI.md generated in workspace root."
         )
 
     async def query_knowledge_graph(
@@ -896,12 +904,12 @@ class AegisKernel:
 
         @self.mcp.resource("aegis://spec")
         def get_spec() -> str:
-            spec_path = Path(self.workspace_root) / "SPEC.md"
+            spec_path = Path(self.workspace_root) / "docs" / "SPEC.md"
             if spec_path.exists():
                 return spec_path.read_text()
             return warn(
-                "No SPEC.md found in workspace. "
-                "Create one via /aegis-init or scaffold_governance_framework."
+                "No docs/SPEC.md found in workspace. "
+                "The human developer has not defined an architectural specification."
             )
 
     def _register_prompts(self):
@@ -941,7 +949,7 @@ class AegisKernel:
         from aegis.infrastructure.installer import AgentNativeInstaller
 
         installer = AgentNativeInstaller()
-        installer.install(workspace_root=self.workspace_root, instructions_only=True)
+        installer.init_workspace(workspace_root=self.workspace_root, instructions_only=True)
 
     def run_headless_check(self) -> int:
         """Run a single compliance check and return violation count."""

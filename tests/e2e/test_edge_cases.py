@@ -542,7 +542,7 @@ class TestInstallerEdges:
 
         installer = AgentNativeInstaller()
         with pytest.raises(ValueError, match="Unsupported tool"):
-            installer.install(target_tool="cursor")
+            installer.init_workspace(target_tool="cursor")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

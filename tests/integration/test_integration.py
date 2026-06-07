@@ -38,6 +38,12 @@ class TestKernelComposition:
     def test_discover_project_root_fallback_cwd(self, tmp_path, monkeypatch):
         """_discover_root falls back to CWD when no markers found."""
         monkeypatch.chdir(tmp_path)
+        
+        # Mock Path.exists to return False so it simulates no markers found anywhere in the hierarchy
+        from pathlib import Path
+        original_exists = Path.exists
+        monkeypatch.setattr(Path, "exists", lambda self: False)
+        
         c = AegisKernel()
         assert c.workspace_root == str(tmp_path)
 

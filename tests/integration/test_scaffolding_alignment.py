@@ -22,15 +22,15 @@ async def test_scaffold_governance_framework_generates_all_instruction_files(tmp
 
     assert "SUCCESS" in result
     assert "AGENTS.md" in result
-    assert ".claude.md" in result
+    assert "CLAUDE.md" in result
     assert "GEMINI.md" in result
 
     # Check for all three instruction files
     assert (ws / "AGENTS.md").exists(), "AGENTS.md missing"
-    assert (ws / ".claude.md").exists(), ".claude.md missing"
+    assert (ws / "CLAUDE.md").exists(), "CLAUDE.md missing"
     assert (ws / "GEMINI.md").exists(), "GEMINI.md missing"
 
     # Verify some content to ensure they are the right files
     assert "Aegis" in (ws / "AGENTS.md").read_text()
-    assert "Claude" in (ws / ".claude.md").read_text()
+    assert "Claude" in (ws / "CLAUDE.md").read_text()
     assert "Gemini" in (ws / "GEMINI.md").read_text()

@@ -15,9 +15,11 @@ class ClaudeHarness(BaseHarness):
         return "claude"
 
     def install_local(self, workspace_root: Path) -> list[str]:
+        import json
         errors = []
-        claude_config = workspace_root / ".claude.json"
+        claude_config = Path.home() / ".claude.json"
         config = {}
+        
         if claude_config.exists():
             try:
                 with open(claude_config, encoding="utf-8-sig") as f:
@@ -28,13 +30,7 @@ class ClaudeHarness(BaseHarness):
 
         if "mcpServers" not in config:
             config["mcpServers"] = {}
-        config["mcpServers"]["aegis"] = {"command": "aegis", "args": ["run"]}
-
-        existing_instructions = config.get("customInstructions", "")
-        if "Aegis Microkernel" not in existing_instructions:
-            config["customInstructions"] = (
-                f"{existing_instructions}\n\n{AEGIS_GOVERNANCE_DIRECTIVE}".strip()
-            )
+        config["mcpServers"]["aegis"] = {"command": "uvx", "args": ["aegis", "run"]}
 
         try:
             with open(claude_config, "w", encoding="utf-8") as f:
@@ -74,16 +70,10 @@ class ClaudeHarness(BaseHarness):
         return errors
 
     def deploy_workspace_instructions(self, workspace_root: str) -> list[str]:
-        errors = []
-        claude_md = Path(workspace_root) / ".claude.md"
+        path = Path(workspace_root) / "CLAUDE.md"
         content = (
-            "# Claude Workspace Instructions\n\n"
+            "## Aegis Governance Protocol\n"
             "This workspace is governed by the Aegis Microkernel.\n"
             "Please refer to the [AGENTS.md](./AGENTS.md) for the full governance protocol.\n"
         )
-        try:
-            claude_md.write_text(content, encoding="utf-8")
-            print(f"[Aegis] Generated {claude_md}")
-        except OSError as e:
-            errors.append(f"Failed to write {claude_md}: {e}")
-        return errors
+        return self.safe_append_instruction(path, content, "Aegis Microkernel")

@@ -74,6 +74,24 @@ class BaseHarness(ABC):
         """Generate/update workspace-level instructions (GEMINI.md, .claude.md, etc.)"""
         pass
 
+    def safe_append_instruction(self, path: Path, content: str, identifier: str = "Aegis") -> list[str]:
+        """Safely append instruction to a markdown file without overwriting existing content."""
+        errors = []
+        try:
+            if path.exists():
+                existing = path.read_text(encoding="utf-8")
+                if identifier in existing:
+                    return []  # Already governed
+                new_content = f"{existing.strip()}\n\n{content}"
+            else:
+                new_content = content
+
+            path.write_text(new_content, encoding="utf-8")
+            print(f"[Aegis] Safely updated {path.name}")
+        except OSError as e:
+            errors.append(f"Failed to safely update {path.name}: {e}")
+        return errors
+
     @property
     @abstractmethod
     def name(self) -> str:

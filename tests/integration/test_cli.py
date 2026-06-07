@@ -5,9 +5,9 @@ from aegis.cli.main import AegisCLI
 
 def test_install_help():
     cli = AegisCLI()
-    result = CliRunner().invoke(cli.app, ["install", "--help"])
+    result = CliRunner().invoke(cli.app, ["init", "--help"])
     assert result.exit_code == 0
-    assert "Inject" in result.stdout
+    assert "Initialize" in result.stdout
 
 
 def test_run_help():

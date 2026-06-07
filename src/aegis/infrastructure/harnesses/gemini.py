@@ -14,8 +14,9 @@ class GeminiHarness(BaseHarness):
 
     def install_local(self, workspace_root: Path) -> list[str]:
         errors = []
-        gemini_config = workspace_root / ".gemini.json"
+        gemini_config = Path.home() / ".gemini.json"
         config = {}
+
         if gemini_config.exists():
             try:
                 with open(gemini_config, encoding="utf-8") as f:
@@ -26,15 +27,7 @@ class GeminiHarness(BaseHarness):
 
         if "mcpServers" not in config:
             config["mcpServers"] = {}
-        config["mcpServers"]["aegis"] = {"command": "aegis", "args": ["run"]}
-
-        # Gemini might use different fields for custom instructions,
-        # but following the task description to be similar to Claude's structure.
-        existing_instructions = config.get("customInstructions", "")
-        if "Aegis Microkernel" not in existing_instructions:
-            config["customInstructions"] = (
-                f"{existing_instructions}\n\n{AEGIS_GOVERNANCE_DIRECTIVE}".strip()
-            )
+        config["mcpServers"]["aegis"] = {"command": "uvx", "args": ["aegis", "run"]}
 
         try:
             with open(gemini_config, "w", encoding="utf-8") as f:
@@ -51,20 +44,10 @@ class GeminiHarness(BaseHarness):
         return []
 
     def deploy_workspace_instructions(self, workspace_root: str) -> list[str]:
-        errors = []
-        gemini_md = Path(workspace_root) / "GEMINI.md"
+        path = Path(workspace_root) / "GEMINI.md"
         content = (
-            "# Gemini Workspace Instructions\n\n"
-            "This workspace is governed by the Aegis Microkernel.\n\n"
-            "## Governance Protocol\n\n"
+            "## Aegis Governance Protocol\n"
             "1. You MUST follow the instructions in [AGENTS.md](./AGENTS.md).\n"
-            "2. Always ensure compliance by running `validate_architecture_compliance` before finishing a task.\n\n"
-            "## Gemini Specifics\n\n"
-            "Refer to this `GEMINI.md` for specific instructions on how to operate in this repository.\n"
+            "2. Always ensure compliance by running `validate_architecture_compliance` before finishing a task.\n"
         )
-        try:
-            gemini_md.write_text(content, encoding="utf-8")
-            print(f"[Aegis] Generated {gemini_md}")
-        except OSError as e:
-            errors.append(f"Failed to write {gemini_md}: {e}")
-        return errors
+        return self.safe_append_instruction(path, content, "Aegis Governance Protocol")

@@ -7,7 +7,7 @@ from aegis.infrastructure.harnesses.base import BaseHarness
 
 def test_harness_interface_cannot_be_instantiated():
     with pytest.raises(TypeError):
-        BaseHarness(Path("/tmp"))
+        BaseHarness()
 
 
 def test_harness_subclass_must_implement_all_methods():
@@ -17,15 +17,15 @@ def test_harness_subclass_must_implement_all_methods():
             return "incomplete"
 
     with pytest.raises(TypeError):
-        IncompleteHarness(Path("/tmp"))
+        IncompleteHarness()
 
 
 def test_complete_harness_can_be_instantiated():
     class CompleteHarness(BaseHarness):
-        def install(self) -> list[str]:
+        def install_local(self, workspace_root: Path) -> list[str]:
             return []
 
-        def deploy_skills(self) -> list[str]:
+        def deploy_skills_local(self, workspace_root: Path) -> list[str]:
             return []
 
         def deploy_workspace_instructions(self, workspace_root: str) -> list[str]:
@@ -35,6 +35,5 @@ def test_complete_harness_can_be_instantiated():
         def name(self) -> str:
             return "complete"
 
-    harness = CompleteHarness(Path("/tmp"))
+    harness = CompleteHarness()
     assert harness.name == "complete"
-    assert harness.home == Path("/tmp")

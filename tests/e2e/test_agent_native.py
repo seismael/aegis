@@ -81,7 +81,7 @@ class TestScaffoldGeneratesAgents:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# Test 3: aegis://spec returns structured warn when no SPEC.md
+# Test 3: aegis://spec returns structured warn when no docs/SPEC.md
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
@@ -91,17 +91,19 @@ class TestSpecResource:
         ws.mkdir()
 
         k = AegisKernel(str(ws))
-        spec_path = _ws(k) / "SPEC.md"
-        assert not spec_path.exists()
+        spec_path = _ws(k) / "docs" / "SPEC.md"
         assert not spec_path.exists()
 
     async def test_spec_resource_reads_existing_file(self, tmp_path):
         ws = tmp_path / "has-spec"
         ws.mkdir()
-        (ws / "SPEC.md").write_text("# My Architecture")
+        (ws / "docs").mkdir(exist_ok=True)
+        (ws / "docs" / "SPEC.md").write_text("# My Architecture")
 
         k = AegisKernel(str(ws))
-        content = (_ws(k) / "SPEC.md").read_text()
+        result = await k.mcp.read_resource("aegis://spec")
+        assert len(result) == 1
+        content = (_ws(k) / "docs" / "SPEC.md").read_text()
         assert "My Architecture" in content
 
 
