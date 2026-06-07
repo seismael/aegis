@@ -48,6 +48,7 @@ class AegisKernel:
 
         try:
             from aegis.domain.evaluation.plugins.registry import PluginRegistry
+
             self.plugin_registry = PluginRegistry(self._workspace_root)
             self.plugin_registry.load_plugins()
         except Exception as e:
@@ -66,7 +67,7 @@ class AegisKernel:
             extra_analyzers = []
             if hasattr(self, "plugin_registry") and self.plugin_registry:
                 extra_analyzers.extend(self.plugin_registry.custom_analyzers)
-                
+
             self.evaluation = EvaluationService(
                 tree_sitter_analyzer=self.tree_sitter,
                 graph_analyzer=self.graph,
@@ -107,7 +108,7 @@ class AegisKernel:
         self._adjacency_cache_entry: tuple[float, dict] | None = None
 
         self.mcp = FastMCP("Aegis Architecture Engine")
-        
+
         if self._is_governed():
             self._register_tools()
             try:
@@ -141,6 +142,10 @@ class AegisKernel:
         self.mcp.tool()(self.apply_rules)
         self.mcp.tool()(self.request_exception)
         self.mcp.tool()(self.get_scorecard)
+
+        if self.plugin_registry:
+            for tool in self.plugin_registry.custom_mcp_tools:
+                self.mcp.tool()(tool)
 
     async def request_exception(
         self,
@@ -296,6 +301,21 @@ class AegisKernel:
                     rubric = self.semantic.build_rubric(file_path, scoped_semantic)
                     semantic_rubrics.append(rubric)
 
+        config = self.policy.config if self.policy else None
+
+        try:
+            max_v = int(config.max_violations) if config else 1000
+        except (TypeError, ValueError):
+            max_v = 1000
+
+        try:
+            enforcement = str(config.enforcement) if config else "block"
+        except (TypeError, ValueError):
+            enforcement = "block"
+
+        if len(active) > max_v:
+            active = active[:max_v]
+
         remediation_prompt = ""
         if active:
             if self.remediation is None:
@@ -305,6 +325,12 @@ class AegisKernel:
                 )
             result = self.remediation.generate_remediation(active, rule_map)
             remediation_prompt = result.handoff_prompt
+
+            if enforcement == "warn":
+                remediation_prompt = (
+                    "\n> [!WARNING]\n> Architecture non-compliant but enforcement is WARN. Task may be marked complete.\n"
+                    + remediation_prompt
+                )
 
         if semantic_rubrics:
             header = "\n\n---\n### 🧠 Re-entrant Semantic Evaluation Required\n"
@@ -320,6 +346,9 @@ class AegisKernel:
                 "SUCCESS: Architecture compliant. Task may be marked complete."
                 + coordination_info
             )
+
+        if enforcement == "warn" and not semantic_rubrics:
+            return remediation_prompt + coordination_info
 
         return remediation_prompt + coordination_info
 
@@ -810,7 +839,7 @@ class AegisKernel:
                     self._cache_adjacency(adjacency)
             except Exception:
                 pass
-        
+
         result: dict[str, object] = {}
         for file_path in files_modified:
             relevant = ScopeFilter.get_relevant_rules(
@@ -905,7 +934,9 @@ class AegisKernel:
 
             summary.append(
                 "\n[View full AEGIS.md scorecard](file:///"
-                + str(Path(self.workspace_root) / ".aegis" / "AEGIS.md").replace("\\", "/")
+                + str(Path(self.workspace_root) / ".aegis" / "AEGIS.md").replace(
+                    "\\", "/"
+                )
                 + ")"
             )
 
@@ -972,7 +1003,9 @@ class AegisKernel:
         from aegis.infrastructure.installer import AgentNativeInstaller
 
         installer = AgentNativeInstaller()
-        installer.init_workspace(workspace_root=self.workspace_root, instructions_only=True)
+        installer.init_workspace(
+            workspace_root=self.workspace_root, instructions_only=True
+        )
 
     def run_headless_check(self) -> int:
         """Run a single compliance check and return violation count."""
@@ -1001,9 +1034,30 @@ class AegisKernel:
             self.telemetry.record_check(len(violations), len(active))
 
         if active:
+            config = self.policy.config if self.policy else None
+
+            try:
+                max_v = int(config.max_violations) if config else 1000
+            except (TypeError, ValueError):
+                max_v = 1000
+
+            try:
+                enforcement = str(config.enforcement) if config else "block"
+            except (TypeError, ValueError):
+                enforcement = "block"
+
+            if len(active) > max_v:
+                print(f"Warning: Violations capped at max_violations ({max_v})")
+                active = active[:max_v]
+
             print(f"Violations found: {len(active)}")
             for v in active[:20]:
                 print(f"  {v.file}:{v.line}  [{v.rule_id}] {v.description}")
+
+            if enforcement == "warn":
+                print("\nSUCCESS: Architecture non-compliant but enforcement is WARN.")
+                return 0
+
             return len(active)
 
         print("SUCCESS: Architecture compliant.")

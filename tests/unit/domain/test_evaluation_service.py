@@ -52,6 +52,7 @@ class TestEvaluationService:
                 description="desc",
                 query="query",
                 severity=Severity.HIGH,
+                engine_type=EngineType.TREE_SITTER,
             )
         ]
 
@@ -79,7 +80,7 @@ class TestEvaluationService:
         regex_mock = MagicMock(spec=RegexAnalyzerInterface)
 
         service = EvaluationService(analyzer, graph_mock, regex_mock)
-        rules = [Rule(id="r1", description="test")]
+        rules = [Rule(id="r1", description="test", engine_type=EngineType.TREE_SITTER)]
         violations = service.evaluate_workspace(str(tmp_path), rules)
 
         assert len(violations) == 1
@@ -106,7 +107,7 @@ class TestEvaluationService:
         regex_mock = MagicMock(spec=RegexAnalyzerInterface)
 
         service = EvaluationService(analyzer, graph_mock, regex_mock)
-        rules = [Rule(id="r1", description="test")]
+        rules = [Rule(id="r1", description="test", engine_type=EngineType.TREE_SITTER)]
         violations = service.evaluate_workspace(str(tmp_path), rules)
 
         assert len(violations) == 1
@@ -136,7 +137,7 @@ class TestEvaluationService:
         regex_mock = MagicMock(spec=RegexAnalyzerInterface)
 
         service = EvaluationService(analyzer, graph_mock, regex_mock)
-        rules = [Rule(id="r1", description="test")]
+        rules = [Rule(id="r1", description="test", engine_type=EngineType.TREE_SITTER)]
         service.evaluate_workspace(str(tmp_path), rules)
 
         # analyzer should NOT have been called for files in ignored dirs
@@ -175,7 +176,7 @@ class TestEvaluationService:
         regex_mock = MagicMock(spec=RegexAnalyzerInterface)
 
         service = EvaluationService(analyzer, graph_mock, regex_mock)
-        rules = [Rule(id="r1", description="test")]
+        rules = [Rule(id="r1", description="test", engine_type=EngineType.TREE_SITTER)]
         # Should not crash
         violations = service.evaluate_workspace(str(tmp_path), rules)
         assert violations == []
@@ -238,7 +239,7 @@ class TestEvaluateFile:
     def test_evaluate_file_nonexistent(self, tmp_path):
         """evaluate_file returns empty list for unreadable file."""
         service = self._make_service()
-        rules = [Rule(id="r1", description="test")]
+        rules = [Rule(id="r1", description="test", engine_type=EngineType.TREE_SITTER)]
         violations = service.evaluate_file(
             str(tmp_path / "nonexistent.py"), rules, root_dir=str(tmp_path)
         )

@@ -34,4 +34,6 @@ class AiderHarness(BaseHarness):
 
     def deploy_workspace_instructions(self, workspace_root: str) -> list[str]:
         path = Path(workspace_root) / "AGENTS.md"
-        return self.safe_append_instruction(path, AGENTS_TEMPLATE, "Aegis V4 Governance")
+        return self.safe_append_instruction(
+            path, AGENTS_TEMPLATE, "Aegis V4 Governance"
+        )

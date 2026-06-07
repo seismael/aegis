@@ -58,9 +58,7 @@ class TestColdStart:
 
     async def test_scaffold_multiple_packs(self, cold_start_workspace):
         k = AegisKernel(str(cold_start_workspace))
-        result = await k.init_governance(
-            ["architecture", "style", "security"]
-        )
+        result = await k.init_governance(["architecture", "style", "security"])
         assert "SUCCESS" in result
         assert (_ws(k) / ".aegis" / "rules" / "architecture").is_dir()
         assert (_ws(k) / ".aegis" / "rules" / "style").is_dir()
@@ -314,9 +312,7 @@ class TestSemanticGrading:
 
     async def test_rubric_filtered_by_rule_ids(self, semantic_workspace):
         k = AegisKernel(str(semantic_workspace))
-        result = await k.fetch_rubric(
-            "src/domain.py", rule_ids=["domain-naming"]
-        )
+        result = await k.fetch_rubric("src/domain.py", rule_ids=["domain-naming"])
         assert "Grading Rubric" in result
         assert "domain-naming" in result
 

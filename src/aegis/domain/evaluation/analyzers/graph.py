@@ -45,7 +45,10 @@ class GraphAnalyzer(GraphAnalyzerInterface):
         """
         max_mtime = 0.0
         for root, _, files in os.walk(root_dir):
-            if any(part in IGNORE_DIRS for part in root.split(os.sep)):
+            rel_root = os.path.relpath(root, root_dir)
+            if rel_root != "." and any(
+                part in IGNORE_DIRS for part in rel_root.split(os.sep)
+            ):
                 continue
             for file in files:
                 if file.endswith(".py"):
@@ -77,7 +80,10 @@ class GraphAnalyzer(GraphAnalyzerInterface):
         file_imports: dict[str, list[tuple[int, str]]] = defaultdict(list)
 
         for root, _, files in os.walk(root_dir):
-            if any(part in IGNORE_DIRS for part in root.split(os.sep)):
+            rel_root = os.path.relpath(root, root_dir)
+            if rel_root != "." and any(
+                part in IGNORE_DIRS for part in rel_root.split(os.sep)
+            ):
                 continue
 
             for file in files:

@@ -2,7 +2,6 @@ import json
 from pathlib import Path
 
 from aegis.infrastructure.harnesses.base import (
-    AEGIS_GOVERNANCE_DIRECTIVE,
     BaseHarness,
 )
 

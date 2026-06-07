@@ -74,7 +74,9 @@ class BaseHarness(ABC):
         """Generate/update workspace-level instructions (GEMINI.md, .claude.md, etc.)"""
         pass
 
-    def safe_append_instruction(self, path: Path, content: str, identifier: str = "Aegis") -> list[str]:
+    def safe_append_instruction(
+        self, path: Path, content: str, identifier: str = "Aegis"
+    ) -> list[str]:
         """Safely append instruction to a markdown file without overwriting existing content."""
         errors = []
         try:

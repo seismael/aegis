@@ -8,21 +8,17 @@ class TestAegisConfig:
 
     def test_defaults(self):
         config = AegisConfig()
-        assert config.enforcement == "warn"
+        assert config.enforcement == "block"
+        assert config.max_violations == 1000
         assert config.phase_defaults == {}
+        assert config.category_overrides == {}
 
     def test_phase_defaults_custom(self):
-        config = AegisConfig(
-            enforcement="block",
-            phase_defaults={"security": ["ci", "nightly"]},
-        )
-        assert config.enforcement == "block"
+        config = AegisConfig(phase_defaults={"security": ["ci", "nightly"]})
         assert config.phase_defaults == {"security": ["ci", "nightly"]}
 
     def test_category_overrides(self):
-        config = AegisConfig(
-            category_overrides={"security": ["ci", "nightly"]},
-        )
+        config = AegisConfig(category_overrides={"security": ["ci", "nightly"]})
         assert config.category_overrides == {"security": ["ci", "nightly"]}
 
     def test_auto_baseline_default_false(self):
@@ -38,17 +34,18 @@ class TestAegisConfig:
         assert config.max_violations == 1000
 
     def test_max_violations_custom(self):
-        config = AegisConfig(max_violations=1000)
-        assert config.max_violations == 1000
+        config = AegisConfig(max_violations=10)
+        assert config.max_violations == 10
 
     def test_missing_file_returns_defaults(self):
         config = AegisConfig()
-        assert config.enforcement == "warn"
-        assert config.phase_defaults == {}
+        assert config.enforcement == "block"
+        assert config.max_violations == 1000
 
     def test_empty_file_returns_defaults(self):
         config = AegisConfig()
-        assert config.enforcement == "warn"
+        assert config.enforcement == "block"
+        assert config.max_violations == 1000
 
     def test_full_config_loads(self):
         config = AegisConfig(

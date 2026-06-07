@@ -1,5 +1,5 @@
 from pathlib import Path
-from unittest.mock import mock_open, patch
+from unittest.mock import patch
 
 from aegis.infrastructure.harnesses.aider import AiderHarness
 
@@ -12,7 +12,7 @@ def test_aider_harness_install():
         with patch("pathlib.Path.exists", return_value=False):
             with patch("pathlib.Path.write_text") as mock_write:
                 harness.install_local(home)
-                
+
                 assert mock_write.called
                 args, kwargs = mock_write.call_args
                 assert "uvx aegis run" in args[0]

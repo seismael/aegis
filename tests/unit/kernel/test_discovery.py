@@ -20,17 +20,13 @@ async def test_find_patterns_structured(tmp_path):
     assert security_proposal is not None
     assert security_proposal.relevance == 1.0
     assert "Security" in security_proposal.reason
-    assert (
-        security_proposal.suggested_action == "apply_rules(law_id='security')"
-    )
+    assert security_proposal.suggested_action == "apply_rules(law_id='security')"
 
     # Check for architecture proposal
     arch_proposal = next((p for p in result.proposals if p.id == "architecture"), None)
     assert arch_proposal is not None
     assert "Python project" in arch_proposal.reason
-    assert (
-        arch_proposal.suggested_action == "apply_rules(law_id='architecture')"
-    )
+    assert arch_proposal.suggested_action == "apply_rules(law_id='architecture')"
 
 
 @pytest.mark.asyncio

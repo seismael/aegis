@@ -393,9 +393,7 @@ class TestScaffoldEdges:
         assert (_ws(empty_workspace) / ".aegis" / "rules" / "security").is_dir()
 
     async def test_scaffold_partial_valid_packs(self, empty_workspace):
-        result = await empty_workspace.init_governance(
-            ["security", "bogus-pack-xyz"]
-        )
+        result = await empty_workspace.init_governance(["security", "bogus-pack-xyz"])
         assert "SCAFFOLD_FAILED" in result
 
     async def test_scaffold_generates_agents_md_even_empty(self, empty_workspace):
@@ -419,9 +417,7 @@ class TestSemanticEdges:
         assert "NO_SEMANTIC_RULES" in result
 
     async def test_grading_rubric_with_specific_rule_ids(self, mini_project):
-        result = await mini_project.fetch_rubric(
-            "src/lib.py", rule_ids=["nonexistent"]
-        )
+        result = await mini_project.fetch_rubric("src/lib.py", rule_ids=["nonexistent"])
         assert "NO_SEMANTIC_RULES" in result
 
 
@@ -438,9 +434,7 @@ class TestKnowledgeGraphEdges:
         assert len(data) == 0
 
     async def test_dependency_graph_with_target(self, proximity_project):
-        result = await proximity_project.query_graph(
-            "dependency_graph", target="api"
-        )
+        result = await proximity_project.query_graph("dependency_graph", target="api")
         data = json.loads(result)
         assert "nodes" in data
         assert "edges" in data

@@ -67,7 +67,11 @@ async def test_get_context_resource(kernel, tmp_path):
     assert "RULE2" in content
     assert "RULE3" in content
     assert "RULE4" not in content  # Only top 3
-    scorecard_link = "[View full AEGIS.md scorecard](file:///" + str(tmp_path / ".aegis" / "AEGIS.md").replace("\\", "/") + ")"
+    scorecard_link = (
+        "[View full AEGIS.md scorecard](file:///"
+        + str(tmp_path / ".aegis" / "AEGIS.md").replace("\\", "/")
+        + ")"
+    )
     assert scorecard_link in content
 
 

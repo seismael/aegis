@@ -31,9 +31,7 @@ async def test_agent_coordination_persistence(workspace_root):
     note = "Refactoring complete, please verify architectural compliance."
 
     # First validation call
-    await kernel.check_architecture(
-        files_modified=["src/main.py"], handoff_note=note
-    )
+    await kernel.check_architecture(files_modified=["src/main.py"], handoff_note=note)
 
     # Verify session was saved
     session_file = os.path.join(workspace, ".aegis", "session.json")
@@ -48,9 +46,7 @@ async def test_agent_coordination_persistence(workspace_root):
     os.environ["AEGIS_AGENT_ID"] = "Agent-2"
 
     # Second validation call - should show coordination info
-    result = await kernel.check_architecture(
-        files_modified=["src/main.py"]
-    )
+    result = await kernel.check_architecture(files_modified=["src/main.py"])
 
     assert "### 🤝 Coordination Info" in result
     assert "Last validated by: **Agent-1**" in result
@@ -84,9 +80,7 @@ async def test_agent_coordination_same_agent_no_info(workspace_root):
     await kernel.check_architecture(files_modified=["src/main.py"])
 
     # Second call by same agent, no handoff note - should NOT show info
-    result = await kernel.check_architecture(
-        files_modified=["src/main.py"]
-    )
+    result = await kernel.check_architecture(files_modified=["src/main.py"])
 
     assert "### 🤝 Coordination Info" not in result
 
@@ -96,9 +90,7 @@ async def test_agent_coordination_same_agent_no_info(workspace_root):
     )
 
     # Fourth call by same agent - should show info because handoff note exists
-    result = await kernel.check_architecture(
-        files_modified=["src/main.py"]
-    )
+    result = await kernel.check_architecture(files_modified=["src/main.py"])
     assert "### 🤝 Coordination Info" in result
     assert "Handoff Notes: New note" in result
 

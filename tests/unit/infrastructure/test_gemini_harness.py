@@ -13,11 +13,15 @@ def test_gemini_harness_install():
     # Use a side_effect to handle both read and write if needed, or multiple patches
     with patch("pathlib.Path.home", return_value=home):
         with patch("pathlib.Path.exists", return_value=True):
-            with patch("builtins.open", mock_open(read_data=mock_config)) as mocked_file:
+            with patch(
+                "builtins.open", mock_open(read_data=mock_config)
+            ) as mocked_file:
                 harness.install_local(home)
 
                 # Check if it tried to write the config
-                mocked_file.assert_any_call(home / ".gemini.json", "w", encoding="utf-8")
+                mocked_file.assert_any_call(
+                    home / ".gemini.json", "w", encoding="utf-8"
+                )
 
             # Verify content written
             write_calls = list(mocked_file().write.call_args_list)

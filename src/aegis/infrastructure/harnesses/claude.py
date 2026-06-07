@@ -3,7 +3,6 @@ from importlib import resources
 from pathlib import Path
 
 from aegis.infrastructure.harnesses.base import (
-    AEGIS_GOVERNANCE_DIRECTIVE,
     AEGIS_SKILL_FILES,
     BaseHarness,
 )
@@ -15,11 +14,10 @@ class ClaudeHarness(BaseHarness):
         return "claude"
 
     def install_local(self, workspace_root: Path) -> list[str]:
-        import json
         errors = []
         claude_config = Path.home() / ".claude.json"
         config = {}
-        
+
         if claude_config.exists():
             try:
                 with open(claude_config, encoding="utf-8-sig") as f:

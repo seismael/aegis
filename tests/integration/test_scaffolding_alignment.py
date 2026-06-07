@@ -31,6 +31,9 @@ async def test_init_governance_generates_all_instruction_files(tmp_path):
     assert (ws / "GEMINI.md").exists(), "GEMINI.md missing"
 
     # Verify some content to ensure they are the right files
-    assert "Aegis Governance Protocol" in (ws / "AGENTS.md").read_text() or "Aegis Governance Protocol" in (ws / "CLAUDE.md").read_text()
+    assert (
+        "Aegis Governance Protocol" in (ws / "AGENTS.md").read_text()
+        or "Aegis Governance Protocol" in (ws / "CLAUDE.md").read_text()
+    )
     assert "Aegis Governance Protocol" in (ws / "CLAUDE.md").read_text()
     assert "Aegis Governance Protocol" in (ws / "GEMINI.md").read_text()

@@ -1,6 +1,13 @@
 # Aegis V4 — Universal Agent-Native Architectural Microkernel
 
-Aegis is an **Agent-Native Architectural Microkernel** that mathematically governs autonomous code generation. It lives inside Claude, Aider, and Gemini CLI via MCP to ensure your codebase stays clean, secure, and architecturally consistent.
+## 🤔 Why Aegis? What Does It Solve?
+
+As AI coding agents (like Claude Code, Aider, and Gemini) become increasingly autonomous, they generate thousands of lines of code without deep awareness of your project's architectural constraints. This leads to:
+- **Architectural Drift:** Agents silently violating Domain-Driven Design (DDD) boundaries, leaking presentation logic into domain models.
+- **Security Vulnerabilities:** Hardcoded credentials or PII leaks slipping past rapid agent iterations.
+- **Technical Debt:** Suboptimal performance patterns (e.g., N+1 queries) accumulating under the hood.
+
+**Aegis solves this by acting as a mathematical microkernel that governs your agents.** It intercepts code generation in real-time via the Model Context Protocol (MCP), validates modifications against your bespoke architectural rules, and rejects non-compliant code *before* the agent finishes its task. Aegis forces AI to self-correct and adhere strictly to your established software design patterns.
 
 ---
 

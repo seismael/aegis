@@ -70,8 +70,20 @@ class PolicyParser:
     Loads and validates rules from .aegis/rules/ directory with remote inheritance.
     """
 
-    def __init__(self, cache_dir: str | None = None):
-        self.cache_dir = cache_dir
+    def __init__(self, workspace_root: str | None = None, cache_dir: str | None = None):
+        self.workspace_root = workspace_root
+        from aegis.domain.policy.config import AegisConfig
+
+        if workspace_root:
+            self.config = AegisConfig.parse_yaml(
+                os.path.join(workspace_root, "aegis.yaml")
+            )
+            self.cache_dir = cache_dir or os.path.join(
+                workspace_root, ".aegis", ".cache"
+            )
+        else:
+            self.config = AegisConfig()
+            self.cache_dir = cache_dir
 
     def parse_rules(self, rules_path: str) -> list[Rule]:
         """

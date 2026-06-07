@@ -64,6 +64,7 @@ class AgentNativeInstaller:
 
     def _generate_mcp_json(self, workspace_path: Path) -> list[str]:
         import json
+
         errors = []
         aegis_dir = workspace_path / ".aegis"
         try:
@@ -74,12 +75,7 @@ class AgentNativeInstaller:
 
         mcp_json_path = aegis_dir / "mcp.json"
         config = {
-            "mcpServers": {
-                "aegis-kernel": {
-                    "command": "uvx",
-                    "args": ["aegis", "run"]
-                }
-            }
+            "mcpServers": {"aegis-kernel": {"command": "uvx", "args": ["aegis", "run"]}}
         }
         try:
             with open(mcp_json_path, "w", encoding="utf-8") as f:

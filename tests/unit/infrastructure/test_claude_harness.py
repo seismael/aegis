@@ -15,7 +15,9 @@ def test_claude_harness_install_new_config():
                 harness.install_local(home)
 
                 mocked_file()
-                mocked_file.assert_any_call(home / ".claude.json", "w", encoding="utf-8")
+                mocked_file.assert_any_call(
+                    home / ".claude.json", "w", encoding="utf-8"
+                )
 
 
 def test_claude_harness_name():

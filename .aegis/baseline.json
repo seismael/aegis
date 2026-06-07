@@ -1,135 +1,5168 @@
 [
   {
+    "file": "scratch/danger_file.py",
+    "line": 1,
+    "rule_id": "no-print",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/danger_file.py",
+    "line": 2,
+    "rule_id": "no-print",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/danger_file.py",
+    "line": 1,
+    "rule_id": "custom-no-print",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/danger_file.py",
+    "line": 2,
+    "rule_id": "custom-no-print",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/danger_file.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/danger_file.py",
+    "line": 2,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/danger_file.py",
+    "line": 1,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/danger_file.py",
+    "line": 2,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/dummy_service.py",
+    "line": 5,
+    "rule_id": "arch-command-query-separation",
+    "signature": "f1eeec6a158690a92c7a542d75816e60",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/dummy_service.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/dummy_service.py",
+    "line": 8,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/dummy_service.py",
+    "line": 2,
+    "rule_id": "style-consistent-imports",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/dummy_service.py",
+    "line": 3,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/dummy_service.py",
+    "line": 1,
+    "rule_id": "semantic-no-pii-exposure",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/dummy_service.py",
+    "line": 1,
+    "rule_id": "semantic-retry-policy",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/evil_file.py",
+    "line": 2,
+    "rule_id": "no-print",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/evil_file.py",
+    "line": 2,
+    "rule_id": "custom-no-print",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/evil_file.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/evil_file.py",
+    "line": 4,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/evil_file.py",
+    "line": 3,
+    "rule_id": "plugin-no-evil",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/plugin_test.py",
+    "line": 31,
+    "rule_id": "no-print",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/plugin_test.py",
+    "line": 31,
+    "rule_id": "no-print",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/plugin_test.py",
+    "line": 37,
+    "rule_id": "no-print",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/plugin_test.py",
+    "line": 31,
+    "rule_id": "custom-no-print",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/plugin_test.py",
+    "line": 37,
+    "rule_id": "custom-no-print",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/plugin_test.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/plugin_test.py",
+    "line": 12,
+    "rule_id": "style-line-length",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/plugin_test.py",
+    "line": 31,
+    "rule_id": "style-line-length",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/plugin_test.py",
+    "line": 44,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/plugin_test.py",
+    "line": 8,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/plugin_test.py",
+    "line": 31,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/plugin_test.py",
+    "line": 31,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/plugin_test.py",
+    "line": 5,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/plugin_test.py",
+    "line": 8,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/plugin_test.py",
+    "line": 10,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/query_service.py",
+    "line": 3,
+    "rule_id": "arch-command-query-separation",
+    "signature": "f72350f2415d7ecd4a345666b8abea00",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/query_service.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/query_service.py",
+    "line": 5,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/query_service.py",
+    "line": 4,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/query_service.py",
+    "line": 2,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/tree_sitter_test.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/tree_sitter_test.py",
+    "line": 22,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/tree_sitter_test.py",
+    "line": 13,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "scratch/tree_sitter_test.py",
+    "line": 11,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/__init__.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/cli/main.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/cli/main.py",
+    "line": 28,
+    "rule_id": "style-line-length",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/cli/main.py",
+    "line": 75,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/cli/main.py",
+    "line": 1,
+    "rule_id": "style-consistent-imports",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/cli/main.py",
+    "line": 4,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/cli/main.py",
+    "line": 12,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/cli/main.py",
+    "line": 17,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/cli/main.py",
+    "line": 36,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/cli/main.py",
+    "line": 63,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/cli/__init__.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/__init__.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/baseline.py",
+    "line": 15,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "a7dd6cd68172673a100929ac008b3317",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/baseline.py",
+    "line": 15,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "a7dd6cd68172673a100929ac008b3317",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/baseline.py",
+    "line": 15,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/baseline.py",
+    "line": 15,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/baseline.py",
+    "line": 25,
+    "rule_id": "arch-layer-naming",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/baseline.py",
+    "line": 15,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/baseline.py",
+    "line": 25,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/baseline.py",
+    "line": 10,
+    "rule_id": "design-repository-pattern",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/baseline.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/baseline.py",
+    "line": 226,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/baseline.py",
+    "line": 1,
+    "rule_id": "style-consistent-imports",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/baseline.py",
+    "line": 76,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/baseline.py",
+    "line": 12,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/baseline.py",
+    "line": 22,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/baseline.py",
+    "line": 30,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/baseline.py",
+    "line": 36,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/baseline.py",
+    "line": 46,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/baseline.py",
+    "line": 61,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/baseline.py",
+    "line": 64,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/baseline.py",
+    "line": 94,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/baseline.py",
+    "line": 115,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/baseline.py",
+    "line": 137,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/baseline.py",
+    "line": 151,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/baseline.py",
+    "line": 168,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/baseline.py",
+    "line": 184,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/constants.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/constants.py",
+    "line": 4,
+    "rule_id": "general-binary-artifacts",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/constants.py",
+    "line": 7,
+    "rule_id": "general-binary-artifacts",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/constants.py",
+    "line": 28,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 8,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "1295fc9f3e3f62dc97cd5e24e536f4c6",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 48,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "fd1d8cc8ffa630a27817910bfa46799a",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 35,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "9f70adafee2dac592fefce58d532356b",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 22,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "0f52d33fa01b3e5c71e6308b14039061",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 61,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "ea699b6586750505582d506e5de02eab",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 75,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "751c56027f802704a0c5411e54b9ebd2",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 83,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "1f1a8c95d60099c9371014023a27a698",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 90,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "0ed81d62cba44a9a646ca37b6a9f3182",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 8,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "1295fc9f3e3f62dc97cd5e24e536f4c6",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 48,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "fd1d8cc8ffa630a27817910bfa46799a",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 35,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "9f70adafee2dac592fefce58d532356b",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 22,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "0f52d33fa01b3e5c71e6308b14039061",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 61,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "ea699b6586750505582d506e5de02eab",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 75,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "751c56027f802704a0c5411e54b9ebd2",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 83,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "1f1a8c95d60099c9371014023a27a698",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 90,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "0ed81d62cba44a9a646ca37b6a9f3182",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 8,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 22,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "6a18d294abc7923d6469d7fc5661371b",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 48,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "6a18d294abc7923d6469d7fc5661371b",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 35,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "6a18d294abc7923d6469d7fc5661371b",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 61,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "6a18d294abc7923d6469d7fc5661371b",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 75,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 83,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 90,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "6a18d294abc7923d6469d7fc5661371b",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 8,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 22,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "6a18d294abc7923d6469d7fc5661371b",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 48,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "6a18d294abc7923d6469d7fc5661371b",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 35,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "6a18d294abc7923d6469d7fc5661371b",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 61,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "6a18d294abc7923d6469d7fc5661371b",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 75,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 83,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 90,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "6a18d294abc7923d6469d7fc5661371b",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 8,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 22,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 35,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 48,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 61,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 75,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 83,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 90,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 5,
+    "rule_id": "design-repository-pattern",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 94,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 5,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 19,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 27,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 32,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 40,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 45,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 53,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 58,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 67,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 72,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 80,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 87,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/ports.py",
+    "line": 91,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/prompt_synthesizer.py",
+    "line": 15,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "ffd35dc15904ede13553864ae4df2add",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/prompt_synthesizer.py",
+    "line": 15,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "ffd35dc15904ede13553864ae4df2add",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/prompt_synthesizer.py",
+    "line": 15,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "0ed81d62cba44a9a646ca37b6a9f3182",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/prompt_synthesizer.py",
+    "line": 15,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "0ed81d62cba44a9a646ca37b6a9f3182",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/prompt_synthesizer.py",
+    "line": 15,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/prompt_synthesizer.py",
+    "line": 10,
+    "rule_id": "design-repository-pattern",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/prompt_synthesizer.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/prompt_synthesizer.py",
+    "line": 130,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/prompt_synthesizer.py",
+    "line": 37,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/prompt_synthesizer.py",
+    "line": 12,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/prompt_synthesizer.py",
+    "line": 20,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/prompt_synthesizer.py",
+    "line": 23,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/prompt_synthesizer.py",
+    "line": 111,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/scoping.py",
+    "line": 199,
+    "rule_id": "arch-command-query-separation",
+    "signature": "52086e65e615bfc3e6ccf97f46a699be",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/scoping.py",
+    "line": 9,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/scoping.py",
+    "line": 6,
+    "rule_id": "design-repository-pattern",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/scoping.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/scoping.py",
+    "line": 268,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/scoping.py",
+    "line": 6,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/scoping.py",
+    "line": 17,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/scoping.py",
+    "line": 29,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/scoping.py",
+    "line": 51,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/scoping.py",
+    "line": 88,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/scoping.py",
+    "line": 140,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/scoping.py",
+    "line": 179,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/scoping.py",
+    "line": 189,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/scoping.py",
+    "line": 198,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/scorecard.py",
+    "line": 5,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/scorecard.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/scorecard.py",
+    "line": 24,
+    "rule_id": "style-line-length",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/scorecard.py",
+    "line": 47,
+    "rule_id": "style-line-length",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/scorecard.py",
+    "line": 50,
+    "rule_id": "style-line-length",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/scorecard.py",
+    "line": 62,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/scorecard.py",
+    "line": 50,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/scorecard.py",
+    "line": 50,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/scorecard.py",
+    "line": 2,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/scorecard.py",
+    "line": 8,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/scorecard.py",
+    "line": 12,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/scorecard.py",
+    "line": 52,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/service.py",
+    "line": 27,
+    "rule_id": "arch-layer-naming",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/service.py",
+    "line": 27,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/service.py",
+    "line": 16,
+    "rule_id": "design-repository-pattern",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/service.py",
+    "line": 308,
+    "rule_id": "design-null-object",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/service.py",
+    "line": 319,
+    "rule_id": "design-null-object",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/service.py",
+    "line": 322,
+    "rule_id": "design-null-object",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/service.py",
+    "line": 338,
+    "rule_id": "design-null-object",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/service.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/service.py",
+    "line": 353,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/service.py",
+    "line": 1,
+    "rule_id": "style-consistent-imports",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/service.py",
+    "line": 24,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/service.py",
+    "line": 32,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/service.py",
+    "line": 46,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/service.py",
+    "line": 167,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/service.py",
+    "line": 184,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/service.py",
+    "line": 192,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/service.py",
+    "line": 207,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/service.py",
+    "line": 257,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/service.py",
+    "line": 296,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/service.py",
+    "line": 339,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/service.py",
+    "line": 349,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/session.py",
+    "line": 7,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "2a6dff0162d11c037ea384148af6f641",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/session.py",
+    "line": 7,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "2a6dff0162d11c037ea384148af6f641",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/session.py",
+    "line": 7,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/session.py",
+    "line": 7,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/session.py",
+    "line": 14,
+    "rule_id": "arch-layer-naming",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/session.py",
+    "line": 7,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/session.py",
+    "line": 14,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/session.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/session.py",
+    "line": 31,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/session.py",
+    "line": 4,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/session.py",
+    "line": 11,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/session.py",
+    "line": 14,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/session.py",
+    "line": 16,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/session.py",
+    "line": 26,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/__init__.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/ast.py",
+    "line": 14,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "61abef726e0c30109e668fed4bb80898",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/ast.py",
+    "line": 14,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "61abef726e0c30109e668fed4bb80898",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/ast.py",
+    "line": 14,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "0f52d33fa01b3e5c71e6308b14039061",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/ast.py",
+    "line": 14,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "0f52d33fa01b3e5c71e6308b14039061",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/ast.py",
+    "line": 14,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/ast.py",
+    "line": 9,
+    "rule_id": "design-repository-pattern",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/ast.py",
+    "line": 134,
+    "rule_id": "design-null-object",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/ast.py",
+    "line": 147,
+    "rule_id": "design-null-object",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/ast.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/ast.py",
+    "line": 165,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/ast.py",
+    "line": 1,
+    "rule_id": "style-consistent-imports",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/ast.py",
+    "line": 11,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/ast.py",
+    "line": 18,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/ast.py",
+    "line": 41,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/ast.py",
+    "line": 126,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/ast.py",
+    "line": 147,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/graph.py",
+    "line": 13,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "7d1b971021a8a8317f381408d2c29df0",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/graph.py",
+    "line": 13,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "7d1b971021a8a8317f381408d2c29df0",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/graph.py",
+    "line": 13,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "9f70adafee2dac592fefce58d532356b",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/graph.py",
+    "line": 13,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "9f70adafee2dac592fefce58d532356b",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/graph.py",
+    "line": 13,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/graph.py",
+    "line": 7,
+    "rule_id": "design-repository-pattern",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/graph.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/graph.py",
+    "line": 271,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/graph.py",
+    "line": 1,
+    "rule_id": "style-consistent-imports",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/graph.py",
+    "line": 10,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/graph.py",
+    "line": 18,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/graph.py",
+    "line": 21,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/graph.py",
+    "line": 40,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/graph.py",
+    "line": 58,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/graph.py",
+    "line": 124,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/graph.py",
+    "line": 160,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/graph.py",
+    "line": 203,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/regex.py",
+    "line": 9,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "cd01e1d2aedac7ecd71c8430fcca2d30",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/regex.py",
+    "line": 9,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "cd01e1d2aedac7ecd71c8430fcca2d30",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/regex.py",
+    "line": 9,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "fd1d8cc8ffa630a27817910bfa46799a",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/regex.py",
+    "line": 9,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "fd1d8cc8ffa630a27817910bfa46799a",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/regex.py",
+    "line": 9,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/regex.py",
+    "line": 6,
+    "rule_id": "design-repository-pattern",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/regex.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/regex.py",
+    "line": 61,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/regex.py",
+    "line": 1,
+    "rule_id": "style-consistent-imports",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/regex.py",
+    "line": 6,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/regex.py",
+    "line": 10,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/regex.py",
+    "line": 13,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/regex.py",
+    "line": 43,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/regex.py",
+    "line": 53,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/semantic.py",
+    "line": 23,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "e5ebd78a0b4410392d7e4153f2b57a66",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/semantic.py",
+    "line": 23,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "e5ebd78a0b4410392d7e4153f2b57a66",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/semantic.py",
+    "line": 23,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "ea699b6586750505582d506e5de02eab",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/semantic.py",
+    "line": 23,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "ea699b6586750505582d506e5de02eab",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/semantic.py",
+    "line": 23,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/semantic.py",
+    "line": 20,
+    "rule_id": "design-repository-pattern",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/semantic.py",
+    "line": 83,
+    "rule_id": "style-line-length",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/semantic.py",
+    "line": 93,
+    "rule_id": "style-line-length",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/semantic.py",
+    "line": 94,
+    "rule_id": "style-line-length",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/semantic.py",
+    "line": 96,
+    "rule_id": "style-line-length",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/semantic.py",
+    "line": 97,
+    "rule_id": "style-line-length",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/semantic.py",
+    "line": 98,
+    "rule_id": "style-line-length",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/semantic.py",
+    "line": 100,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/semantic.py",
+    "line": 66,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/semantic.py",
+    "line": 20,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/semantic.py",
+    "line": 28,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/semantic.py",
+    "line": 31,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/semantic.py",
+    "line": 72,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/semantic.py",
+    "line": 1,
+    "rule_id": "semantic-no-pii-exposure",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/__init__.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/__init__.py",
+    "line": 6,
+    "rule_id": "struct-package-exports",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/analyzers/__init__.py",
+    "line": 6,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/interfaces.py",
+    "line": 7,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "85ff6d6169f9d34d4d8f80cbe3c383e6",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/interfaces.py",
+    "line": 7,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "85ff6d6169f9d34d4d8f80cbe3c383e6",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/interfaces.py",
+    "line": 7,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "0f52d33fa01b3e5c71e6308b14039061",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/interfaces.py",
+    "line": 7,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "0f52d33fa01b3e5c71e6308b14039061",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/interfaces.py",
+    "line": 7,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/interfaces.py",
+    "line": 4,
+    "rule_id": "design-repository-pattern",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/interfaces.py",
+    "line": 42,
+    "rule_id": "design-null-object",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/interfaces.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/interfaces.py",
+    "line": 50,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/interfaces.py",
+    "line": 4,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/interfaces.py",
+    "line": 14,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/interfaces.py",
+    "line": 17,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/interfaces.py",
+    "line": 24,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/interfaces.py",
+    "line": 33,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/interfaces.py",
+    "line": 42,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/interfaces.py",
+    "line": 46,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/registry.py",
+    "line": 15,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/registry.py",
+    "line": 10,
+    "rule_id": "design-repository-pattern",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/registry.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/registry.py",
+    "line": 78,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/registry.py",
+    "line": 1,
+    "rule_id": "style-consistent-imports",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/registry.py",
+    "line": 12,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/registry.py",
+    "line": 20,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/registry.py",
+    "line": 28,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/registry.py",
+    "line": 43,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/scaffold.py",
+    "line": 27,
+    "rule_id": "arch-no-todo",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/scaffold.py",
+    "line": 35,
+    "rule_id": "arch-no-todo",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/scaffold.py",
+    "line": 18,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/scaffold.py",
+    "line": 54,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/scaffold.py",
+    "line": 13,
+    "rule_id": "design-repository-pattern",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/scaffold.py",
+    "line": 75,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/scaffold.py",
+    "line": 5,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/scaffold.py",
+    "line": 5,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/scaffold.py",
+    "line": 51,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/scaffold.py",
+    "line": 66,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/scaffold.py",
+    "line": 16,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/scaffold.py",
+    "line": 19,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/scaffold.py",
+    "line": 38,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/scaffold.py",
+    "line": 46,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/scaffold.py",
+    "line": 51,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/scaffold.py",
+    "line": 57,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/__init__.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/__init__.py",
+    "line": 4,
+    "rule_id": "struct-package-exports",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/evaluation/plugins/__init__.py",
+    "line": 4,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/telemetry.py",
+    "line": 5,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "d1b04e511a48447e88a0a38f1f7a38e4",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/telemetry.py",
+    "line": 5,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "d1b04e511a48447e88a0a38f1f7a38e4",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/telemetry.py",
+    "line": 5,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "6a18d294abc7923d6469d7fc5661371b",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/telemetry.py",
+    "line": 5,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "6a18d294abc7923d6469d7fc5661371b",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/telemetry.py",
+    "line": 5,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/telemetry.py",
+    "line": 33,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/telemetry.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/telemetry.py",
+    "line": 88,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/telemetry.py",
+    "line": 65,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/telemetry.py",
+    "line": 67,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/telemetry.py",
+    "line": 69,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/telemetry.py",
+    "line": 72,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/telemetry.py",
+    "line": 75,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/telemetry.py",
+    "line": 2,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/telemetry.py",
+    "line": 8,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/telemetry.py",
+    "line": 18,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/telemetry.py",
+    "line": 27,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/telemetry.py",
+    "line": 30,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/telemetry.py",
+    "line": 38,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/telemetry.py",
+    "line": 46,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/telemetry.py",
+    "line": 49,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/telemetry.py",
+    "line": 57,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/telemetry.py",
+    "line": 60,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/telemetry.py",
+    "line": 83,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/__init__.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/exporters/local.py",
+    "line": 47,
+    "rule_id": "arch-command-query-separation",
+    "signature": "28b656206ec097cce3ce15d40e40ee10",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/exporters/local.py",
+    "line": 10,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "195db3165e3847e79f448248ada8cd80",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/exporters/local.py",
+    "line": 10,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "195db3165e3847e79f448248ada8cd80",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/exporters/local.py",
+    "line": 10,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "d1b04e511a48447e88a0a38f1f7a38e4",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/exporters/local.py",
+    "line": 10,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "d1b04e511a48447e88a0a38f1f7a38e4",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/exporters/local.py",
+    "line": 10,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/exporters/local.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/exporters/local.py",
+    "line": 82,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/exporters/local.py",
+    "line": 1,
+    "rule_id": "style-consistent-imports",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/exporters/local.py",
+    "line": 7,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/exporters/local.py",
+    "line": 11,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/exporters/local.py",
+    "line": 16,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/exporters/local.py",
+    "line": 27,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/exporters/local.py",
+    "line": 45,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/exporters/local.py",
+    "line": 66,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/exporters/local.py",
+    "line": 75,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/exporters/__init__.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/exporters/__init__.py",
+    "line": 3,
+    "rule_id": "struct-package-exports",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/observability/exporters/__init__.py",
+    "line": 3,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/config.py",
+    "line": 4,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "81e2076278fee90829aff72ee5da153e",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/config.py",
+    "line": 4,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "81e2076278fee90829aff72ee5da153e",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/config.py",
+    "line": 4,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/config.py",
+    "line": 4,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/config.py",
+    "line": 4,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/config.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/config.py",
+    "line": 22,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/config.py",
+    "line": 1,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/config.py",
+    "line": 11,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 7,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "666c80376fe5c4b54560279045ebea34",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 17,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "43406240c80d28c264e45ff5d5113810",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 37,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "15af0245c1c629d3298594ea108d6b48",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 27,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "a13b6f22add4cf63c64425ee10a51492",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 63,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "fb155730cd762c076186adb603386f5a",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 72,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "1d3d6e22ba7cdd8e597c427e8cf07b4b",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 151,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "8b86d06cd0d270487040ae1470fdebc0",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 7,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "666c80376fe5c4b54560279045ebea34",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 17,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "43406240c80d28c264e45ff5d5113810",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 37,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "15af0245c1c629d3298594ea108d6b48",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 27,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "a13b6f22add4cf63c64425ee10a51492",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 63,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "fb155730cd762c076186adb603386f5a",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 72,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "1d3d6e22ba7cdd8e597c427e8cf07b4b",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 151,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "8b86d06cd0d270487040ae1470fdebc0",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 7,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "a5a673d74357055554743ee6e3feaa8a",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 37,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "a5a673d74357055554743ee6e3feaa8a",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 63,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "a5a673d74357055554743ee6e3feaa8a",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 17,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "a5a673d74357055554743ee6e3feaa8a",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 27,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "a5a673d74357055554743ee6e3feaa8a",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 72,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 151,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 7,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "a5a673d74357055554743ee6e3feaa8a",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 37,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "a5a673d74357055554743ee6e3feaa8a",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 63,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "a5a673d74357055554743ee6e3feaa8a",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 17,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "a5a673d74357055554743ee6e3feaa8a",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 27,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "a5a673d74357055554743ee6e3feaa8a",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 72,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 151,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 7,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 17,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 27,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 37,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 63,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 72,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 151,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 188,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 153,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 4,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 14,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 24,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 34,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 60,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 69,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/models.py",
+    "line": 148,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack.py",
+    "line": 6,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "2622536f0ed477b525889ca6b66ccbdf",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack.py",
+    "line": 18,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "76a50b20d08e1cae385abc7dc9ffa6c2",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack.py",
+    "line": 30,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "74882fcfaf5b65ac962f845c5971ef92",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack.py",
+    "line": 6,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "2622536f0ed477b525889ca6b66ccbdf",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack.py",
+    "line": 18,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "76a50b20d08e1cae385abc7dc9ffa6c2",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack.py",
+    "line": 30,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "74882fcfaf5b65ac962f845c5971ef92",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack.py",
+    "line": 6,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack.py",
+    "line": 30,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack.py",
+    "line": 18,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack.py",
+    "line": 6,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack.py",
+    "line": 30,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack.py",
+    "line": 18,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack.py",
+    "line": 6,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack.py",
+    "line": 18,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack.py",
+    "line": 30,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack.py",
+    "line": 35,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack.py",
+    "line": 3,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack.py",
+    "line": 15,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack.py",
+    "line": 27,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack_manager.py",
+    "line": 22,
+    "rule_id": "arch-layer-naming",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack_manager.py",
+    "line": 22,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack_manager.py",
+    "line": 365,
+    "rule_id": "design-null-object",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack_manager.py",
+    "line": 374,
+    "rule_id": "design-null-object",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack_manager.py",
+    "line": 408,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack_manager.py",
+    "line": 3,
+    "rule_id": "style-consistent-imports",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack_manager.py",
+    "line": 5,
+    "rule_id": "style-consistent-imports",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack_manager.py",
+    "line": 9,
+    "rule_id": "style-consistent-imports",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack_manager.py",
+    "line": 94,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack_manager.py",
+    "line": 95,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack_manager.py",
+    "line": 101,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack_manager.py",
+    "line": 102,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack_manager.py",
+    "line": 102,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack_manager.py",
+    "line": 125,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack_manager.py",
+    "line": 156,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack_manager.py",
+    "line": 157,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack_manager.py",
+    "line": 157,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack_manager.py",
+    "line": 249,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack_manager.py",
+    "line": 260,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack_manager.py",
+    "line": 19,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack_manager.py",
+    "line": 28,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack_manager.py",
+    "line": 35,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack_manager.py",
+    "line": 50,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack_manager.py",
+    "line": 54,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack_manager.py",
+    "line": 75,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack_manager.py",
+    "line": 83,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack_manager.py",
+    "line": 146,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack_manager.py",
+    "line": 169,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack_manager.py",
+    "line": 225,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack_manager.py",
+    "line": 243,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack_manager.py",
+    "line": 299,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack_manager.py",
+    "line": 331,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack_manager.py",
+    "line": 335,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack_manager.py",
+    "line": 348,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack_manager.py",
+    "line": 360,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/pack_manager.py",
+    "line": 374,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/parser.py",
+    "line": 34,
+    "rule_id": "arch-command-query-separation",
+    "signature": "db6b76bd6ef947ab7c5bc24fc0a4c9fa",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/parser.py",
+    "line": 18,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/parser.py",
+    "line": 67,
+    "rule_id": "design-entity-identity",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/parser.py",
+    "line": 11,
+    "rule_id": "design-repository-pattern",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/parser.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/parser.py",
+    "line": 273,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/parser.py",
+    "line": 1,
+    "rule_id": "style-consistent-imports",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/parser.py",
+    "line": 3,
+    "rule_id": "style-consistent-imports",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/parser.py",
+    "line": 7,
+    "rule_id": "style-consistent-imports",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/parser.py",
+    "line": 25,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/parser.py",
+    "line": 123,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/parser.py",
+    "line": 129,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/parser.py",
+    "line": 148,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/parser.py",
+    "line": 158,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/parser.py",
+    "line": 181,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/parser.py",
+    "line": 185,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/parser.py",
+    "line": 15,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/parser.py",
+    "line": 21,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/parser.py",
+    "line": 27,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/parser.py",
+    "line": 33,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/parser.py",
+    "line": 64,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/parser.py",
+    "line": 71,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/parser.py",
+    "line": 76,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/parser.py",
+    "line": 145,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/parser.py",
+    "line": 189,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/parser.py",
+    "line": 201,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/parser.py",
+    "line": 261,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/parser.py",
+    "line": 1,
+    "rule_id": "semantic-retry-policy",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/domain/policy/__init__.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
     "file": "src/aegis/infrastructure/installer.py",
     "line": 61,
     "rule_id": "no-print",
     "signature": null,
-    "captured_at": "2026-06-07T09:54:11.079861+00:00"
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
   },
   {
     "file": "src/aegis/infrastructure/installer.py",
     "line": 63,
     "rule_id": "no-print",
     "signature": null,
-    "captured_at": "2026-06-07T09:54:11.079861+00:00"
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
   },
   {
     "file": "src/aegis/infrastructure/installer.py",
     "line": 87,
     "rule_id": "no-print",
     "signature": null,
-    "captured_at": "2026-06-07T09:54:11.079861+00:00"
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/installer.py",
+    "line": 61,
+    "rule_id": "custom-no-print",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/installer.py",
+    "line": 63,
+    "rule_id": "custom-no-print",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/installer.py",
+    "line": 87,
+    "rule_id": "custom-no-print",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/installer.py",
+    "line": 41,
+    "rule_id": "style-line-length",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/installer.py",
+    "line": 97,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/installer.py",
+    "line": 5,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/installer.py",
+    "line": 16,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/installer.py",
+    "line": 24,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/installer.py",
+    "line": 31,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/installer.py",
+    "line": 63,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/installer.py",
+    "line": 92,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/__init__.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/aider.py",
+    "line": 6,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "7e9a901488537366fd25574b9055ea0b",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/aider.py",
+    "line": 6,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "7e9a901488537366fd25574b9055ea0b",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/aider.py",
+    "line": 6,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "4647de28e80e33abc938be886f79f168",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/aider.py",
+    "line": 6,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "4647de28e80e33abc938be886f79f168",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
   },
   {
     "file": "src/aegis/infrastructure/harnesses/aider.py",
     "line": 24,
     "rule_id": "no-print",
     "signature": null,
-    "captured_at": "2026-06-07T09:54:11.079861+00:00"
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/aider.py",
+    "line": 24,
+    "rule_id": "custom-no-print",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/aider.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/aider.py",
+    "line": 31,
+    "rule_id": "style-line-length",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/aider.py",
+    "line": 37,
+    "rule_id": "style-line-length",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/aider.py",
+    "line": 37,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/aider.py",
+    "line": 3,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/aider.py",
+    "line": 7,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/aider.py",
+    "line": 9,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/aider.py",
+    "line": 28,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/aider.py",
+    "line": 33,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/base.py",
+    "line": 61,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "4647de28e80e33abc938be886f79f168",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/base.py",
+    "line": 61,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "4647de28e80e33abc938be886f79f168",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/base.py",
+    "line": 61,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "6a18d294abc7923d6469d7fc5661371b",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/base.py",
+    "line": 61,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "6a18d294abc7923d6469d7fc5661371b",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
   },
   {
     "file": "src/aegis/infrastructure/harnesses/base.py",
     "line": 90,
     "rule_id": "no-print",
     "signature": null,
-    "captured_at": "2026-06-07T09:54:11.079861+00:00"
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/base.py",
+    "line": 90,
+    "rule_id": "custom-no-print",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/base.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/base.py",
+    "line": 64,
+    "rule_id": "style-line-length",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/base.py",
+    "line": 77,
+    "rule_id": "style-line-length",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/base.py",
+    "line": 78,
+    "rule_id": "style-line-length",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/base.py",
+    "line": 98,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/base.py",
+    "line": 58,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/base.py",
+    "line": 62,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/base.py",
+    "line": 67,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/base.py",
+    "line": 72,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/base.py",
+    "line": 75,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/base.py",
+    "line": 96,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/claude.py",
+    "line": 12,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "69e12933ada512e8d50eeafd425d1990",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/claude.py",
+    "line": 12,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "69e12933ada512e8d50eeafd425d1990",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/claude.py",
+    "line": 12,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "4647de28e80e33abc938be886f79f168",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/claude.py",
+    "line": 12,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "4647de28e80e33abc938be886f79f168",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
   },
   {
     "file": "src/aegis/infrastructure/harnesses/claude.py",
     "line": 42,
     "rule_id": "no-print",
     "signature": null,
-    "captured_at": "2026-06-07T09:54:11.079861+00:00"
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
   },
   {
     "file": "src/aegis/infrastructure/harnesses/claude.py",
     "line": 69,
     "rule_id": "no-print",
     "signature": null,
-    "captured_at": "2026-06-07T09:54:11.079861+00:00"
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/claude.py",
+    "line": 42,
+    "rule_id": "custom-no-print",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/claude.py",
+    "line": 69,
+    "rule_id": "custom-no-print",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/claude.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/claude.py",
+    "line": 77,
+    "rule_id": "style-line-length",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/claude.py",
+    "line": 79,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/claude.py",
+    "line": 9,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/claude.py",
+    "line": 13,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/claude.py",
+    "line": 15,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/claude.py",
+    "line": 43,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/claude.py",
+    "line": 70,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/gemini.py",
+    "line": 10,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "3c7b09623bc20b9246cc45db9daf861c",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/gemini.py",
+    "line": 10,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "3c7b09623bc20b9246cc45db9daf861c",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/gemini.py",
+    "line": 10,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "4647de28e80e33abc938be886f79f168",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/gemini.py",
+    "line": 10,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "4647de28e80e33abc938be886f79f168",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
   },
   {
     "file": "src/aegis/infrastructure/harnesses/gemini.py",
     "line": 39,
     "rule_id": "no-print",
     "signature": null,
-    "captured_at": "2026-06-07T09:54:11.079861+00:00"
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/gemini.py",
+    "line": 39,
+    "rule_id": "custom-no-print",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/gemini.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/gemini.py",
+    "line": 51,
+    "rule_id": "style-line-length",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/gemini.py",
+    "line": 53,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/gemini.py",
+    "line": 7,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/gemini.py",
+    "line": 11,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/gemini.py",
+    "line": 13,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/gemini.py",
+    "line": 40,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/gemini.py",
+    "line": 44,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/infrastructure/harnesses/__init__.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/errors.py",
+    "line": 65,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/errors.py",
+    "line": 15,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/errors.py",
+    "line": 23,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/errors.py",
+    "line": 29,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/errors.py",
+    "line": 41,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/errors.py",
+    "line": 46,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 10,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "ae19dab14d181c49cb892b314c86cecc",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 56,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "86a56a7ee290bc5a9395307b75162df0",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 25,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "f5533bafa47b78e30671d5512c189847",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 47,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "be8dc5f66203ce0bb5a651d2b90f22c4",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 37,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "57055703c3ab5ed192f38827487c004c",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 64,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "acd06c2789cf7880a70b8a53e563cb21",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 78,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "52178ad7c291aea018908b7176313dce",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 88,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "e55c67fbc2cff7f59995d037dedf9a8d",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 97,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "f435b7bc168566d762127faf02dcbdce",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 106,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "f2dcc7a411e2cd8e7972adb8b5bf99fb",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 113,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "16c4040ad9278896362d11e7dc782996",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 10,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "ae19dab14d181c49cb892b314c86cecc",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 56,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "86a56a7ee290bc5a9395307b75162df0",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 25,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "f5533bafa47b78e30671d5512c189847",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 47,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "be8dc5f66203ce0bb5a651d2b90f22c4",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 37,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "57055703c3ab5ed192f38827487c004c",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 64,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "acd06c2789cf7880a70b8a53e563cb21",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 78,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "52178ad7c291aea018908b7176313dce",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 88,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "e55c67fbc2cff7f59995d037dedf9a8d",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 97,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "f435b7bc168566d762127faf02dcbdce",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 106,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "f2dcc7a411e2cd8e7972adb8b5bf99fb",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 113,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "16c4040ad9278896362d11e7dc782996",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 10,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 25,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 47,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 37,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 56,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 64,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 78,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 88,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 97,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 106,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 113,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 10,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 25,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 47,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 37,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 56,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 64,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 78,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 88,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 97,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 106,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 113,
+    "rule_id": "design-composition-over-inheritance",
+    "signature": "48b5b0730e863d66f0c8673f7ce1d362",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 127,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 7,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 22,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 34,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 44,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 53,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 61,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 75,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 85,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 94,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 103,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/models.py",
+    "line": 110,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
   },
   {
     "file": "src/aegis/kernel/server.py",
-    "line": 958,
-    "rule_id": "no-print",
-    "signature": null,
-    "captured_at": "2026-06-07T09:54:11.079861+00:00"
+    "line": 859,
+    "rule_id": "arch-command-query-separation",
+    "signature": "0358d020803f36bb186b9570b977acb2",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
   },
   {
     "file": "src/aegis/kernel/server.py",
-    "line": 962,
+    "line": 866,
+    "rule_id": "arch-command-query-separation",
+    "signature": "390f8fc24dae91da3b77d6118a0992a6",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 942,
+    "rule_id": "arch-command-query-separation",
+    "signature": "0206fb93b815ba90b67d7c86e90428c6",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 173,
+    "rule_id": "arch-command-query-separation",
+    "signature": "b886fdc61b2ec2c044d37bc1b13e17a6",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 339,
+    "rule_id": "arch-command-query-separation",
+    "signature": "7ca4a21dbde12fd53a1656d4fdbce804",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 634,
+    "rule_id": "arch-command-query-separation",
+    "signature": "3fab7382661a253e57a6a8b1b350b278",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 843,
+    "rule_id": "arch-command-query-separation",
+    "signature": "b3380fcf4b74f4332d87aeb9544dddbd",
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 994,
     "rule_id": "no-print",
     "signature": null,
-    "captured_at": "2026-06-07T09:54:11.079861+00:00"
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 998,
+    "rule_id": "no-print",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1022,
+    "rule_id": "no-print",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1025,
+    "rule_id": "no-print",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1027,
+    "rule_id": "no-print",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1030,
+    "rule_id": "no-print",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1035,
+    "rule_id": "no-print",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 994,
+    "rule_id": "custom-no-print",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 998,
+    "rule_id": "custom-no-print",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1022,
+    "rule_id": "custom-no-print",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1025,
+    "rule_id": "custom-no-print",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1027,
+    "rule_id": "custom-no-print",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1030,
+    "rule_id": "custom-no-print",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1035,
+    "rule_id": "custom-no-print",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 810,
+    "rule_id": "design-null-object",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 317,
+    "rule_id": "style-line-length",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 321,
+    "rule_id": "style-line-length",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 643,
+    "rule_id": "style-line-length",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 653,
+    "rule_id": "style-line-length",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 654,
+    "rule_id": "style-line-length",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 716,
+    "rule_id": "style-line-length",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 746,
+    "rule_id": "style-line-length",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 756,
+    "rule_id": "style-line-length",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 766,
+    "rule_id": "style-line-length",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 921,
+    "rule_id": "style-line-length",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 988,
+    "rule_id": "style-line-length",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1059,
+    "rule_id": "style-no-trailing-whitespace",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1,
+    "rule_id": "style-consistent-imports",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 157,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 169,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 257,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 506,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 513,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 522,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 581,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 586,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 653,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 662,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 674,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 689,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 717,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 737,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 747,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 757,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 767,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 785,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 971,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 980,
+    "rule_id": "style-consistent-quotes",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
   },
   {
     "file": "src/aegis/kernel/server.py",
     "line": 981,
-    "rule_id": "no-print",
+    "rule_id": "style-consistent-quotes",
     "signature": null,
-    "captured_at": "2026-06-07T09:54:11.079861+00:00"
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
   },
   {
     "file": "src/aegis/kernel/server.py",
-    "line": 983,
-    "rule_id": "no-print",
+    "line": 31,
+    "rule_id": "style-blank-lines",
     "signature": null,
-    "captured_at": "2026-06-07T09:54:11.079861+00:00"
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
   },
   {
     "file": "src/aegis/kernel/server.py",
-    "line": 986,
-    "rule_id": "no-print",
+    "line": 39,
+    "rule_id": "style-blank-lines",
     "signature": null,
-    "captured_at": "2026-06-07T09:54:11.079861+00:00"
-  },
-  {
-    "file": ".pytest_tmp/test_code_context_integration_0/service.py",
-    "line": 5,
-    "rule_id": "no-print",
-    "signature": null,
-    "captured_at": "2026-06-07T10:08:11.959198+00:00"
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
   },
   {
     "file": "src/aegis/kernel/server.py",
-    "line": 964,
-    "rule_id": "no-print",
+    "line": 117,
+    "rule_id": "style-blank-lines",
     "signature": null,
-    "captured_at": "2026-06-07T10:08:11.959198+00:00"
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 122,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 124,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 131,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 675,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 771,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 779,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 789,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 800,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 810,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 815,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 839,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 842,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 858,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 865,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 927,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 941,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 949,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 952,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 959,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
   },
   {
     "file": "src/aegis/kernel/server.py",
     "line": 968,
-    "rule_id": "no-print",
+    "rule_id": "style-blank-lines",
     "signature": null,
-    "captured_at": "2026-06-07T10:08:11.959198+00:00"
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
   },
   {
     "file": "src/aegis/kernel/server.py",
-    "line": 987,
-    "rule_id": "no-print",
+    "line": 977,
+    "rule_id": "style-blank-lines",
     "signature": null,
-    "captured_at": "2026-06-07T10:08:11.959198+00:00"
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
   },
   {
     "file": "src/aegis/kernel/server.py",
-    "line": 989,
-    "rule_id": "no-print",
+    "line": 982,
+    "rule_id": "style-blank-lines",
     "signature": null,
-    "captured_at": "2026-06-07T10:08:11.959198+00:00"
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
   },
   {
     "file": "src/aegis/kernel/server.py",
-    "line": 992,
-    "rule_id": "no-print",
+    "line": 988,
+    "rule_id": "style-blank-lines",
     "signature": null,
-    "captured_at": "2026-06-07T10:08:11.959198+00:00"
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1036,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/server.py",
+    "line": 1050,
+    "rule_id": "style-blank-lines",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/kernel/__init__.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
+  },
+  {
+    "file": "src/aegis/resources/__init__.py",
+    "line": 1,
+    "rule_id": "docs-module-docstring",
+    "signature": null,
+    "captured_at": "2026-06-07T18:14:42.418068+00:00"
   }
 ]

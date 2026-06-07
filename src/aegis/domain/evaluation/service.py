@@ -84,10 +84,15 @@ class EvaluationService:
         # File-level analysis (tree-sitter + regex + semantic + extra analyzers)
         if ts_rules or regex_rules or semantic_rules or self.extra_analyzers:
             for root, _, files in os.walk(root_dir):
+                rel_root = os.path.relpath(root, root_dir)
+                if rel_root != "." and any(
+                    x in rel_root.split(os.sep) for x in IGNORE_DIRS
+                ):
+                    continue
                 for file in files:
-                    file_path = os.path.join(root, file)
-                    if any(x in file_path.split(os.sep) for x in IGNORE_DIRS):
+                    if file in IGNORE_DIRS:
                         continue
+                    file_path = os.path.join(root, file)
 
                     try:
                         content = self._get_file_content(file_path)
