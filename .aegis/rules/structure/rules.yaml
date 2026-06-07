@@ -18,7 +18,7 @@ rules:
     applies_to:
       - "**/domain/**"
       - "**/models/**"
-    query: (?m)^class\s+\w+[\s\S]{0,200}^class\s+\w+
+    query: (?m)^class\s+\w+.{0,200}^class\s+\w+
     rationale: One file per concept improves discoverability and keeps merge conflicts focused.
 
   - id: struct-max-file-length

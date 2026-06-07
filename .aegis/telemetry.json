@@ -83,6 +83,214 @@
       "violation_count": 135,
       "active_violations": 135,
       "type": "check"
+    },
+    {
+      "timestamp": "2026-06-07T10:17:06.014366+00:00",
+      "violation_count": 6,
+      "active_violations": 6,
+      "type": "check"
+    },
+    {
+      "timestamp": "2026-06-07T10:17:07.630564+00:00",
+      "violation_count": 6,
+      "active_violations": 6,
+      "type": "check"
+    },
+    {
+      "timestamp": "2026-06-07T10:18:34.594273+00:00",
+      "violation_count": 6,
+      "active_violations": 6,
+      "type": "check"
+    },
+    {
+      "timestamp": "2026-06-07T10:18:35.385907+00:00",
+      "violation_count": 6,
+      "active_violations": 6,
+      "type": "check"
+    },
+    {
+      "timestamp": "2026-06-07T10:19:21.089988+00:00",
+      "violation_count": 6,
+      "active_violations": 6,
+      "type": "check"
+    },
+    {
+      "timestamp": "2026-06-07T10:19:22.233151+00:00",
+      "violation_count": 6,
+      "active_violations": 6,
+      "type": "check"
+    },
+    {
+      "timestamp": "2026-06-07T10:22:33.139641+00:00",
+      "violation_count": 25,
+      "active_violations": 12,
+      "type": "check"
+    },
+    {
+      "timestamp": "2026-06-07T10:23:37.434109+00:00",
+      "violation_count": 22,
+      "active_violations": 9,
+      "type": "check"
+    },
+    {
+      "timestamp": "2026-06-07T10:24:02.439455+00:00",
+      "violation_count": 22,
+      "active_violations": 9,
+      "type": "check"
+    },
+    {
+      "timestamp": "2026-06-07T10:24:47.497529+00:00",
+      "violation_count": 22,
+      "active_violations": 9,
+      "type": "check"
+    },
+    {
+      "timestamp": "2026-06-07T10:25:58.266418+00:00",
+      "violation_count": 26,
+      "active_violations": 13,
+      "type": "check"
+    },
+    {
+      "timestamp": "2026-06-07T10:26:21.432381+00:00",
+      "violation_count": 25,
+      "active_violations": 12,
+      "type": "check"
+    },
+    {
+      "timestamp": "2026-06-07T10:26:47.873408+00:00",
+      "violation_count": 34,
+      "active_violations": 21,
+      "type": "check"
+    },
+    {
+      "timestamp": "2026-06-07T10:32:16.486348+00:00",
+      "violation_count": 25,
+      "active_violations": 12,
+      "type": "check"
+    },
+    {
+      "timestamp": "2026-06-07T10:35:30.244667+00:00",
+      "violation_count": 33,
+      "active_violations": 20,
+      "type": "check"
+    },
+    {
+      "timestamp": "2026-06-07T10:36:02.709400+00:00",
+      "violation_count": 35,
+      "active_violations": 22,
+      "type": "check"
+    },
+    {
+      "timestamp": "2026-06-07T10:41:22.710163+00:00",
+      "violation_count": 7,
+      "active_violations": 7,
+      "type": "check"
+    },
+    {
+      "timestamp": "2026-06-07T10:41:32.720354+00:00",
+      "violation_count": 7,
+      "active_violations": 7,
+      "type": "check"
+    },
+    {
+      "timestamp": "2026-06-07T10:43:39.986085+00:00",
+      "violation_count": 36,
+      "active_violations": 23,
+      "type": "check"
+    },
+    {
+      "timestamp": "2026-06-07T10:44:26.401358+00:00",
+      "violation_count": 37,
+      "active_violations": 24,
+      "type": "check"
+    },
+    {
+      "timestamp": "2026-06-07T10:50:35.819045+00:00",
+      "violation_count": 10,
+      "active_violations": 2,
+      "type": "check"
+    },
+    {
+      "timestamp": "2026-06-07T10:50:35.832895+00:00",
+      "violation_count": 5,
+      "active_violations": 0,
+      "type": "check"
+    },
+    {
+      "timestamp": "2026-06-07T10:50:35.847110+00:00",
+      "violation_count": 15,
+      "active_violations": 15,
+      "type": "check"
+    },
+    {
+      "timestamp": "2026-06-07T10:51:20.804078+00:00",
+      "violation_count": 71,
+      "active_violations": 58,
+      "type": "check"
+    },
+    {
+      "timestamp": "2026-06-07T10:51:31.310590+00:00",
+      "violation_count": 71,
+      "active_violations": 58,
+      "type": "check"
+    },
+    {
+      "timestamp": "2026-06-07T10:52:20.803761+00:00",
+      "violation_count": 71,
+      "active_violations": 58,
+      "type": "check"
+    },
+    {
+      "timestamp": "2026-06-07T10:55:48.186128+00:00",
+      "violation_count": 71,
+      "active_violations": 62,
+      "type": "check"
+    },
+    {
+      "timestamp": "2026-06-07T10:56:11.634168+00:00",
+      "violation_count": 39,
+      "active_violations": 30,
+      "type": "check"
+    },
+    {
+      "timestamp": "2026-06-07T10:56:36.245420+00:00",
+      "violation_count": 39,
+      "active_violations": 30,
+      "type": "check"
+    },
+    {
+      "timestamp": "2026-06-07T10:57:12.968586+00:00",
+      "violation_count": 39,
+      "active_violations": 30,
+      "type": "check"
+    },
+    {
+      "timestamp": "2026-06-07T11:00:01.578471+00:00",
+      "violation_count": 483,
+      "active_violations": 474,
+      "type": "check"
+    }
+  ],
+  "remediations": [
+    {
+      "rule_id": "no-print",
+      "timestamp": "2026-06-07T10:50:35.857373+00:00"
+    },
+    {
+      "rule_id": "no-print",
+      "timestamp": "2026-06-07T10:50:35.868022+00:00"
+    },
+    {
+      "rule_id": "no-print",
+      "timestamp": "2026-06-07T10:50:35.877057+00:00"
+    },
+    {
+      "rule_id": "arch-layer-violation",
+      "timestamp": "2026-06-07T10:50:35.887249+00:00"
+    },
+    {
+      "rule_id": "arch-layer-naming",
+      "timestamp": "2026-06-07T10:50:35.897211+00:00"
     }
   ]
 }

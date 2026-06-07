@@ -111,15 +111,13 @@ class GraphAnalyzer(GraphAnalyzerInterface):
                 for node in ast.iter_child_nodes(tree):
                     if isinstance(node, ast.Import):
                         for alias in node.names:
-                            root_pkg = alias.name.split(".")[0]
-                            if root_pkg != module:
-                                adjacency[module].add(root_pkg)
+                            if alias.name != module:
+                                adjacency[module].add(alias.name)
                                 file_imports[module].append((node.lineno, alias.name))
                     elif isinstance(node, ast.ImportFrom):
                         if node.module:
-                            root_pkg = node.module.split(".")[0]
-                            if root_pkg != module:
-                                adjacency[module].add(root_pkg)
+                            if node.module != module:
+                                adjacency[module].add(node.module)
                                 file_imports[module].append((node.lineno, node.module))
 
         self._cache[root_dir] = (current_hash, (adjacency, file_imports))

@@ -9,12 +9,12 @@
       ],
       "custom_overrides": []
     },
-    "performance": {
-      "name": "performance",
+    "semantic": {
+      "name": "semantic",
       "version": "1.0.0",
-      "install_time": "2026-06-07T10:14:49.886528+00:00",
+      "install_time": "2026-06-07T10:22:21.565508+00:00",
       "files": [
-        "performance/rules.yaml"
+        "semantic/rules.yaml"
       ],
       "custom_overrides": []
     }

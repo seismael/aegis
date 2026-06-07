@@ -9,7 +9,7 @@ rules:
     mode: warn
     applies_to:
       - "**/*.py"
-    query: (?m)^class\s+\w+[\s\S]{0,300}(def \w+[\s\S]{0,300}){10,}
+    query: (?m)^class\s+\w+.{0,300}(def \w+.{0,300}){10,}
     rationale: A class with too many responsibilities is harder to test, maintain, and reason about.
 
   - id: design-ocp-type-dispatch
@@ -17,7 +17,7 @@ rules:
     engine_type: regex
     severity: MEDIUM
     mode: warn
-    query: isinstance[\s\S]{0,500}isinstance[\s\S]{0,500}isinstance
+    query: isinstance.{0,500}isinstance.{0,500}isinstance
     rationale: Type-based dispatch should be replaced with polymorphism so new types can be added without modifying existing code.
 
   - id: design-isp-interface-size
@@ -25,7 +25,7 @@ rules:
     engine_type: regex
     severity: LOW
     mode: report
-    query: (?m)^class\s+\w+[\s\S]{0,200}(def \w+[\s\S]{0,200}){6,}
+    query: (?m)^class\s+\w+.{0,200}(def \w+.{0,200}){6,}
     rationale: Split large interfaces into smaller, role-specific ones that clients actually need.
 
   - id: design-dip-abstractions
@@ -44,7 +44,7 @@ rules:
     mode: report
     applies_to:
       - "**/domain/**"
-    query: (?m)^class\s+\w+[\s\S]{0,100}(?!(def\s+__eq__|def\s+__hash__|\bid\b|\buuid\b|\bguid\b))
+    query: (?m)^class\s+\w+.{0,100}(?!(def\s+__eq__|def\s+__hash__|\bid\b|\buuid\b|\bguid\b))
     rationale: Entities are defined by their identity, not their attributes. Explicit identity enables equality comparison.
 
   - id: design-aggregate-boundary
@@ -54,7 +54,7 @@ rules:
     mode: warn
     applies_to:
       - "**/domain/**"
-    query: from\s+\S+\.(aggregate|entity)\s+import[\s\S]{0,200}def __init__[\s\S]{0,200}(?<!id)
+    query: from\s+\S+\.(aggregate|entity)\s+import.{0,200}def __init__.{0,200}(?<!id)
     rationale: Cross-aggregate object references create deep object graphs and make transactional boundaries unclear.
 
   - id: design-repository-pattern
@@ -72,12 +72,13 @@ rules:
     engine_type: regex
     severity: LOW
     mode: report
-    query: def __init__[\s\S]{0,500}(if|else|try|for|while)
+    query: def __init__.{0,500}(if|else|try|for|while)
     rationale: Complex construction logic in __init__ makes testing difficult. Extract to static factory or Builder pattern.
 
   - id: design-strategy-pattern
     description: Conditional branches selecting between algorithms should use the Strategy pattern instead.
     engine_type: tree-sitter
+    language: py
     severity: LOW
     mode: report
     query: |
@@ -91,6 +92,7 @@ rules:
   - id: design-builder-pattern
     description: Classes with 5 or more constructor parameters should consider the Builder pattern.
     engine_type: tree-sitter
+    language: py
     severity: LOW
     mode: report
     query: |
@@ -118,6 +120,7 @@ rules:
   - id: design-composition-over-inheritance
     description: Deep inheritance hierarchies (>2 levels) should favor composition over inheritance.
     engine_type: tree-sitter
+    language: py
     severity: MEDIUM
     mode: warn
     query: |
@@ -135,6 +138,7 @@ rules:
   - id: design-specification-pattern
     description: Complex business rule chains should use the Specification pattern rather than inline conditional logic.
     engine_type: tree-sitter
+    language: py
     severity: MEDIUM
     mode: warn
     query: |

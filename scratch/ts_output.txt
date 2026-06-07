@@ -1,0 +1,464 @@
+**AEGIS ARCHITECTURAL GOVERNANCE INTERVENTION**
+
+Your previous code generation violated the project's strict architectural invariants. You are required to immediately refactor the following files before proceeding.
+
+### Violation in `scratch/danger_file.py` (Line 1)
+- **Rule ID:** `no-print` [HIGH]
+- **Description:** No hardcoded print statements in domain logic
+- **Enforcement Mode:** block
+
+**Code Context:**
+```
+>    1 | print('This is fine')
+     2 | print('DANGER level maximum!')
+
+```
+
+### Violation in `scratch/danger_file.py` (Line 2)
+- **Rule ID:** `no-print` [HIGH]
+- **Description:** No hardcoded print statements in domain logic
+- **Enforcement Mode:** block
+
+**Code Context:**
+```
+     1 | print('This is fine')
+>    2 | print('DANGER level maximum!')
+
+```
+
+### Violation in `scratch/plugin_test.py` (Line 31)
+- **Rule ID:** `no-print` [HIGH]
+- **Description:** No hardcoded print statements in domain logic
+- **Enforcement Mode:** block
+
+**Code Context:**
+```
+    26 | async def main():
+    27 |     root = "c:/dev/projects/aegis"
+    28 |     
+    29 |     # Write a test file
+    30 |     target_file = Path(root) / "scratch" / "danger_file.py"
+>   31 |     target_file.write_text("print('This is fine')\nprint('DANGER level maximum!')\n", encoding="utf-8")
+    32 |     
+    33 |     kernel = AegisKernel(workspace_root=root)
+    34 |     
+    35 |     if kernel.evaluation:
+    36 |         kernel.evaluation.extra_analyzers.append(MockPluginAnalyzer(root))
+
+```
+
+### Violation in `scratch/plugin_test.py` (Line 31)
+- **Rule ID:** `no-print` [HIGH]
+- **Description:** No hardcoded print statements in domain logic
+- **Enforcement Mode:** block
+
+**Code Context:**
+```
+    26 | async def main():
+    27 |     root = "c:/dev/projects/aegis"
+    28 |     
+    29 |     # Write a test file
+    30 |     target_file = Path(root) / "scratch" / "danger_file.py"
+>   31 |     target_file.write_text("print('This is fine')\nprint('DANGER level maximum!')\n", encoding="utf-8")
+    32 |     
+    33 |     kernel = AegisKernel(workspace_root=root)
+    34 |     
+    35 |     if kernel.evaluation:
+    36 |         kernel.evaluation.extra_analyzers.append(MockPluginAnalyzer(root))
+
+```
+
+### Violation in `scratch/plugin_test.py` (Line 37)
+- **Rule ID:** `no-print` [HIGH]
+- **Description:** No hardcoded print statements in domain logic
+- **Enforcement Mode:** block
+
+**Code Context:**
+```
+    32 |     
+    33 |     kernel = AegisKernel(workspace_root=root)
+    34 |     
+    35 |     if kernel.evaluation:
+    36 |         kernel.evaluation.extra_analyzers.append(MockPluginAnalyzer(root))
+>   37 |         print("Mock plugin injected.")
+    38 |         
+    39 |     res = await kernel.check_architecture(["scratch/danger_file.py"])
+    40 |     with open("scratch/plugin_test_output.txt", "w", encoding="utf-8") as f:
+    41 |         f.write(res)
+    42 | 
+
+```
+
+### Violation in `scratch/semantic_test.py` (Line 9)
+- **Rule ID:** `no-print` [HIGH]
+- **Description:** No hardcoded print statements in domain logic
+- **Enforcement Mode:** block
+
+**Code Context:**
+```
+     4 | 
+     5 | async def main():
+     6 |     root = "c:/dev/projects/aegis"
+     7 |     kernel = AegisKernel(workspace_root=root)
+     8 |     
+>    9 |     print("\n=== 1. Inject Semantic Violation ===")
+    10 |     target_file = Path(root) / "scratch" / "dummy_service.py"
+    11 |     target_file.write_text("""
+    12 | import requests
+    13 | import logging
+    14 | 
+
+```
+
+### Violation in `scratch/semantic_test.py` (Line 20)
+- **Rule ID:** `no-print` [HIGH]
+- **Description:** No hardcoded print statements in domain logic
+- **Enforcement Mode:** block
+
+**Code Context:**
+```
+    15 | def fetch_user_data(user_id: str, SSN: str):
+    16 |     logging.info(f"Fetching data for {user_id} with SSN: {SSN}")
+    17 |     response = requests.get(f"https://api.example.com/users/{user_id}")
+    18 |     return response.json()
+    19 | """, encoding="utf-8")
+>   20 |     print(f"Created {target_file}")
+    21 | 
+    22 |     print("\n=== 2. init_governance (semantic) ===")
+    23 |     res = await kernel.init_governance(target_packs=["semantic"])
+    24 |     with open("scratch/semantic_test_output.txt", "w", encoding="utf-8") as f:
+    25 |         f.write(f"=== init ===\n{res}\n")
+
+```
+
+### Violation in `scratch/semantic_test.py` (Line 22)
+- **Rule ID:** `no-print` [HIGH]
+- **Description:** No hardcoded print statements in domain logic
+- **Enforcement Mode:** block
+
+**Code Context:**
+```
+    17 |     response = requests.get(f"https://api.example.com/users/{user_id}")
+    18 |     return response.json()
+    19 | """, encoding="utf-8")
+    20 |     print(f"Created {target_file}")
+    21 | 
+>   22 |     print("\n=== 2. init_governance (semantic) ===")
+    23 |     res = await kernel.init_governance(target_packs=["semantic"])
+    24 |     with open("scratch/semantic_test_output.txt", "w", encoding="utf-8") as f:
+    25 |         f.write(f"=== init ===\n{res}\n")
+    26 | 
+    27 |     print("\n=== 3. check_architecture ===")
+
+```
+
+### Violation in `scratch/semantic_test.py` (Line 27)
+- **Rule ID:** `no-print` [HIGH]
+- **Description:** No hardcoded print statements in domain logic
+- **Enforcement Mode:** block
+
+**Code Context:**
+```
+    22 |     print("\n=== 2. init_governance (semantic) ===")
+    23 |     res = await kernel.init_governance(target_packs=["semantic"])
+    24 |     with open("scratch/semantic_test_output.txt", "w", encoding="utf-8") as f:
+    25 |         f.write(f"=== init ===\n{res}\n")
+    26 | 
+>   27 |     print("\n=== 3. check_architecture ===")
+    28 |     res2 = await kernel.check_architecture(["scratch/dummy_service.py"])
+    29 |     with open("scratch/semantic_test_output.txt", "a", encoding="utf-8") as f:
+    30 |         f.write(f"\n=== check ===\n{res2}\n")
+    31 | 
+    32 |     print("\n=== 4. fetch_rubric ===")
+
+```
+
+### Violation in `scratch/semantic_test.py` (Line 32)
+- **Rule ID:** `no-print` [HIGH]
+- **Description:** No hardcoded print statements in domain logic
+- **Enforcement Mode:** block
+
+**Code Context:**
+```
+    27 |     print("\n=== 3. check_architecture ===")
+    28 |     res2 = await kernel.check_architecture(["scratch/dummy_service.py"])
+    29 |     with open("scratch/semantic_test_output.txt", "a", encoding="utf-8") as f:
+    30 |         f.write(f"\n=== check ===\n{res2}\n")
+    31 | 
+>   32 |     print("\n=== 4. fetch_rubric ===")
+    33 |     res3 = await kernel.fetch_rubric(target_file="scratch/dummy_service.py")
+    34 |     with open("scratch/semantic_test_output.txt", "a", encoding="utf-8") as f:
+    35 |         f.write(f"\n=== fetch_rubric ===\n{res3}\n")
+    36 | 
+    37 | if __name__ == "__main__":
+
+```
+
+### Violation in `scratch/ts_ast.py` (Line 20)
+- **Rule ID:** `no-print` [HIGH]
+- **Description:** No hardcoded print statements in domain logic
+- **Enforcement Mode:** block
+
+**Code Context:**
+```
+    15 |         (#match? @name "^(get_|find_|query_|fetch_|read_)"))
+    16 |     """
+    17 |     try:
+    18 |         query = PY_LANGUAGE.query(query_str)
+    19 |         captures = query.captures(tree.root_node)
+>   20 |         print("Original Query Captures:", captures)
+    21 |     except Exception as e:
+    22 |         print("Original Query Error:", e)
+    23 | 
+    24 |     query_str3 = """
+    25 |       (function_definition
+
+```
+
+### Violation in `scratch/ts_ast.py` (Line 22)
+- **Rule ID:** `no-print` [HIGH]
+- **Description:** No hardcoded print statements in domain logic
+- **Enforcement Mode:** block
+
+**Code Context:**
+```
+    17 |     try:
+    18 |         query = PY_LANGUAGE.query(query_str)
+    19 |         captures = query.captures(tree.root_node)
+    20 |         print("Original Query Captures:", captures)
+    21 |     except Exception as e:
+>   22 |         print("Original Query Error:", e)
+    23 | 
+    24 |     query_str3 = """
+    25 |       (function_definition
+    26 |         name: (identifier) @name
+    27 |         body: (block
+
+```
+
+### Violation in `scratch/ts_ast.py` (Line 36)
+- **Rule ID:** `no-print` [HIGH]
+- **Description:** No hardcoded print statements in domain logic
+- **Enforcement Mode:** block
+
+**Code Context:**
+```
+    31 |         (#match? @name "^(get_|find_|query_|fetch_|read_)"))
+    32 |     """
+    33 |     try:
+    34 |         query3 = PY_LANGUAGE.query(query_str3)
+    35 |         captures3 = query3.captures(tree.root_node)
+>   36 |         print("Query 3 Captures:", captures3)
+    37 |     except Exception as e:
+    38 |         print("Query 3 Error:", e)
+    39 | 
+    40 | get_ast("""
+    41 | class QueryService:
+
+```
+
+### Violation in `scratch/ts_ast.py` (Line 38)
+- **Rule ID:** `no-print` [HIGH]
+- **Description:** No hardcoded print statements in domain logic
+- **Enforcement Mode:** block
+
+**Code Context:**
+```
+    33 |     try:
+    34 |         query3 = PY_LANGUAGE.query(query_str3)
+    35 |         captures3 = query3.captures(tree.root_node)
+    36 |         print("Query 3 Captures:", captures3)
+    37 |     except Exception as e:
+>   38 |         print("Query 3 Error:", e)
+    39 | 
+    40 | get_ast("""
+    41 | class QueryService:
+    42 |     def get_user_data(self, user_id):
+    43 |         self.last_accessed = user_id
+
+```
+
+### Violation in `scratch/ts_ast_2.py` (Line 19)
+- **Rule ID:** `no-print` [HIGH]
+- **Description:** No hardcoded print statements in domain logic
+- **Enforcement Mode:** block
+
+**Code Context:**
+```
+    14 |             (assignment)))
+    15 |         (#match? @name "^(get_|find_|query_|fetch_|read_)"))
+    16 |     """
+    17 |     try:
+    18 |         query = Query(PY_LANGUAGE, query_str)
+>   19 |         print("Query parsed!")
+    20 |     except Exception as e:
+    21 |         print("Query failed to parse:", e)
+    22 |         return
+    23 | 
+    24 |     try:
+
+```
+
+### Violation in `scratch/ts_ast_2.py` (Line 21)
+- **Rule ID:** `no-print` [HIGH]
+- **Description:** No hardcoded print statements in domain logic
+- **Enforcement Mode:** block
+
+**Code Context:**
+```
+    16 |     """
+    17 |     try:
+    18 |         query = Query(PY_LANGUAGE, query_str)
+    19 |         print("Query parsed!")
+    20 |     except Exception as e:
+>   21 |         print("Query failed to parse:", e)
+    22 |         return
+    23 | 
+    24 |     try:
+    25 |         cursor = QueryCursor(query)
+    26 |         captures = cursor.captures(tree.root_node)
+
+```
+
+### Violation in `scratch/ts_ast_2.py` (Line 27)
+- **Rule ID:** `no-print` [HIGH]
+- **Description:** No hardcoded print statements in domain logic
+- **Enforcement Mode:** block
+
+**Code Context:**
+```
+    22 |         return
+    23 | 
+    24 |     try:
+    25 |         cursor = QueryCursor(query)
+    26 |         captures = cursor.captures(tree.root_node)
+>   27 |         print("Query 1 Captures:", captures)
+    28 |     except Exception as e:
+    29 |         print("Query 1 Error:", type(e).__name__, e)
+    30 | 
+    31 | get_ast("""
+    32 | class QueryService:
+
+```
+
+### Violation in `scratch/ts_ast_2.py` (Line 29)
+- **Rule ID:** `no-print` [HIGH]
+- **Description:** No hardcoded print statements in domain logic
+- **Enforcement Mode:** block
+
+**Code Context:**
+```
+    24 |     try:
+    25 |         cursor = QueryCursor(query)
+    26 |         captures = cursor.captures(tree.root_node)
+    27 |         print("Query 1 Captures:", captures)
+    28 |     except Exception as e:
+>   29 |         print("Query 1 Error:", type(e).__name__, e)
+    30 | 
+    31 | get_ast("""
+    32 | class QueryService:
+    33 |     def get_user_data(self, user_id):
+    34 |         self.last_accessed = user_id
+
+```
+
+### Violation in `src/aegis/domain/evaluation/analyzers/ast.py` (Line 53)
+- **Rule ID:** `no-print` [HIGH]
+- **Description:** No hardcoded print statements in domain logic
+- **Enforcement Mode:** block
+
+**Code Context:**
+```
+    48 | 
+    49 |         ext = file_path.split(".")[-1].lower()
+    50 | 
+    51 |         # Filter rules by language
+    52 |         relevant_rules = [r for r in rules if r.language == ext]
+>   53 |         print(f"AST Analyzer evaluating {len(relevant_rules)} rules for {file_path}")
+    54 |         if not relevant_rules:
+    55 |             return []
+    56 | 
+    57 |         language = self._get_language(ext)
+    58 |         if not language:
+
+```
+
+### Violation in `src/aegis/domain/evaluation/analyzers/ast.py` (Line 79)
+- **Rule ID:** `no-print` [HIGH]
+- **Description:** No hardcoded print statements in domain logic
+- **Enforcement Mode:** block
+
+**Code Context:**
+```
+    74 |                     query = self._query_cache[rule.query]
+    75 |                     cursor = QueryCursor(query)
+    76 |                     captures = cursor.captures(tree.root_node)
+    77 | 
+    78 |                     for _name, nodes in captures.items():
+>   79 |                         print(f"Capture found for {rule.id}: {_name} -> {nodes}")
+    80 |                         for node in nodes:
+    81 |                             violations.append(
+    82 |                                 self._create_violation(file_path, node, rule)
+    83 |                             )
+    84 | 
+
+```
+
+### Violation in `src/aegis/domain/evaluation/plugins/scaffold.py` (Line 27)
+- **Rule ID:** `arch-no-todo` [LOW]
+- **Description:** TODO comments indicate incomplete work.
+- **Enforcement Mode:** report
+- **Architectural Rationale:** Incomplete work should be tracked in your issue tracker, not in code comments.
+
+**Code Context:**
+```
+    22 |         self, file_path: str, content: str, rules: list[Rule]
+    23 |     ) -> list[ArchitecturalViolation]:
+    24 |         """Analyze a single file and return violations."""
+    25 |         violations = []
+    26 |         for i, line in enumerate(content.splitlines(), start=1):
+>   27 |             if "TODO" in line and rules:
+    28 |                 for r in rules:
+    29 |                     if r.id == "no-todo":
+    30 |                         violations.append(
+    31 |                             ArchitecturalViolation(
+    32 |                                 file=file_path,
+
+```
+
+### Violation in `src/aegis/domain/evaluation/plugins/scaffold.py` (Line 35)
+- **Rule ID:** `arch-no-todo` [LOW]
+- **Description:** TODO comments indicate incomplete work.
+- **Enforcement Mode:** report
+- **Architectural Rationale:** Incomplete work should be tracked in your issue tracker, not in code comments.
+
+**Code Context:**
+```
+    30 |                         violations.append(
+    31 |                             ArchitecturalViolation(
+    32 |                                 file=file_path,
+    33 |                                 line=i,
+    34 |                                 rule_id=r.id,
+>   35 |                                 description="TODO comment found",
+    36 |                             )
+    37 |                         )
+    38 |         return violations
+    39 | 
+    40 | 
+
+```
+
+**Execution Directive:**
+1. Read the specified lines in the affected files.
+2. Refactor the code to eliminate the violation while preserving all existing business logic.
+3. Call `check_architecture` with `execution_depth` incremented by 1 from your prior call. If depth exceeds 3, proceed with remaining violations flagged for manual review.
+
+### 🤝 Coordination Info
+- Handoff Notes: EXCEPTION GRANTED: no-print because Needed for battle test debugging
+EXCEPTION GRANTED: no-print because Needed for battle test debugging
+EXCEPTION GRANTED: no-print because Needed for battle test debugging
+EXCEPTION GRANTED: no-print because Needed for battle test debugging
+EXCEPTION GRANTED: no-print because Needed for battle test debugging
+EXCEPTION GRANTED: no-print because Needed for battle test debugging
+EXCEPTION GRANTED: no-print because Needed for battle test debugging
+EXCEPTION GRANTED: no-print because Needed for battle test debugging

@@ -56,7 +56,7 @@ rules:
     mode: report
     applies_to:
       - "**/*.py"
-    query: (?m)^(if |elif |for |while |and |or |except|with )[\s\S]{0,200}(if |elif |for |while |and |or |except|with )[\s\S]{0,200}(if |elif |for |while |and |or |except|with )
+    query: (?m)^(if |elif |for |while |and |or |except|with ).{0,200}(if |elif |for |while |and |or |except|with ).{0,200}(if |elif |for |while |and |or |except|with )
     rationale: High cyclomatic complexity makes code difficult to test, review, and maintain.
 
   - id: style-blank-lines

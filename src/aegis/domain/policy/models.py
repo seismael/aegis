@@ -57,6 +57,7 @@ class RuleCategory(StrEnum):
     CLOUD_ISOLATION = "cloud-isolation"
     GO = "go"
     RUST = "rust"
+    JAVASCRIPT_TYPESCRIPT = "javascript-typescript"
 
 
 class EngineType(StrEnum):
@@ -135,6 +136,10 @@ class CategoryPhaseMapping(BaseModel):
                 EvaluationPhase.ON_DEMAND,
             ],
             RuleCategory.RUST: [
+                EvaluationPhase.CI,
+                EvaluationPhase.ON_DEMAND,
+            ],
+            RuleCategory.JAVASCRIPT_TYPESCRIPT: [
                 EvaluationPhase.CI,
                 EvaluationPhase.ON_DEMAND,
             ],

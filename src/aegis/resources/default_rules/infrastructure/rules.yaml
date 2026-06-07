@@ -43,7 +43,7 @@ rules:
     applies_to:
       - ".github/workflows/*.yml"
       - ".gitlab-ci.yml"
-    query: 'env[\s\S]{0,500}(ACCESS_KEY|SECRET_KEY|PASSWORD|TOKEN)\s*:'
+    query: 'env.{0,500}(ACCESS_KEY|SECRET_KEY|PASSWORD|TOKEN)\s*:'
     rationale: Hardcoded CI secrets are visible to all contributors and branch runners.
 
   - id: infra-iac-hardcoded

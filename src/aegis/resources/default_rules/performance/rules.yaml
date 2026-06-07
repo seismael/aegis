@@ -4,28 +4,42 @@
 rules:
   - id: perf-repeated-computation
     description: Repeated len() calls inside loop bodies may indicate a cache opportunity.
-    engine_type: regex
+    engine_type: tree-sitter
+    language: py
     severity: LOW
     mode: report
     applies_to:
       - "**/*.py"
-    query: for\s+\w+\s+in[\s\S]{0,100}?len\([\s\S]{0,50}?len\(
+    query: |
+      (for_statement
+        body: (block
+          (expression_statement
+            (call
+              function: (identifier) @len_call))
+          (#eq? @len_call "len"))) @violation
     rationale: Caching repeated len() results outside the loop avoids unnecessary O(1) calls.
 
   - id: perf-large-data-copies
     description: Full list slices [:] in loops create unnecessary O(n²) copies.
-    engine_type: regex
+    engine_type: tree-sitter
+    language: py
     severity: LOW
     mode: report
-    query: for\s+\w+\s+in[\s\S]{0,100}?\[:\]
+    query: |
+      (for_statement
+        body: (block
+          (slice))) @violation
     rationale: Full list copies in loops create quadratic memory and time overhead.
 
   - id: perf-sync-io-async
     description: Synchronous IO calls in async functions block the event loop.
-    engine_type: regex
+    engine_type: tree-sitter
+    language: py
     severity: HIGH
     mode: warn
-    query: async\s+def[\s\S]{0,500}?\b(requests\.|open\(|time\.sleep|subprocess\.)
+    query: |
+      (function_definition
+        (identifier) @async_func)
     rationale: Blocking calls in async functions defeat the purpose of async and hang the event loop.
 
   - id: perf-unbounded-append
@@ -33,7 +47,7 @@ rules:
     engine_type: regex
     severity: LOW
     mode: report
-    query: \.\s*append\s*\([\s\S]{0,200}?\.\s*append[\s\S]{0,200}?\.\s*append
+    query: \.\s*append\s*\(
     rationale: Consider pre-sizing or using list comprehensions when building collections.
 
   - id: perf-string-concat
@@ -41,7 +55,7 @@ rules:
     engine_type: regex
     severity: LOW
     mode: report
-    query: for\s+\w+\s+in[\s\S]{0,100}?\+=\s*['\"]
+    query: \+=\s*['\"]
     rationale: Repeated string concatenation with += creates O(n²) copies; join() is O(n).
 
   - id: perf-n-plus-1
@@ -49,5 +63,5 @@ rules:
     engine_type: regex
     severity: MEDIUM
     mode: warn
-    query: for\s+\w+\s+in[\s\S]{0,500}?\b(\.get\(|\.filter\(|\.query|SELECT\s+)
+    query: \b(\.get\(|\.filter\(|\.query|SELECT\s+)
     rationale: N+1 query patterns severely degrade performance; use batch loading or eager fetching.

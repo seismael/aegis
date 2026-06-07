@@ -1,12 +1,5 @@
 [
   {
-    "file": "src/aegis/domain/evaluation/baseline.py",
-    "line": 227,
-    "rule_id": "no-print",
-    "signature": null,
-    "captured_at": "2026-06-07T09:54:11.079861+00:00"
-  },
-  {
     "file": "src/aegis/infrastructure/installer.py",
     "line": 61,
     "rule_id": "no-print",

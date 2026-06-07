@@ -73,6 +73,7 @@ rules:
   - id: test-aaa-pattern
     description: Tests should follow Arrange-Act-Assert structure with clear phase separation.
     engine_type: tree-sitter
+    language: py
     severity: LOW
     mode: report
     applies_to:

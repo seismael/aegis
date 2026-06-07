@@ -224,3 +224,5 @@ class BaselineManager:
             if before != after:
                 self._atomic_write(kept)
         return before - after
+
+

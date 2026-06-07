@@ -10,3 +10,21 @@ rules:
   applies_to:
   - '**/*.py'
   language: python
+- id: custom-no-print
+  description: Custom no print rule
+  category: best-practices
+  engine_type: regex
+  severity: HIGH
+  mode: block
+  query: print\(.*\)
+  regex_pattern: print\(.*\)
+  language: python
+- id: no-evil
+  description: Evil keyword rule
+  category: security
+  engine_type: custom
+  severity: CRITICAL
+  mode: block
+  applies_to:
+  - '**/*.py'
+  language: python

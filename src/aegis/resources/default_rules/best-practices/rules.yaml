@@ -68,34 +68,57 @@ rules:
 
   - id: bp-dataclass-usage
     description: Prefer dataclasses or Pydantic models over plain dicts for structured data.
-    engine_type: regex
+    engine_type: tree-sitter
+    language: py
     severity: LOW
     mode: report
-    query: (?m)^class\s+\w+\(\):[\s\S]{0,200}?def __init__
+    query: |
+      (class_definition
+        name: (identifier)
+        body: (block
+          (function_definition
+            name: (identifier) @init
+            (#eq? @init "__init__"))))
     rationale: Dataclasses provide free __init__, __repr__, and __eq__ with type annotations.
 
   - id: bp-dunder-methods
     description: Classes should implement __str__ or __repr__ for debuggability.
-    engine_type: regex
+    engine_type: tree-sitter
+    language: py
     severity: LOW
     mode: report
-    query: (?m)^class\s+\w+[\s\S]{0,300}?(?!(__str__|__repr__))
+    query: |
+      (class_definition
+        name: (identifier) @cls_name
+        body: (block) @cls_body
+        (#not-match? @cls_body "def __(str|repr)__")) @violation
     rationale: A good repr makes debugging and logging significantly easier.
 
   - id: bp-iterator-protocol
     description: Custom iterables should implement __iter__ or __next__, not rely solely on __getitem__.
-    engine_type: regex
+    engine_type: tree-sitter
+    language: py
     severity: MEDIUM
     mode: warn
-    query: __getitem__[\s\S]{0,50}?(?!(__iter__|__next__))
+    query: |
+      (class_definition
+        body: (block) @cls_body
+        (#match? @cls_body "def __getitem__")
+        (#not-match? @cls_body "def __(iter|next)__")) @violation
     rationale: Proper iterator protocol enables use with for loops, comprehensions, and itertools.
 
   - id: bp-error-handling-depth
     description: Deeply nested try/except blocks indicate poor error handling design.
-    engine_type: regex
+    engine_type: tree-sitter
+    language: py
     severity: MEDIUM
     mode: warn
-    query: try[\s\S]{0,500}?try[\s\S]{0,500}?try
+    query: |
+      (try_statement
+        body: (block
+          (try_statement
+            body: (block
+              (try_statement))))) @violation
     rationale: Flatten error handling with early returns or extract nested blocks into helper functions.
 
   - id: bp-no-hardcoded-strings
@@ -141,6 +164,7 @@ rules:
   - id: bp-use-logger
     description: Production code should use structured logging (logging or structlog) instead of print() for debugging output.
     engine_type: tree-sitter
+    language: py
     severity: MEDIUM
     mode: warn
     query: |
@@ -154,6 +178,7 @@ rules:
   - id: bp-guard-clauses
     description: Prefer early returns and guard clauses over deeply nested conditional blocks.
     engine_type: tree-sitter
+    language: py
     severity: LOW
     mode: report
     query: |

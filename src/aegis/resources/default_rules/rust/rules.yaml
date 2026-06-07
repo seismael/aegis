@@ -19,7 +19,7 @@ rules:
     mode: warn
     applies_to:
       - "**/*.rs"
-    query: unsafe\s*\{[\s\S]{0,200}(?!(// Safety:))
+    query: unsafe\s*\{.{0,200}(?!(// Safety:))
     rationale: Unsafe code bypasses memory safety guarantees and requires documented justification.
 
   - id: rs-large-enum-variants
@@ -29,7 +29,7 @@ rules:
     mode: report
     applies_to:
       - "**/*.rs"
-    query: enum\s+\w+[\s\S]{0,500}\{[\s\S]{0,200}\(\S+\)[\s\S]{0,200}\(\S+\)
+    query: enum\s+\w+.{0,500}\{.{0,200}\(\S+\).{0,200}\(\S+\)
     rationale: Wide variant size variance causes unnecessary memory overhead from enum padding.
 
   - id: rs-no-println

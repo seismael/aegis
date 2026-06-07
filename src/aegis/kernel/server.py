@@ -47,6 +47,14 @@ class AegisKernel:
         self.session = SessionManager(self._workspace_root)
 
         try:
+            from aegis.domain.evaluation.plugins.registry import PluginRegistry
+            self.plugin_registry = PluginRegistry(self._workspace_root)
+            self.plugin_registry.load_plugins()
+        except Exception as e:
+            self.logger.warning(f"Failed to load plugins: {e}")
+            self.plugin_registry = None
+
+        try:
             self.policy = PolicyParser(self._workspace_root)
         except Exception:
             self.policy = None
@@ -55,15 +63,21 @@ class AegisKernel:
             self.tree_sitter = TreeSitterAnalyzer()
             self.graph = GraphAnalyzer()
             self.semantic = SemanticAnalyzer()
+            extra_analyzers = []
+            if hasattr(self, "plugin_registry") and self.plugin_registry:
+                extra_analyzers.extend(self.plugin_registry.custom_analyzers)
+                
             self.evaluation = EvaluationService(
                 tree_sitter_analyzer=self.tree_sitter,
                 graph_analyzer=self.graph,
                 regex_analyzer=self.regex,
                 semantic_analyzer=self.semantic,
+                extra_analyzers=extra_analyzers,
             )
-        except Exception:
+        except Exception as e:
+            self.logger.error(f"Failed to initialize evaluation engine: {e}")
             self.regex = self.tree_sitter = None
-            self.graph = self.semantic = None
+            self.graph = self.semantic = self.evaluation = None
             self.evaluation = None
         try:
             self.baseline = BaselineManager(
@@ -765,7 +779,10 @@ class AegisKernel:
         if self.policy is None:
             return []
         try:
-            return self.policy.parse_all(self.workspace_root)
+            rules = self.policy.parse_all(self.workspace_root)
+            if hasattr(self, "plugin_registry") and self.plugin_registry:
+                rules.extend(self.plugin_registry.auto_rules)
+            return rules
         except Exception:
             return []
 
@@ -793,14 +810,14 @@ class AegisKernel:
                     self._cache_adjacency(adjacency)
             except Exception:
                 pass
-
+        
         result: dict[str, object] = {}
         for file_path in files_modified:
             relevant = ScopeFilter.get_relevant_rules(
                 file_path,
                 rules,
                 adjacency=adjacency,
-                max_rules=15,
+                max_rules=100,
                 base_dir=self.workspace_root,
             )
             for r in relevant:

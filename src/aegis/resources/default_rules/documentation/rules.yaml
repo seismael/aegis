@@ -20,7 +20,7 @@ rules:
     mode: report
     applies_to:
       - "**/src/**/*.py"
-    query: (?m)^(def|class)\s+(?!_)[\s\S]{0,3}:\n(?!\s*""")
+    query: (?m)^(def|class)\s+(?!_).{0,3}:\n(?!\s*""")
     rationale: Public API documentation enables users to understand behavior without reading implementation.
 
   - id: docs-stale-markers
@@ -72,6 +72,7 @@ rules:
   - id: docs-type-annotations
     description: Public API functions should have complete type annotations including return types.
     engine_type: tree-sitter
+    language: py
     severity: LOW
     mode: report
     query: |

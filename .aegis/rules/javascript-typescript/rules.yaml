@@ -62,7 +62,7 @@ rules:
       - "**/*.js"
       - "**/*.tsx"
       - "**/*.jsx"
-    query: async\s+function\s+\w+[\s\S]{0,500}(?!\.catch|try\s*\{)
+    query: async\s+function\s+\w+.{0,500}(?!\.catch|try\s*\{)
     rationale: Unhandled promise rejections crash Node.js and leave applications in unknown state.
 
   - id: ts-no-ts-ignore
@@ -73,5 +73,5 @@ rules:
     applies_to:
       - "**/*.ts"
       - "**/*.tsx"
-    query: @ts-ignore
-    rationale: @ts-ignore suppresses all type errors silently; prefer @ts-expect-error with a reason.
+    query: "@ts-ignore"
+    rationale: "@ts-ignore suppresses all type errors silently; prefer @ts-expect-error with a reason."

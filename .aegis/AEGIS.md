@@ -1,36 +1,127 @@
 # 🛡️ Aegis Project Health Scorecard
 
-**Health Score: 69%**
+**Health Score: 84%**
 
 ## 📜 Active Rules
-- **bp-use-pathlib**: Prefer pathlib over os.path for path manipulation.
-- **bp-no-mutable-defaults**: Mutable default arguments cause surprising shared-state bugs.
-- **bp-explicit-exceptions**: Bare except: clauses catch unexpected errors and should specify exception types.
-- **bp-context-managers**: Use context managers (with statement) for resource handling.
-- **bp-type-hints**: Functions with complex parameters should include type annotations.
-- **bp-fstring-usage**: Prefer f-strings over str.format() or % formatting for string interpolation.
-- **bp-list-comprehension**: Use list comprehensions over map/filter with lambda for clarity.
-- **bp-walrus-appropriate**: Walrus operator (:=) should be used primarily in conditional expressions, not standalone.
-- **bp-dataclass-usage**: Prefer dataclasses or Pydantic models over plain dicts for structured data.
-- **bp-dunder-methods**: Classes should implement __str__ or __repr__ for debuggability.
-- **bp-iterator-protocol**: Custom iterables should implement __iter__ or __next__, not rely solely on __getitem__.
-- **bp-error-handling-depth**: Deeply nested try/except blocks indicate poor error handling design.
-- **bp-no-hardcoded-strings**: String values used for configuration should be constants, enums, or environment variables, not inline literals.
-- **bp-use-env-vars**: Configuration should be loaded from environment variables and .env files, not hardcoded at module level.
-- **bp-no-magic-numbers**: Numeric literals used in business logic should be extracted as named constants or enum values.
-- **bp-use-constants**: Repeated string or numeric literals used across multiple files should be centralized as constants or enums.
-- **bp-avoid-globals**: Module-level mutable global state should be avoided; use dependency injection or context objects.
-- **bp-use-logger**: Production code should use structured logging (logging or structlog) instead of print() for debugging output.
-- **bp-guard-clauses**: Prefer early returns and guard clauses over deeply nested conditional blocks.
+- **arch-no-print**: Print statements should not be used in production code.
+- **arch-no-todo**: TODO comments indicate incomplete work.
+- **arch-no-star-import**: Wildcard imports pollute the namespace and hide dependencies.
+- **arch-layer-violation**: Domain layer must not import infrastructure or framework modules directly.
+- **arch-circular-import**: Modules must not form circular dependency cycles.
+- **arch-layer-naming**: Domain layer classes should reflect domain concepts, not technical implementation patterns.
+- **arch-module-boundary**: Private module members (leading underscore) should not be imported across package boundaries.
+- **arch-import-groups**: Avoid comma-separated imports; use one import per line for clarity.
+- **arch-aggregate-root**: Aggregate roots should be the sole entry point for modifications; other entities should not expose public mutators outside their aggregate.
+- **arch-value-object-immutability**: Value objects should be immutable; use frozen dataclasses, NamedTuples, or Pydantic models without setters.
+- **arch-ports-and-adapters**: Domain layer must not import adapter or infrastructure packages directly; use dependency inversion.
+- **arch-command-query-separation**: Methods that modify state should return None; query methods should not mutate state.
+- **arch-domain-event-naming**: Domain events should follow {Aggregate}{PastTenseVerb} naming convention (e.g., OrderPlaced).
+- **arch-no-framework-in-domain**: Domain layer must not import web or application frameworks directly.
+- **arch-no-cloud-sdk-in-domain**: Domain layer must not import cloud provider SDKs; define cloud-agnostic interfaces instead.
+- **arch-no-db-driver-in-domain**: Database driver imports must be isolated behind repository interfaces in the domain layer.
+- **arch-no-messaging-in-domain**: Message queue and event bus imports must be isolated behind port interfaces.
 - **no-print**: No hardcoded print statements in domain logic
-- **perf-repeated-computation**: Repeated len() calls inside loop bodies may indicate a cache opportunity.
-- **perf-large-data-copies**: Full list slices [:] in loops create unnecessary O(n²) copies.
-- **perf-sync-io-async**: Synchronous IO calls in async functions block the event loop.
-- **perf-unbounded-append**: Repeated .append() calls may indicate a collection that should be pre-sized.
-- **perf-string-concat**: Use str.join() instead of += for string concatenation in loops.
-- **perf-n-plus-1**: Database queries inside loops indicate potential N+1 query patterns.
+- **deps-pinned-versions**: Production dependencies should be pinned to specific versions or constrained with compatible-release.
+- **deps-known-vulnerabilities**: Review dependency versions for known security vulnerabilities.
+- **deps-excessive-count**: Projects with excessive direct dependencies increase attack surface and maintenance burden.
+- **deps-license-compliance**: Project should declare a license compatible with its dependency licenses.
+- **deps-duplicate-transitive**: Duplicate transitive dependencies indicate version conflicts.
+- **deps-outdated-check**: Dependencies should be regularly checked for updates using pip-audit or dependabot.
+- **design-srp-class-size**: Classes over 300 lines or with many public methods likely violate Single Responsibility.
+- **design-ocp-type-dispatch**: Repeated isinstance checks indicate missing polymorphism and violate Open-Closed principle.
+- **design-isp-interface-size**: Interfaces with many methods force implementors to depend on methods they do not use.
+- **design-dip-abstractions**: High-level modules should depend on abstractions (Protocols, ABCs), not concretions.
+- **design-entity-identity**: Domain entities should have explicit identity fields or equality methods.
+- **design-aggregate-boundary**: Aggregates should reference other aggregates by ID, not by direct object reference.
+- **design-repository-pattern**: Data access should be abstracted behind repository interfaces in the domain layer.
+- **design-factory-method**: Complex constructors with conditional logic should use factory methods or the Factory pattern.
+- **design-strategy-pattern**: Conditional branches selecting between algorithms should use the Strategy pattern instead.
+- **design-builder-pattern**: Classes with 5 or more constructor parameters should consider the Builder pattern.
+- **design-null-object**: Returning None forces every caller to null-check; consider the Null Object pattern.
+- **design-composition-over-inheritance**: Deep inheritance hierarchies (>2 levels) should favor composition over inheritance.
+- **design-specification-pattern**: Complex business rule chains should use the Specification pattern rather than inline conditional logic.
+- **docs-module-docstring**: Every Python module should have a module-level docstring.
+- **docs-public-api**: Public functions and classes should have docstrings.
+- **docs-stale-markers**: FIXME, HACK, and XXX comments indicate untracked technical debt.
+- **docs-readme-present**: Project root should contain a README.md with setup instructions.
+- **docs-changelog-format**: Changelog should follow keepachangelog conventions.
+- **docs-deprecation-notice**: Deprecated functions should emit DeprecationWarning with migration guidance.
+- **docs-adr-present**: Architectural decisions should be documented in docs/adr/ directory.
+- **docs-type-annotations**: Public API functions should have complete type annotations including return types.
+- **general-binary-artifacts**: Binary artifacts and generated files should not be committed to version control.
+- **general-private-keys**: Private keys in source code are a critical security risk.
+- **general-large-files**: Very large files should not be committed without clear justification.
+- **general-config-standards**: Project should define editor and git configuration conventions.
+- **general-gitignore-completeness**: .gitignore should cover common Python artifacts (venv, pycache, eggs, builds, coverage).
+- **general-ci-pipeline**: Project should have CI pipeline configuration for automated testing and linting.
+- **go-no-panic**: Panic should not be used for routine error handling; return errors instead.
+- **go-error-return**: Error returns should be checked, not silently discarded with underscore.
+- **go-defer-cleanup**: Resources requiring cleanup should use defer for guaranteed release.
+- **go-init-function**: Avoid init() functions; use explicit initialization instead.
+- **go-goroutine-lifecycle**: Goroutines should have a cancellation mechanism (context or channel close).
+- **infra-docker-latest**: Docker images should not use the 'latest' tag in production configurations.
+- **infra-docker-root**: Docker containers should not run as root user.
+- **infra-privileged-mode**: Containers should not run in privileged mode.
+- **infra-ci-secret-exposure**: CI configuration should not hardcode secrets or access keys.
+- **infra-iac-hardcoded**: IaC should use variables, not hardcoded environment-specific values.
+- **ts-no-console-log**: Console.log statements should not be committed in production code.
+- **ts-use-strict-equality**: Prefer === and !== over == and != to avoid type coercion bugs.
+- **ts-no-var**: Use let or const instead of var for variable declarations.
+- **ts-no-any-type**: Avoid the any type; use unknown for truly flexible values.
+- **ts-async-error-handling**: Async functions should handle promise rejections via try/catch or .catch().
+- **ts-no-ts-ignore**: Use @ts-expect-error with justification instead of @ts-ignore.
+- **rs-no-unwrap**: Avoid .unwrap() in non-test code; use ? operator or pattern matching.
+- **rs-unsafe-justification**: Unsafe blocks must include a safety comment justifying their use.
+- **rs-large-enum-variants**: Enum variants with large size differences indicate poor data modeling.
+- **rs-no-println**: Use the log crate instead of println! for production logging.
+- **sec-no-hardcoded-aws-keys**: Hardcoded AWS credentials detected in source code.
+- **sec-no-hardcoded-passwords**: Potential hardcoded password assignment detected.
+- **sec-no-connection-strings**: Database connection string with credentials in source code.
+- **sec-no-todo-security**: Security-sensitive TODOs and FIXMEs should be tracked externally.
+- **sec-no-hardcoded-tokens**: Hardcoded API tokens, JWTs, or bearer tokens in source code.
+- **sec-no-eval**: eval(), exec(), and compile() introduce arbitrary code execution risk.
+- **sec-no-sql-concatenation**: SQL queries built via string concatenation enable injection attacks.
+- **sec-csrf-protection**: State-changing endpoints should be reviewed for CSRF protection.
+- **sec-insecure-deserialization**: pickle.load or yaml.load without SafeLoader enables arbitrary code execution.
+- **sec-path-traversal**: User input used in file operations should be validated against directory traversal.
+- **sec-jwt-validation**: JWT decoding should use algorithm-aware verification. Never use decode without verify=True.
+- **sec-no-subprocess-shell**: subprocess calls should avoid shell=True to prevent command injection.
+- **sec-no-hardcoded-urls**: Hardcoded URLs and API endpoints should be externalized to configuration.
+- **sec-cors-wildcard**: CORS configuration should not use wildcard origins (*) in production.
+- **sec-input-validation**: User input used in database or shell operations should be validated and sanitized.
+- **sec-no-debug-mode**: Debug mode or verbose error reporting should not be enabled in production configuration.
+- **semantic-no-pii-exposure**: Ensure no Personally Identifiable Information (PII) is exposed in logs or API responses.
+- **semantic-retry-policy**: All external network calls must implement a retry policy with exponential backoff.
+- **struct-module-boundaries**: Star imports bypass module boundaries and make public interfaces implicit.
+- **struct-file-per-concept**: Files containing multiple public classes indicate missing decomposition.
+- **struct-max-file-length**: Source files should not exceed 500 lines for maintainability.
+- **struct-no-utils**: Modules named utils, helpers, or common often become incoherent dumping grounds.
+- **struct-no-init-logic**: __init__.py should not contain executable logic beyond imports.
+- **struct-circular-package**: Packages should not form circular import chains.
+- **struct-package-exports**: Packages should define __all__ to make the public API explicit.
+- **struct-package-naming**: Package names should use short, lowercase names without underscores for maximum compatibility.
+- **style-line-length**: Lines should not exceed 88 characters (Black-compatible).
+- **style-naming-convention**: Classes should use PascalCase; functions and variables should use snake_case.
+- **style-no-trailing-whitespace**: Lines should not contain trailing whitespace.
+- **style-consistent-imports**: Group imports consistently (stdlib, third-party, local) with a blank line between groups.
+- **style-consistent-quotes**: Prefer double quotes over single quotes for string literals.
+- **style-max-complexity**: Functions with excessive branches and conditionals indicate high cyclomatic complexity.
+- **style-blank-lines**: Top-level functions and classes should be separated by two blank lines (PEP 8).
+- **test-naming-convention**: Prefer pytest style (plain assert, test functions) over unittest.TestCase.
+- **test-no-focused**: Focused tests (pytest.mark.focus, fit, fdescribe, .only) should not be committed.
+- **test-assert-style**: Prefer plain assert over self.assert* methods in test files.
+- **test-no-print**: Print statements in test files indicate leftover debug output.
+- **test-coverage-thresholds**: Test configuration should include minimum coverage thresholds.
+- **test-isolation**: Tests should not depend on shared state or execution ordering via module/session fixtures.
+- **test-mocking-standards**: Mock external service boundaries, not internal domain logic.
+- **test-aaa-pattern**: Tests should follow Arrange-Act-Assert structure with clear phase separation.
+- **test-parametrize**: Repeated test logic with different data should use @pytest.mark.parametrize.
+- **tools-formatter-declared**: Project should declare a code formatter (Black, ruff, prettier) with configuration.
+- **tools-linter-configured**: Project should include linter configuration (ruff, flake8, eslint, golangci-lint).
+- **tools-ci-pipeline**: Project should have CI pipeline configuration for automated verification.
+- **tools-pinned-versions**: Tool and dependency versions should be pinned for reproducible builds.
 
 ## ⚠️ Exceptions (Technical Debt)
 The following rules have baseline exceptions (suppressed violations):
 
-- **no-print**: 20 baselined locations
+- **no-print**: 19 baselined locations

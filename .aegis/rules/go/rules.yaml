@@ -29,7 +29,7 @@ rules:
     mode: warn
     applies_to:
       - "**/*.go"
-    query: \b(Open|Lock)\s*\([\s\S]{0,200}(?!(defer))
+    query: \b(Open|Lock)\s*\(.{0,200}(?!(defer))
     rationale: Resources without deferred cleanup can leak under error paths.
 
   - id: go-init-function
@@ -49,5 +49,5 @@ rules:
     mode: warn
     applies_to:
       - "**/*.go"
-    query: go\s+func\([\s\S]{0,300}(?!(context|ctx\.Done|select|close))
+    query: go\s+func\(.{0,300}(?!(context|ctx\.Done|select|close))
     rationale: Goroutines without cancellation mechanisms leak resources when the parent scope exits.

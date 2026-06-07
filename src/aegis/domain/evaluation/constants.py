@@ -12,6 +12,8 @@ IGNORE_DIRS = frozenset(
         ".pytest_cache",
         ".ruff_cache",
         "tests",
+        ".pytest_tmp",
+        ".test_tmp",
     }
 )
 
