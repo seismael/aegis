@@ -71,7 +71,7 @@ class BaselineManager:
                 logger.warning(
                     "Baseline has grown unusually large",
                     size=len(baseline),
-                    hint="Use evolve_ruleset(action='suppress') to prune stale entries",
+                    hint="Use manage_rules(action='suppress') to prune stale entries",
                 )
 
             now = datetime.now(UTC).isoformat()

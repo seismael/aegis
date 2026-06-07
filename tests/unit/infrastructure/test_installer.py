@@ -51,4 +51,4 @@ def test_installer_unsupported_tool():
 
 
 def test_governance_directive_mentions_validate():
-    assert "validate_architecture_compliance" in AEGIS_GOVERNANCE_DIRECTIVE
+    assert "check_architecture" in AEGIS_GOVERNANCE_DIRECTIVE

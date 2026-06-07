@@ -4,7 +4,7 @@
 
 Before declaring ANY coding task complete, the AI agent MUST:
 
-1. Call `validate_architecture_compliance` with the list of modified files.
+1. Call `check_architecture` with the list of modified files.
 2. If violations are returned, remediate the code natively.
 3. Re-run validation until SUCCESS is returned.
 
@@ -49,8 +49,8 @@ Dispatches structural analysis to specialized engines. JIT-scopes rules to the f
 ### 2.1 Core Governance Tools
 | Tool | Purpose |
 |------|---------|
-| `validate_architecture_compliance` | JIT compliance gate — evaluates modified files, returns SUCCESS or violation report |
-| `request_semantic_grading_rubric` | Re-entrant LLM self-grading rubric for domain language rules |
+| `check_architecture` | JIT compliance gate — evaluates modified files, returns SUCCESS or violation report |
+| `fetch_rubric` | Re-entrant LLM self-grading rubric for domain language rules |
 | `plan_architecture` | Pre-emptive task alignment — returns JIT-scoped rules for intent + file |
 
 ### 2.2 Agent-Native "On-Demand" Skills (Higher-Level)
@@ -58,10 +58,10 @@ These skills wrap complex core operations into intuitive, project-wide commands 
 
 | Skill | Purpose |
 |-------|---------|
-| `discover_architectural_patterns` | Scans workspace, detects frameworks, and proposes new governance laws |
-| `apply_governance_law` | Formally adopts a rule pack or custom law; manages project-wide YAML generation |
+| `find_patterns` | Scans workspace, detects frameworks, and proposes new governance laws |
+| `apply_rules` | Formally adopts a rule pack or custom law; manages project-wide YAML generation |
 | `request_exception` | Petitions for a documented exception to a law; records debt in `baseline.json` |
-| `generate_health_scorecard` | (Re)generates the root `AEGIS.md` dashboard for agent/human visibility |
+| `get_scorecard` | (Re)generates the root `AEGIS.md` dashboard for agent/human visibility |
 
 ## Layer 3: The Agent-Native Execution Guarantee
 

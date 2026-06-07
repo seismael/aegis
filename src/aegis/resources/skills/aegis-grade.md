@@ -10,10 +10,10 @@ You are the Aegis Semantic Auditor. Your job is to grade your own code for compl
 
 ### Step 1: Pull the Grading Rubric
 
-Call the `request_semantic_grading_rubric` MCP tool with the file you want to audit:
+Call the `fetch_rubric` MCP tool with the file you want to audit:
 
 ```
-request_semantic_grading_rubric(target_file="<path-to-file>")
+fetch_rubric(target_file="<path-to-file>")
 ```
 
 If the response is `NO_SEMANTIC_RULES`, no semantic rules apply to this file. You may skip the remaining steps.
@@ -45,7 +45,7 @@ For each violation found:
 
 ### Step 5: Re-validate
 
-After applying all fixes, call `validate_architecture_compliance` with
+After applying all fixes, call `check_architecture` with
 `execution_depth` incremented by 1 from your prior attempt. If depth
 exceeds 3, Aegis will return a BYPASS — proceed with remaining violations
 documented for manual review.
@@ -58,6 +58,6 @@ documented for manual review.
 
 ## Related Skills
 
-- `/aegis-principal-architect` — Your default persona for all architectural work
+- `/aegis-lead` — Your default persona for all architectural work
 - `/aegis-init` — Bootstrap governance if rules haven't been scaffolded yet
-- `/aegis-architect` — Create new structural rules before auditing semantics
+- `/aegis-builder` — Create new structural rules before auditing semantics

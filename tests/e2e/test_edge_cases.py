@@ -114,57 +114,57 @@ def proximity_project(tmp_path):
 
 class TestExecutionDepth:
     async def test_depth_0_works_normally(self, mini_project):
-        result = await mini_project.validate_architecture_compliance(
+        result = await mini_project.check_architecture(
             ["src/lib.py"], execution_depth=0
         )
         assert "SUCCESS" in result
 
     async def test_depth_1_works_normally(self, mini_project):
-        result = await mini_project.validate_architecture_compliance(
+        result = await mini_project.check_architecture(
             ["src/lib.py"], execution_depth=1
         )
         assert "SUCCESS" in result
 
     async def test_depth_2_works_normally(self, mini_project):
-        result = await mini_project.validate_architecture_compliance(
+        result = await mini_project.check_architecture(
             ["src/lib.py"], execution_depth=2
         )
         assert "SUCCESS" in result
 
     async def test_depth_3_works_normally(self, mini_project):
-        result = await mini_project.validate_architecture_compliance(
+        result = await mini_project.check_architecture(
             ["src/lib.py"], execution_depth=3
         )
         assert "SUCCESS" in result
 
     async def test_depth_4_triggers_bypass(self, mini_project):
-        result = await mini_project.validate_architecture_compliance(
+        result = await mini_project.check_architecture(
             ["src/lib.py"], execution_depth=4
         )
         assert "BYPASS" in result
         assert "Execution depth" in result
 
     async def test_depth_5_triggers_bypass(self, mini_project):
-        result = await mini_project.validate_architecture_compliance(
+        result = await mini_project.check_architecture(
             ["src/lib.py"], execution_depth=5
         )
         assert "BYPASS" in result
 
     async def test_depth_100_triggers_bypass(self, mini_project):
-        result = await mini_project.validate_architecture_compliance(
+        result = await mini_project.check_architecture(
             ["src/lib.py"], execution_depth=100
         )
         assert "BYPASS" in result
 
     async def test_bypass_still_returns_warn_prefix(self, mini_project):
-        result = await mini_project.validate_architecture_compliance(
+        result = await mini_project.check_architecture(
             ["src/lib.py"], execution_depth=4
         )
         assert result.startswith("WARN:")
 
     async def test_depth_edge_negative_works(self, mini_project):
         """Negative depth should be treated as depth 0 (not bypass)."""
-        result = await mini_project.validate_architecture_compliance(
+        result = await mini_project.check_architecture(
             ["src/lib.py"], execution_depth=-1
         )
         assert "SUCCESS" in result
@@ -204,18 +204,18 @@ class TestProximityScoping:
 
 class TestValidateComplianceErrors:
     async def test_no_rules_installed_returns_warn(self, empty_workspace):
-        result = await empty_workspace.validate_architecture_compliance(["src/x.py"])
+        result = await empty_workspace.check_architecture(["src/x.py"])
         assert "WARN" in result
         assert "No rules" in result
 
     async def test_empty_file_list_handled(self, mini_project):
-        result = await mini_project.validate_architecture_compliance([])
+        result = await mini_project.check_architecture([])
         assert isinstance(result, str)
         assert "SUCCESS" in result or "WARN" in result
 
     async def test_single_file_validation(self, mini_project):
         (_ws(mini_project) / "src" / "single.py").write_text("x = 1\n")
-        result = await mini_project.validate_architecture_compliance(["src/single.py"])
+        result = await mini_project.check_architecture(["src/single.py"])
         assert "SUCCESS" in result
 
 
@@ -270,21 +270,21 @@ class TestPlanArchitectureEdges:
 
 class TestEvolveRulesetErrors:
     async def test_add_rule_missing_rule_id(self, mini_project):
-        result = await mini_project.evolve_ruleset(
+        result = await mini_project.manage_rules(
             action="add_rule",
             description="Missing ID",
         )
         assert "INVALID_INPUT" in result
 
     async def test_add_rule_missing_description(self, mini_project):
-        result = await mini_project.evolve_ruleset(
+        result = await mini_project.manage_rules(
             action="add_rule",
             rule_id="no-desc",
         )
         assert "INVALID_INPUT" in result
 
     async def test_add_rule_tree_sitter_with_query(self, mini_project):
-        result = await mini_project.evolve_ruleset(
+        result = await mini_project.manage_rules(
             action="add_rule",
             rule_id="ast-rule-1",
             description="AST rule",
@@ -300,7 +300,7 @@ class TestEvolveRulesetErrors:
         assert "(function_definition)" in content
 
     async def test_add_rule_regex_with_regex_pattern(self, mini_project):
-        result = await mini_project.evolve_ruleset(
+        result = await mini_project.manage_rules(
             action="add_rule",
             rule_id="regex-rule-1",
             description="Regex rule",
@@ -314,7 +314,7 @@ class TestEvolveRulesetErrors:
         assert "regex-rule-1" in content
 
     async def test_add_rule_with_rationale(self, mini_project):
-        result = await mini_project.evolve_ruleset(
+        result = await mini_project.manage_rules(
             action="add_rule",
             rule_id="reasoned-rule",
             description="Rule with reason",
@@ -329,7 +329,7 @@ class TestEvolveRulesetErrors:
         assert "Prevents credential leaks" in content
 
     async def test_add_rule_graph_engine_with_query(self, mini_project):
-        result = await mini_project.evolve_ruleset(
+        result = await mini_project.manage_rules(
             action="add_rule",
             rule_id="graph-rule",
             description="Graph rule",
@@ -342,7 +342,7 @@ class TestEvolveRulesetErrors:
         assert "SUCCESS" in result
 
     async def test_add_rule_with_applies_to(self, mini_project):
-        result = await mini_project.evolve_ruleset(
+        result = await mini_project.manage_rules(
             action="add_rule",
             rule_id="scoped-rule",
             description="Scoped rule",
@@ -357,21 +357,21 @@ class TestEvolveRulesetErrors:
         assert "api/**/*.py" in content
 
     async def test_suppress_requires_target(self, mini_project):
-        result = await mini_project.evolve_ruleset(action="suppress")
+        result = await mini_project.manage_rules(action="suppress")
         assert "INVALID_INPUT" in result
 
     async def test_suppress_nonexistent_rule(self, mini_project):
-        result = await mini_project.evolve_ruleset(
+        result = await mini_project.manage_rules(
             action="suppress", target="nonexistent-rule-id"
         )
         assert "RULE_NOT_FOUND" in result
 
     async def test_remove_pack_requires_target(self, mini_project):
-        result = await mini_project.evolve_ruleset(action="remove_pack")
+        result = await mini_project.manage_rules(action="remove_pack")
         assert "INVALID_INPUT" in result
 
     async def test_remove_nonexistent_pack(self, mini_project):
-        result = await mini_project.evolve_ruleset(
+        result = await mini_project.manage_rules(
             action="remove_pack", target="nonexistent-pack"
         )
         assert "REMOVE_FAILED" in result
@@ -384,22 +384,22 @@ class TestEvolveRulesetErrors:
 
 class TestScaffoldEdges:
     async def test_scaffold_empty_pack_list(self, empty_workspace):
-        result = await empty_workspace.scaffold_governance_framework([])
+        result = await empty_workspace.init_governance([])
         assert "SUCCESS" in result
 
     async def test_scaffold_single_pack(self, empty_workspace):
-        result = await empty_workspace.scaffold_governance_framework(["security"])
+        result = await empty_workspace.init_governance(["security"])
         assert "SUCCESS" in result
         assert (_ws(empty_workspace) / ".aegis" / "rules" / "security").is_dir()
 
     async def test_scaffold_partial_valid_packs(self, empty_workspace):
-        result = await empty_workspace.scaffold_governance_framework(
+        result = await empty_workspace.init_governance(
             ["security", "bogus-pack-xyz"]
         )
         assert "SCAFFOLD_FAILED" in result
 
     async def test_scaffold_generates_agents_md_even_empty(self, empty_workspace):
-        result = await empty_workspace.scaffold_governance_framework([])
+        result = await empty_workspace.init_governance([])
         assert "AGENTS.md" in result
         assert (_ws(empty_workspace) / "AGENTS.md").exists()
 
@@ -411,15 +411,15 @@ class TestScaffoldEdges:
 
 class TestSemanticEdges:
     async def test_grading_rubric_for_nonexistent_file(self, mini_project):
-        result = await mini_project.request_semantic_grading_rubric("nonexistent.py")
+        result = await mini_project.fetch_rubric("nonexistent.py")
         assert "NO_SEMANTIC_RULES" in result
 
     async def test_grading_rubric_with_no_rules(self, empty_workspace):
-        result = await empty_workspace.request_semantic_grading_rubric("src/x.py")
+        result = await empty_workspace.fetch_rubric("src/x.py")
         assert "NO_SEMANTIC_RULES" in result
 
     async def test_grading_rubric_with_specific_rule_ids(self, mini_project):
-        result = await mini_project.request_semantic_grading_rubric(
+        result = await mini_project.fetch_rubric(
             "src/lib.py", rule_ids=["nonexistent"]
         )
         assert "NO_SEMANTIC_RULES" in result
@@ -432,13 +432,13 @@ class TestSemanticEdges:
 
 class TestKnowledgeGraphEdges:
     async def test_rules_list_empty_workspace(self, empty_workspace):
-        result = await empty_workspace.query_knowledge_graph("rules")
+        result = await empty_workspace.query_graph("rules")
         data = json.loads(result)
         assert isinstance(data, list)
         assert len(data) == 0
 
     async def test_dependency_graph_with_target(self, proximity_project):
-        result = await proximity_project.query_knowledge_graph(
+        result = await proximity_project.query_graph(
             "dependency_graph", target="api"
         )
         data = json.loads(result)
@@ -446,7 +446,7 @@ class TestKnowledgeGraphEdges:
         assert "edges" in data
 
     async def test_module_health_empty_workspace(self, empty_workspace):
-        result = await empty_workspace.query_knowledge_graph("module_health")
+        result = await empty_workspace.query_graph("module_health")
         data = json.loads(result)
         assert isinstance(data, dict)
 
@@ -534,7 +534,7 @@ class TestInstallerEdges:
 
         path = AgentNativeInstaller.generate_agents_template(str(tmp_path))
         content = Path(path).read_text()
-        assert "validate_architecture_compliance" in content
+        assert "check_architecture" in content
         assert "MUST" in content
 
     def test_installer_rejects_unknown_tool(self):

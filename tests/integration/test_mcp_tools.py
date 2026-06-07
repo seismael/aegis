@@ -40,18 +40,18 @@ def kernel(tmp_path):
 
 class TestValidateArchitectureCompliance:
     async def test_violations_detected(self, kernel):
-        result = await kernel.validate_architecture_compliance(["src/module.py"])
+        result = await kernel.check_architecture(["src/module.py"])
         assert "test-no-print" in result or "violation" in result.lower()
 
     async def test_no_violations_returns_success(self, kernel):
         (_ws(kernel) / "src" / "module.py").write_text("x = 1\n")
-        result = await kernel.validate_architecture_compliance(["src/module.py"])
+        result = await kernel.check_architecture(["src/module.py"])
         assert "SUCCESS" in result
 
 
 class TestRequestSemanticGradingRubric:
     async def test_no_semantic_rules_returns_clear_message(self, kernel):
-        result = await kernel.request_semantic_grading_rubric("src/module.py")
+        result = await kernel.fetch_rubric("src/module.py")
         assert "NO_SEMANTIC_RULES" in result
 
     async def test_returns_rubric_for_target_file(self, kernel):
@@ -67,35 +67,35 @@ class TestRequestSemanticGradingRubric:
             "  applies_to:\n"
             '    - "**/*.py"\n'
         )
-        result = await kernel.request_semantic_grading_rubric("src/module.py")
+        result = await kernel.fetch_rubric("src/module.py")
         assert "Grading Rubric" in result
         assert "sem-naming" in result
 
 
 class TestScaffoldGovernanceFramework:
     async def test_scaffold_invalid_pack(self, kernel):
-        result = await kernel.scaffold_governance_framework(["nonexistent-pack"])
+        result = await kernel.init_governance(["nonexistent-pack"])
         assert "SCAFFOLD_FAILED" in result
 
     async def test_scaffold_valid_pack(self, kernel):
-        result = await kernel.scaffold_governance_framework(["security"])
+        result = await kernel.init_governance(["security"])
         assert "SUCCESS" in result
         assert "security" in result
 
 
 class TestQueryKnowledgeGraph:
     async def test_hypothesis(self, kernel):
-        result = await kernel.query_knowledge_graph("hypothesis")
+        result = await kernel.query_graph("hypothesis")
         assert "Detected" in result or "Proposed" in result
 
     async def test_rules_list(self, kernel):
-        result = await kernel.query_knowledge_graph("rules")
+        result = await kernel.query_graph("rules")
         assert "test-no-print" in result
 
 
 class TestEvolveRuleset:
     async def test_add_rule_creates_custom_yaml(self, kernel):
-        result = await kernel.evolve_ruleset(
+        result = await kernel.manage_rules(
             action="add_rule",
             rule_id="custom-hello",
             description="No hello allowed",
@@ -113,7 +113,7 @@ class TestEvolveRuleset:
         assert "custom-hello" in content
 
     async def test_add_rule_duplicate_rejected(self, kernel):
-        await kernel.evolve_ruleset(
+        await kernel.manage_rules(
             action="add_rule",
             rule_id="dup-rule",
             description="First",
@@ -122,7 +122,7 @@ class TestEvolveRuleset:
             category="style",
             regex_pattern="x",
         )
-        result = await kernel.evolve_ruleset(
+        result = await kernel.manage_rules(
             action="add_rule",
             rule_id="dup-rule",
             description="Second",
@@ -134,7 +134,7 @@ class TestEvolveRuleset:
         assert "DUPLICATE_RULE" in result
 
     async def test_unknown_action(self, kernel):
-        result = await kernel.evolve_ruleset(action="bogus_action")
+        result = await kernel.manage_rules(action="bogus_action")
         assert "INVALID_INPUT" in result
 
 
@@ -178,7 +178,7 @@ class TestRequestException:
     @pytest.mark.asyncio
     async def test_request_exception_granted(self, kernel):
         # 1. Verify violation exists
-        result = await kernel.validate_architecture_compliance(["src/module.py"])
+        result = await kernel.check_architecture(["src/module.py"])
         assert "test-no-print" in result
 
         # 2. Request exception
@@ -191,7 +191,7 @@ class TestRequestException:
         assert reason in exc_result
 
         # 3. Verify violation is now suppressed
-        result_after = await kernel.validate_architecture_compliance(["src/module.py"])
+        result_after = await kernel.check_architecture(["src/module.py"])
         assert "SUCCESS" in result_after
         # It might be in the coordination info, so we check if it's NOT in a violation-like format
         assert (

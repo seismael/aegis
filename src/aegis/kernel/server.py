@@ -115,16 +115,16 @@ class AegisKernel:
         return str(current)
 
     def _register_tools(self):
-        self.mcp.tool()(self.validate_architecture_compliance)
-        self.mcp.tool()(self.request_semantic_grading_rubric)
-        self.mcp.tool()(self.scaffold_governance_framework)
-        self.mcp.tool()(self.query_knowledge_graph)
-        self.mcp.tool()(self.evolve_ruleset)
+        self.mcp.tool()(self.check_architecture)
+        self.mcp.tool()(self.fetch_rubric)
+        self.mcp.tool()(self.init_governance)
+        self.mcp.tool()(self.query_graph)
+        self.mcp.tool()(self.manage_rules)
         self.mcp.tool()(self.plan_architecture)
-        self.mcp.tool()(self.discover_architectural_patterns)
-        self.mcp.tool()(self.apply_governance_law)
+        self.mcp.tool()(self.find_patterns)
+        self.mcp.tool()(self.apply_rules)
         self.mcp.tool()(self.request_exception)
-        self.mcp.tool()(self.generate_health_scorecard)
+        self.mcp.tool()(self.get_scorecard)
 
     async def request_exception(
         self,
@@ -154,7 +154,7 @@ class AegisKernel:
 
         return result
 
-    async def generate_health_scorecard(self) -> str:
+    async def get_scorecard(self) -> str:
         """
         (Re)generates the root AEGIS.md dashboard for agent/human visibility.
         Calculates health score and lists active rules.
@@ -181,7 +181,7 @@ class AegisKernel:
 
         return f"SUCCESS: AEGIS.md generated in {self.workspace_root}."
 
-    async def validate_architecture_compliance(
+    async def check_architecture(
         self,
         files_modified: list[str],
         phase: str = "pre-commit",
@@ -307,7 +307,7 @@ class AegisKernel:
 
         return remediation_prompt + coordination_info
 
-    async def request_semantic_grading_rubric(
+    async def fetch_rubric(
         self,
         target_file: str,
         rule_ids: list[str] | None = None,
@@ -332,7 +332,7 @@ class AegisKernel:
             )
         return self.semantic.build_rubric(target_file, scoped)
 
-    async def scaffold_governance_framework(
+    async def init_governance(
         self,
         target_packs: list[str],
     ) -> str:
@@ -354,7 +354,7 @@ class AegisKernel:
                 return error("SCAFFOLD_FAILED", str(e))
 
         self._deploy_all_workspace_instructions()
-        await self.generate_health_scorecard()
+        await self.get_scorecard()
 
         packs_str = ", ".join(installed)
         return (
@@ -362,7 +362,7 @@ class AegisKernel:
             " AGENTS.md, CLAUDE.md, and GEMINI.md generated in workspace root."
         )
 
-    async def query_knowledge_graph(
+    async def query_graph(
         self,
         query_type: str,
         target: str | None = None,
@@ -427,7 +427,7 @@ class AegisKernel:
 
         return error(ERR_INVALID_INPUT, f"Unknown query_type: {query_type}")
 
-    async def evolve_ruleset(
+    async def manage_rules(
         self,
         action: str,
         target: str | None = None,
@@ -602,7 +602,7 @@ class AegisKernel:
 
         return "\n".join(lines)
 
-    async def discover_architectural_patterns(self) -> DiscoveryResult:
+    async def find_patterns(self) -> DiscoveryResult:
         """
         Scans the workspace to detect frameworks and patterns.
         Returns a list of proposed governance laws for the team to review.
@@ -614,7 +614,7 @@ class AegisKernel:
             message="Aegis has analyzed your project and proposes the following governance laws.",
         )
 
-    async def apply_governance_law(
+    async def apply_rules(
         self,
         law_id: str,
         custom_description: str | None = None,
@@ -626,13 +626,13 @@ class AegisKernel:
         """
         # Case A: Rule Pack
         if self.packs and law_id in [p["name"] for p in self.packs.list_available()]:
-            return await self.scaffold_governance_framework(target_packs=[law_id])
+            return await self.init_governance(target_packs=[law_id])
 
         # Case B: Custom Law (Natural Language)
         if custom_description:
-            # For simplicity, we use the existing evolve_ruleset logic for 'add_rule'
+            # For simplicity, we use the existing manage_rules logic for 'add_rule'
             # But we wrap it into a "Semantic" rule by default for custom laws
-            return await self.evolve_ruleset(
+            return await self.manage_rules(
                 action="add_rule",
                 rule_id=law_id,
                 description=custom_description,
@@ -685,7 +685,7 @@ class AegisKernel:
                 id="security",
                 relevance=1.0,
                 reason=f"{base_reason} Security governance is mandatory for all projects.",
-                suggested_action="apply_governance_law(law_id='security')",
+                suggested_action="apply_rules(law_id='security')",
             )
         )
 
@@ -705,7 +705,7 @@ class AegisKernel:
                 id="architecture",
                 relevance=1.0,
                 reason=arch_reason,
-                suggested_action="apply_governance_law(law_id='architecture')",
+                suggested_action="apply_rules(law_id='architecture')",
             )
         )
 
@@ -715,7 +715,7 @@ class AegisKernel:
                 id="best-practices",
                 relevance=0.9,
                 reason="Standardized best practices for code quality and maintainability.",
-                suggested_action="apply_governance_law(law_id='best-practices')",
+                suggested_action="apply_rules(law_id='best-practices')",
             )
         )
 
@@ -725,7 +725,7 @@ class AegisKernel:
                 id="style",
                 relevance=0.8,
                 reason="Enforce consistent naming and formatting conventions across the codebase.",
-                suggested_action="apply_governance_law(law_id='style')",
+                suggested_action="apply_rules(law_id='style')",
             )
         )
 
@@ -735,7 +735,7 @@ class AegisKernel:
                     id="structure",
                     relevance=0.7,
                     reason="Flat structure detected. Structure law helps organize modules as the project grows.",
-                    suggested_action="apply_governance_law(law_id='structure')",
+                    suggested_action="apply_rules(law_id='structure')",
                 )
             )
 
@@ -899,7 +899,7 @@ class AegisKernel:
 
             return (
                 "# 🛡️ Aegis Project Health Scorecard\n\n"
-                "AEGIS.md not found. Run `aegis scaffold_governance_framework` to generate it."
+                "AEGIS.md not found. Run `aegis init_governance` to generate it."
             )
 
         @self.mcp.resource("aegis://spec")
@@ -916,32 +916,32 @@ class AegisKernel:
         @self.mcp.prompt()
         def evaluate_architecture(files: list[str]) -> str:
             return (
-                f"Call validate_architecture_compliance with "
+                f"Call check_architecture with "
                 f"files_modified={files} before declaring the task complete."
             )
 
         @self.mcp.prompt()
         def remediate_violations() -> str:
             return (
-                "1. Read the violation report from validate_architecture_compliance.\n"
+                "1. Read the violation report from check_architecture.\n"
                 "2. For each violation, read the affected file at the specified line.\n"
                 "3. Apply the remediation while preserving business logic.\n"
-                "4. Re-run validate_architecture_compliance to verify."
+                "4. Re-run check_architecture to verify."
             )
 
         @self.mcp.prompt()
         def initialize_governance() -> str:
             return (
-                "1. Call query_knowledge_graph(query_type='hypothesis') "
+                "1. Call query_graph(query_type='hypothesis') "
                 "to discover the workspace architecture.\n"
                 "2. Present the proposed architecture to the user for approval.\n"
-                "3. Call scaffold_governance_framework with the approved pack list."
+                "3. Call init_governance with the approved pack list."
             )
 
         @self.mcp.prompt()
         def inspect_dependency(module: str) -> str:
             return (
-                f"Call query_knowledge_graph(query_type='dependency_graph', "
+                f"Call query_graph(query_type='dependency_graph', "
                 f"target='{module}') to inspect dependencies."
             )
 

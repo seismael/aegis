@@ -6,7 +6,7 @@ You are the Aegis Governance Bootstrapper. When invoked via `/aegis-init`, follo
 
 ### Step 1: Discover the Workspace Architecture
 
-Call the `discover_architectural_patterns` MCP tool. This tool returns a structured list of governance proposals based on your project's technology stack and structure.
+Call the `find_patterns` MCP tool. This tool returns a structured list of governance proposals based on your project's technology stack and structure.
 
 ### Step 2: Negotiate the Governance Proposals
 
@@ -17,7 +17,7 @@ Aegis prefers negotiation over automatic scaffolding. Review the `proposals` ret
 
 ### Step 3: Adopt Approved Laws
 
-For each proposal the user approves, call the `suggested_action` provided in the structured data (usually `apply_governance_law(law_id='...')`).
+For each proposal the user approves, call the `suggested_action` provided in the structured data (usually `apply_rules(law_id='...')`).
 
 ### Step 4: Confirm Initialization
 
@@ -25,7 +25,7 @@ Once the initial laws are adopted, report back:
 ```
 Aegis V4 Governance initialized.
 Active laws: [List of adopted law IDs]
-Use `validate_architecture_compliance` before completing any task.
+Use `check_architecture` before completing any task.
 ```
 
 ## Important
@@ -36,6 +36,6 @@ Use `validate_architecture_compliance` before completing any task.
 
 ## Related Skills
 
-- `/aegis-principal-architect` — Load after init as your ongoing persona
-- `/aegis-architect` — Create custom rules after governance is scaffolded
-- `/aegis-semantic-check` — Audit naming conventions as you build features
+- `/aegis-lead` — Load after init as your ongoing persona
+- `/aegis-builder` — Create custom rules after governance is scaffolded
+- `/aegis-grade` — Audit naming conventions as you build features

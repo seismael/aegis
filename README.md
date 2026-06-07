@@ -34,18 +34,33 @@ If an agent introduces architectural drift, Aegis provides a **Unified Diff**. Y
 - **Incremental Graph**: High-performance $O(1)$ workspace-wide dependency analysis via JIT adjacency caching.
 - **Cross-Agent Coordination**: Share validation state and handoff notes between different agents via `.aegis/session.json`.
 
----
+## 🛠️ MCP Tools
 
-## 🛠️ Tool Surface (Skills)
+Aegis provides a robust suite of Model Context Protocol (MCP) tools for your AI to autonomously manage architecture:
 
-| Skill | Purpose |
+| Tool | Purpose |
 |-------|---------|
-| `validate_architecture_compliance` | **The Gate.** JIT compliance check before completion (supports Diffs). |
-| `discover_architectural_patterns` | **The Scout.** Proactive pattern detection and law proposals. |
-| `apply_governance_law` | **The Architect.** Formally adopts rule packs or custom intents. |
+| `check_architecture` | **The Gate.** JIT compliance check before completion (supports Diffs). |
+| `find_patterns` | **The Scout.** Proactive pattern detection and law proposals. |
+| `apply_rules` | **The Architect.** Formally adopts rule packs or custom intents. |
+| `init_governance` | **The Bootstrapper.** Scaffolds `.aegis/` framework and native instructions. |
+| `fetch_rubric` | **The Brain.** Re-entrant LLM self-grading for design intents. |
+| `manage_rules` | **The Editor.** Evolve, add, or suppress active governance rules. |
+| `query_graph` | **The Map.** $O(1)$ adjacency queries to understand module boundaries. |
+| `get_scorecard` | **The Dashboard.** Updates the root-level `AEGIS.md` scorecard. |
+| `plan_architecture` | **The Blueprint.** Plan cross-cutting structural modifications. |
 | `request_exception` | **The Lawyer.** Petition for documented exceptions to specific laws. |
-| `generate_health_scorecard` | **The Dashboard.** Updates the root-level `AEGIS.md` scorecard. |
-| `request_semantic_grading_rubric` | **The Brain.** Re-entrant LLM self-grading for design intents. |
+
+## 🤖 Chat Personas (Skills)
+
+You can invoke specialized architectural personas directly in your chat:
+
+| Skill | Persona |
+|-------|---------|
+| `/aegis-lead` | **Principal Architect.** Your primary persona for steering project architecture. |
+| `/aegis-init` | **Bootstrapper.** Analyzes a new project and proposes baseline governance. |
+| `/aegis-builder`| **Rule Author.** Translates plain English constraints into Aegis YAML rules. |
+| `/aegis-grade` | **Semantic Auditor.** Enforces domain language and naming convention compliance. |
 
 ---
 

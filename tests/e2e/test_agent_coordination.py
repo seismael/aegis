@@ -31,7 +31,7 @@ async def test_agent_coordination_persistence(workspace_root):
     note = "Refactoring complete, please verify architectural compliance."
 
     # First validation call
-    await kernel.validate_architecture_compliance(
+    await kernel.check_architecture(
         files_modified=["src/main.py"], handoff_note=note
     )
 
@@ -48,7 +48,7 @@ async def test_agent_coordination_persistence(workspace_root):
     os.environ["AEGIS_AGENT_ID"] = "Agent-2"
 
     # Second validation call - should show coordination info
-    result = await kernel.validate_architecture_compliance(
+    result = await kernel.check_architecture(
         files_modified=["src/main.py"]
     )
 
@@ -81,22 +81,22 @@ async def test_agent_coordination_same_agent_no_info(workspace_root):
     os.environ["AEGIS_AGENT_ID"] = "Agent-SAME"
 
     # First call
-    await kernel.validate_architecture_compliance(files_modified=["src/main.py"])
+    await kernel.check_architecture(files_modified=["src/main.py"])
 
     # Second call by same agent, no handoff note - should NOT show info
-    result = await kernel.validate_architecture_compliance(
+    result = await kernel.check_architecture(
         files_modified=["src/main.py"]
     )
 
     assert "### 🤝 Coordination Info" not in result
 
     # Third call with handoff note
-    await kernel.validate_architecture_compliance(
+    await kernel.check_architecture(
         files_modified=["src/main.py"], handoff_note="New note"
     )
 
     # Fourth call by same agent - should show info because handoff note exists
-    result = await kernel.validate_architecture_compliance(
+    result = await kernel.check_architecture(
         files_modified=["src/main.py"]
     )
     assert "### 🤝 Coordination Info" in result

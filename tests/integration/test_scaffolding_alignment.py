@@ -4,10 +4,10 @@ from aegis.kernel.server import AegisKernel
 
 
 @pytest.mark.asyncio
-async def test_scaffold_governance_framework_generates_all_instruction_files(tmp_path):
+async def test_init_governance_generates_all_instruction_files(tmp_path):
     """
     Test Task 3: Align Scaffolding with Universal Harnesses
-    Verifies that scaffold_governance_framework generates AGENTS.md, .claude.md, and GEMINI.md.
+    Verifies that init_governance generates AGENTS.md, .claude.md, and GEMINI.md.
     """
     ws = tmp_path / "scaffold-alignment-test"
     ws.mkdir()
@@ -16,9 +16,9 @@ async def test_scaffold_governance_framework_generates_all_instruction_files(tmp
     # Initialize kernel with temporary workspace
     kernel = AegisKernel(str(ws))
 
-    # Call scaffold_governance_framework
+    # Call init_governance
     # We pass an empty list or some packs; it should still deploy instructions.
-    result = await kernel.scaffold_governance_framework(["best-practices"])
+    result = await kernel.init_governance(["best-practices"])
 
     assert "SUCCESS" in result
     assert "AGENTS.md" in result
@@ -31,6 +31,6 @@ async def test_scaffold_governance_framework_generates_all_instruction_files(tmp
     assert (ws / "GEMINI.md").exists(), "GEMINI.md missing"
 
     # Verify some content to ensure they are the right files
-    assert "Aegis" in (ws / "AGENTS.md").read_text()
-    assert "Claude" in (ws / "CLAUDE.md").read_text()
-    assert "Gemini" in (ws / "GEMINI.md").read_text()
+    assert "Aegis Governance Protocol" in (ws / "AGENTS.md").read_text() or "Aegis Governance Protocol" in (ws / "CLAUDE.md").read_text()
+    assert "Aegis Governance Protocol" in (ws / "CLAUDE.md").read_text()
+    assert "Aegis Governance Protocol" in (ws / "GEMINI.md").read_text()

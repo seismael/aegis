@@ -5,7 +5,7 @@ AEGIS_GOVERNANCE_DIRECTIVE = (
     "CRITICAL GOVERNANCE DIRECTIVE: "
     "You are governed by the Aegis Microkernel. "
     "Before declaring ANY coding task complete, you MUST execute the "
-    "`validate_architecture_compliance` MCP tool. If it returns violations, "
+    "`check_architecture` MCP tool. If it returns violations, "
     "you MUST remediate the code natively before proceeding."
 )
 
@@ -24,7 +24,7 @@ You are governed by the Aegis Architectural Microkernel.
 
 Before declaring ANY coding task complete, you MUST:
 
-1. Call `validate_architecture_compliance` with the list of modified files.
+1. Call `check_architecture` with the list of modified files.
 2. If violations are returned, remediate the code natively.
 3. Re-run validation until SUCCESS is returned.
 
@@ -32,12 +32,12 @@ Before declaring ANY coding task complete, you MUST:
 
 | Tool | When to Use |
 |------|-------------|
-| `validate_architecture_compliance` | Before every task completion |
+| `check_architecture` | Before every task completion |
 | `plan_architecture` | Before editing a file |
-| `request_semantic_grading_rubric` | For domain language/naming checks |
-| `scaffold_governance_framework` | Project initialization |
-| `query_knowledge_graph` | Dependency and architecture analysis |
-| `evolve_ruleset` | Add rules, suppress violations, manage packs |
+| `fetch_rubric` | For domain language/naming checks |
+| `init_governance` | Project initialization |
+| `query_graph` | Dependency and architecture analysis |
+| `manage_rules` | Add rules, suppress violations, manage packs |
 
 ## Skills
 

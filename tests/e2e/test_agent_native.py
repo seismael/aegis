@@ -33,17 +33,17 @@ class TestAgentsTemplate:
         assert "/aegis-semantic-check" in AGENTS_TEMPLATE
 
     def test_template_includes_mandatory_protocol(self):
-        assert "validate_architecture_compliance" in AGENTS_TEMPLATE
+        assert "check_architecture" in AGENTS_TEMPLATE
         assert "MUST" in AGENTS_TEMPLATE
 
     def test_template_includes_six_tool_table(self):
         for tool in [
-            "validate_architecture_compliance",
+            "check_architecture",
             "plan_architecture",
-            "request_semantic_grading_rubric",
-            "scaffold_governance_framework",
-            "query_knowledge_graph",
-            "evolve_ruleset",
+            "fetch_rubric",
+            "init_governance",
+            "query_graph",
+            "manage_rules",
         ]:
             assert tool in AGENTS_TEMPLATE, f"Missing tool: {tool}"
 
@@ -69,14 +69,14 @@ class TestScaffoldGeneratesAgents:
         (ws / "src").mkdir()
 
         k = AegisKernel(str(ws))
-        result = await k.scaffold_governance_framework(["security"])
+        result = await k.init_governance(["security"])
         assert "SUCCESS" in result
         assert "AGENTS.md" in result
 
         agents = _ws(k) / "AGENTS.md"
         assert agents.exists()
         content = agents.read_text()
-        assert "validate_architecture_compliance" in content
+        assert "check_architecture" in content
         assert "/aegis-principal-architect" in content
 
 
@@ -146,7 +146,7 @@ class TestAgentReadableOutputs:
 
     async def test_validate_returns_agent_readable(self, verify_workspace):
         k = AegisKernel(str(verify_workspace))
-        result = await k.validate_architecture_compliance(["src/lib.py"])
+        result = await k.check_architecture(["src/lib.py"])
         assert "SUCCESS" in result
         assert "\x1b" not in result  # no ANSI codes
 
@@ -158,20 +158,20 @@ class TestAgentReadableOutputs:
 
     async def test_query_rules_returns_valid_json(self, verify_workspace):
         k = AegisKernel(str(verify_workspace))
-        result = await k.query_knowledge_graph("rules")
+        result = await k.query_graph("rules")
         data = json.loads(result)
         assert isinstance(data, list)
         assert any(r["id"] == "ok-rule" for r in data)
 
     async def test_hypothesis_returns_agent_readable(self, verify_workspace):
         k = AegisKernel(str(verify_workspace))
-        result = await k.query_knowledge_graph("hypothesis")
+        result = await k.query_graph("hypothesis")
         assert isinstance(result, str)
         assert "\x1b" not in result
 
     async def test_evolve_error_returns_structured_json(self, verify_workspace):
         k = AegisKernel(str(verify_workspace))
-        result = await k.evolve_ruleset(action="bogus")
+        result = await k.manage_rules(action="bogus")
         data = json.loads(result)
         assert data["success"] is False
         assert "error_code" in data
@@ -197,12 +197,12 @@ class TestPostInstallAgentLifecycle:
         k = AegisKernel(str(ws))
 
         # Step 1: Agent calls hypothesis (via /aegis-init flow)
-        hyp = await k.query_knowledge_graph("hypothesis")
+        hyp = await k.query_graph("hypothesis")
         assert isinstance(hyp, str)
         assert len(hyp) > 0
 
         # Step 2: Agent presents to user, gets approval, scaffolds
-        scaffold = await k.scaffold_governance_framework(["architecture", "security"])
+        scaffold = await k.init_governance(["architecture", "security"])
         assert "SUCCESS" in scaffold
         assert "AGENTS.md" in scaffold
 
@@ -221,16 +221,16 @@ class TestPostInstallAgentLifecycle:
             "def get_user(user_id: int) -> dict:\n"
             '    return {"id": user_id, "name": "User"}\n'
         )
-        check = await k.validate_architecture_compliance(["src/service.py"])
+        check = await k.check_architecture(["src/service.py"])
         assert isinstance(check, str)
 
         # Step 6: Agent queries rules to understand governance
-        rules_json = await k.query_knowledge_graph("rules")
+        rules_json = await k.query_graph("rules")
         rules = json.loads(rules_json)
         assert len(rules) > 0
 
         # Step 7: Agent adds a custom rule via /aegis-architect flow
-        add = await k.evolve_ruleset(
+        add = await k.manage_rules(
             action="add_rule",
             rule_id="journey-no-untyped",
             description="All functions must have type annotations",
@@ -243,7 +243,7 @@ class TestPostInstallAgentLifecycle:
         assert "SUCCESS" in add
 
         # Step 8: Agent audits semantics
-        rubric = await k.request_semantic_grading_rubric("src/service.py")
+        rubric = await k.fetch_rubric("src/service.py")
         assert isinstance(rubric, str)
 
         # Step 9: Headless check works for CI

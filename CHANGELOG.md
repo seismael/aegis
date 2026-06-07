@@ -9,11 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Agent-Native Architectural Microkernel: stateless MCP-only governance.
-- 6 MCP tools: `validate_architecture_compliance`, `plan_architecture`,
-  `request_semantic_grading_rubric`, `scaffold_governance_framework`,
-  `query_knowledge_graph`, `evolve_ruleset`.
-- 4 agent chat skills: `/aegis-principal-architect`, `/aegis-init`,
-  `/aegis-architect`, `/aegis-semantic-check`.
+- 6 MCP tools: `check_architecture`, `plan_architecture`,
+  `fetch_rubric`, `init_governance`,
+  `query_graph`, `manage_rules`.
+- 4 agent chat skills: `/aegis-lead`, `/aegis-init`,
+  `/aegis-builder`, `/aegis-grade`.
 - `aegis run --headless-check` for CI/Aider `--test-cmd` integration.
 - Tri-Core domain architecture: policy, evaluation, observability.
 - Re-entrant semantic grading via `build_rubric` delegating to parent LLM.

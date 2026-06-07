@@ -64,10 +64,10 @@ query: disallowed_import
 
 ### STATE 3: COMPILATION
 
-Once you have formulated the rule logic, you MUST call the `evolve_ruleset` MCP tool with `action="add_rule"`. Provide all required parameters derived from your draft:
+Once you have formulated the rule logic, you MUST call the `manage_rules` MCP tool with `action="add_rule"`. Provide all required parameters derived from your draft:
 
 ```
-evolve_ruleset(
+manage_rules(
     action="add_rule",
     rule_id="<your-rule-id>",
     description="<description>",
@@ -86,12 +86,12 @@ Do NOT manually create or write to the YAML file yourself. You must use the MCP 
 
 ### STATE 4: VERIFICATION
 
-After adding the rule, call `validate_architecture_compliance` to verify the new rule works correctly. If the rule catches its intended violations, inform the user. If not, use `evolve_ruleset(action="remove_pack", target="custom")` to revert and refine.
+After adding the rule, call `check_architecture` to verify the new rule works correctly. If the rule catches its intended violations, inform the user. If not, use `manage_rules(action="remove_pack", target="custom")` to revert and refine.
 
 ## Important
 
-- NEVER manually write to `.aegis/rules/`. Always use `evolve_ruleset(action="add_rule", ...)`.
-- ALWAYS verify the new rule with `validate_architecture_compliance` before declaring success.
+- NEVER manually write to `.aegis/rules/`. Always use `manage_rules(action="add_rule", ...)`.
+- ALWAYS verify the new rule with `check_architecture` before declaring success.
 - PROPOSE the rule to the user for approval before calling the MCP tool.
 
 ## Related Skills

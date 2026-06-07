@@ -8,7 +8,7 @@ from aegis.kernel.server import AegisKernel
 
 
 @pytest.mark.asyncio
-async def test_validate_architecture_compliance_with_semantic_rules():
+async def test_check_architecture_with_semantic_rules():
     # Setup
     kernel = AegisKernel(workspace_root="/tmp/fake")
 
@@ -39,7 +39,7 @@ async def test_validate_architecture_compliance_with_semantic_rules():
     )
 
     # Execution
-    result = await kernel.validate_architecture_compliance(files_modified=["test.py"])
+    result = await kernel.check_architecture(files_modified=["test.py"])
 
     # Verification
     assert "🧠 Re-entrant Semantic Evaluation Required" in result
@@ -49,7 +49,7 @@ async def test_validate_architecture_compliance_with_semantic_rules():
 
 
 @pytest.mark.asyncio
-async def test_validate_architecture_compliance_with_both_violations():
+async def test_check_architecture_with_both_violations():
     # Setup
     kernel = AegisKernel(workspace_root="/tmp/fake")
 
@@ -97,7 +97,7 @@ async def test_validate_architecture_compliance_with_both_violations():
     )
 
     # Execution
-    result = await kernel.validate_architecture_compliance(files_modified=["test.py"])
+    result = await kernel.check_architecture(files_modified=["test.py"])
 
     # Verification
     assert "## Structural Violations" in result

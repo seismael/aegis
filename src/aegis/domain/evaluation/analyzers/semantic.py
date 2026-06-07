@@ -95,6 +95,6 @@ class SemanticAnalyzer(SemanticAnalyzerInterface):
         rubric += "3. **Report Format**: Use the following format for each violation:\n"
         rubric += "   - `VIOLATION: <rule_id> - <line_number> - <reasoning> - FIX: <suggested_change>`\n"
         rubric += "4. **Remediate**: Apply the necessary changes to align the code with the architectural intent.\n"
-        rubric += "5. **Verify**: After fixing, call `validate_architecture_compliance` again to ensure no further issues exist.\n"
+        rubric += "5. **Verify**: After fixing, call `check_architecture` again to ensure no further issues exist.\n"
 
         return rubric

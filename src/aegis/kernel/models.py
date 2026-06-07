@@ -35,7 +35,7 @@ class ViolationInfo(BaseModel):
 
 
 class ComplianceResult(BaseModel):
-    """Result of validate_architecture_compliance."""
+    """Result of check_architecture."""
 
     passed: bool
     message: str
@@ -104,7 +104,7 @@ class Proposal(BaseModel):
 
 
 class DiscoveryResult(BaseModel):
-    """Result of discover_architectural_patterns."""
+    """Result of find_patterns."""
 
     proposals: list[Proposal]
     message: str | None = None

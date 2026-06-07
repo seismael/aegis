@@ -89,7 +89,7 @@ class RemediationPromptSynthesizer(RemediationProviderInterface):
         if truncated > 0:
             payload += (
                 f"\n---\n**Note:** {truncated} additional violations "
-                "truncated. Re-run `validate_architecture_compliance` "
+                "truncated. Re-run `check_architecture` "
                 "after fixing these to surface remaining violations.\n"
             )
 
@@ -98,7 +98,7 @@ class RemediationPromptSynthesizer(RemediationProviderInterface):
             "1. Read the specified lines in the affected files.\n"
             "2. Refactor the code to eliminate the violation while "
             "preserving all existing business logic.\n"
-            "3. Call `validate_architecture_compliance` with "
+            "3. Call `check_architecture` with "
             "`execution_depth` incremented by 1 from your prior call. "
             "If depth exceeds 3, proceed with remaining violations "
             "flagged for manual review."

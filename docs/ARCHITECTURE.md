@@ -43,7 +43,7 @@ To ensure simplicity and intuitive adoption, Aegis exposes a set of **On-Demand 
 A markdown facade that acts as the agent's "front door." It is managed by a `ScorecardService` and reflects the project's living architectural state.
 
 ### 2. The Skills
-- **Discover**: Enhances `query_knowledge_graph` to provide actionable, natural-language law proposals.
+- **Discover**: Enhances `query_graph` to provide actionable, natural-language law proposals.
 - **Apply**: Automates the lifecycle of `RulePackManager` and `PolicyParser` project-wide.
 - **Exception**: Streamlines `BaselineManager` via a "petition" workflow.
 
@@ -56,7 +56,7 @@ graph TD
     Agent[AI Agent] -->|1. Plan| Plan[plan_architecture]
     Plan -->|Context| Agent
     Agent -->|2. Act| Edit[File Edit]
-    Edit -->|3. Validate| Gate[validate_architecture_compliance]
+    Edit -->|3. Validate| Gate[check_architecture]
     Gate -->|Violations| Agent
     Gate -->|Rubric| Agent
     Agent -->|4. Fix| Edit

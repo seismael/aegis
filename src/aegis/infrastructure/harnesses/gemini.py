@@ -48,6 +48,6 @@ class GeminiHarness(BaseHarness):
         content = (
             "## Aegis Governance Protocol\n"
             "1. You MUST follow the instructions in [AGENTS.md](./AGENTS.md).\n"
-            "2. Always ensure compliance by running `validate_architecture_compliance` before finishing a task.\n"
+            "2. Always ensure compliance by running `check_architecture` before finishing a task.\n"
         )
         return self.safe_append_instruction(path, content, "Aegis Governance Protocol")
