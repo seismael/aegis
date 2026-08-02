@@ -31,10 +31,14 @@ class GraphAnalyzer(GraphAnalyzerInterface):
                 continue
 
             if rule.query == "disallowed_import":
-                violations.extend(self._check_disallowed_imports(file_imports, rule))
+                violations.extend(
+                    self._check_disallowed_imports(file_imports, rule, root_dir=root_dir)
+                )
             elif rule.query == "circular_dependency":
                 violations.extend(
-                    self._check_circular_dependencies(adjacency, file_imports, rule)
+                    self._check_circular_dependencies(
+                        adjacency, file_imports, rule, root_dir=root_dir
+                    )
                 )
 
         return violations
@@ -129,10 +133,17 @@ class GraphAnalyzer(GraphAnalyzerInterface):
         self._cache[root_dir] = (current_hash, (adjacency, file_imports))
         return adjacency, file_imports
 
+    def _module_to_path(self, module: str, root_dir: str = ".") -> str:
+        pkg_init = os.path.join(root_dir, module.replace(".", os.sep), "__init__.py")
+        if os.path.isfile(pkg_init):
+            return os.path.join(module.replace(".", os.sep), "__init__.py")
+        return module.replace(".", os.sep) + ".py"
+
     def _check_disallowed_imports(
         self,
         file_imports: dict[str, list[tuple[int, str]]],
         rule: Rule,
+        root_dir: str = ".",
     ) -> list[ArchitecturalViolation]:
         """
         Flags imports from metadata.source namespace into metadata.target namespace.
@@ -153,7 +164,7 @@ class GraphAnalyzer(GraphAnalyzerInterface):
                 if target_ns in imported.split("."):
                     violations.append(
                         ArchitecturalViolation(
-                            file=module.replace(".", os.sep) + ".py",
+                            file=self._module_to_path(module, root_dir),
                             line=line,
                             rule_id=rule.id,
                             description=(
@@ -213,6 +224,7 @@ class GraphAnalyzer(GraphAnalyzerInterface):
         adjacency: dict[str, set[str]],
         file_imports: dict[str, list[tuple[int, str]]],
         rule: Rule,
+        root_dir: str = ".",
     ) -> list[ArchitecturalViolation]:
         """
         Detects circular dependencies using iterative DFS with explicit stack.
@@ -263,7 +275,7 @@ class GraphAnalyzer(GraphAnalyzerInterface):
                                 if imported == neighbor:
                                     violations.append(
                                         ArchitecturalViolation(
-                                            file=mod.replace(".", os.sep) + ".py",
+                                            file=self._module_to_path(mod, root_dir),
                                             line=line,
                                             rule_id=rule.id,
                                             description=(

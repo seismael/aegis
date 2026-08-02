@@ -270,14 +270,20 @@ class PolicyParser:
         logger.info("Loaded governance rules from directory", total=len(all_rules))
         return all_rules
 
-    def parse_all(self, workspace_root: str) -> list[Rule]:
+    def parse_all(self, workspace_root: str | None = None) -> list[Rule]:
         """Load rules from .aegis/rules/ directory and/or .aegis/rules.yaml file."""
-        rules_dir = os.path.join(workspace_root, ".aegis", "rules")
-        rules_file = os.path.join(workspace_root, ".aegis", "rules.yaml")
+        root = workspace_root or self.workspace_root or "."
+        rules_dir = os.path.join(root, ".aegis", "rules")
+        rules_file = os.path.join(root, ".aegis", "rules.yaml")
 
         rules: list[Rule] = []
         if os.path.isdir(rules_dir):
             rules.extend(self.parse_directory(rules_dir))
         if os.path.isfile(rules_file):
             rules.extend(self.parse_rules(rules_file))
-        return rules
+
+        # Deduplicate rules by rule.id (later loaded rule wins)
+        rule_map: dict[str, Rule] = {}
+        for r in rules:
+            rule_map[r.id] = r
+        return list(rule_map.values())

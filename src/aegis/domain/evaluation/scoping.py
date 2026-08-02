@@ -68,7 +68,7 @@ class ScopeFilter:
         matched = []
         pp = PurePosixPath(file_path.replace("\\", "/"))
         for rule in rules:
-            if lang and rule.language and rule.language != lang:
+            if lang and rule.language and not ScopeFilter._lang_matches(rule.language, lang, ext):
                 continue
             if rule.applies_to and not any(
                 ScopeFilter._path_matches_pattern(pp, p) for p in rule.applies_to
@@ -91,7 +91,7 @@ class ScopeFilter:
         if "**" not in pattern:
             return path.match(pattern)
 
-        path_str = str(path)
+        path_str = str(path).replace("\\", "/").strip("./")
 
         # Split on ** and strip surrounding slashes.
         segments = [s.strip("/") for s in pattern.split("**")]
@@ -111,25 +111,35 @@ class ScopeFilter:
                 continue
 
             if i == 0:
-                # First non-empty segment — search anywhere in the path
-                # so that absolute paths (C:/dev/.../src/...) still
-                # match relative patterns (src/**).
-                found = path_str.find(seg)
-                if found == -1:
+                # First non-empty segment must match a path component prefix or boundary
+                if not (
+                    path_str.startswith(seg + "/")
+                    or path_str == seg
+                    or f"/{seg}/" in path_str
+                    or path_str.endswith("/" + seg)
+                ):
                     return False
+                found = path_str.find(seg)
                 idx = found + len(seg)
                 continue
 
             if i == len(segments) - 1:
-                # Last non-empty segment must be a suffix.
+                # Last non-empty segment must be a suffix or match the filename.
                 if "*" in seg or "?" in seg or "[" in seg:
-                    if not PurePosixPath(path_str).match(seg):
+                    if not (
+                        PurePosixPath(path_str).match(seg)
+                        or PurePosixPath(path.name).match(seg)
+                    ):
                         return False
-                elif not path_str.endswith(seg):
+                elif not (
+                    path_str.endswith("/" + seg)
+                    or path_str == seg
+                    or path_str.endswith(seg)
+                ):
                     return False
                 continue
 
-            # Middle segments must appear in order after the current position.
+            # Middle segments must appear in order after current position as path component
             found = path_str.find(seg, idx)
             if found == -1:
                 return False
@@ -177,6 +187,25 @@ class ScopeFilter:
         return filtered
 
     @staticmethod
+    def _lang_matches(rule_lang: str, file_lang: str, ext: str = "") -> bool:
+        if not rule_lang:
+            return True
+        rl = rule_lang.lower().lstrip(".")
+        fl = file_lang.lower().lstrip(".")
+        ext_clean = ext.lower().lstrip(".")
+        if rl == fl or rl == ext_clean:
+            return True
+        alias_map = {
+            "python": ["py", "python"],
+            "py": ["py", "python"],
+            "typescript": ["ts", "typescript", "tsx"],
+            "ts": ["ts", "typescript", "tsx"],
+            "javascript": ["js", "javascript", "jsx"],
+            "js": ["js", "javascript", "jsx"],
+        }
+        return rl in alias_map.get(fl, [fl])
+
+    @staticmethod
     def _resolve_language(file_path: str) -> str:
         """Map file extension to short language code used in rules."""
         _, ext = os.path.splitext(file_path)
@@ -209,6 +238,7 @@ class ScopeFilter:
         expands via dependency graph proximity.
         """
         lang = ScopeFilter._resolve_language(file_path)
+        ext = Path(file_path).suffix.lower()
         pp = PurePosixPath(file_path.replace("\\", "/"))
 
         # First pass: language match + path scoping
@@ -216,7 +246,7 @@ class ScopeFilter:
         lang_matched: list[Rule] = []
 
         for rule in rules:
-            if rule.language and rule.language != lang:
+            if rule.language and not ScopeFilter._lang_matches(rule.language, lang, ext):
                 continue
             lang_matched.append(rule)
             if rule.applies_to:

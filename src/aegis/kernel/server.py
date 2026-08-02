@@ -106,6 +106,7 @@ class AegisKernel:
             self.remediation = None
 
         self._adjacency_cache_entry: tuple[float, dict] | None = None
+        self._agent = None
 
         self.mcp = FastMCP("Aegis Architecture Engine")
 
@@ -123,6 +124,20 @@ class AegisKernel:
     @property
     def workspace_root(self) -> str:
         return self._workspace_root
+
+    @property
+    def agent(self):
+        """Lazy-instantiated AegisAgent runtime engine."""
+        if self._agent is None:
+            from aegis.agent import create_aegis_agent
+
+            rules = self._load_rules()
+            self._agent = create_aegis_agent(
+                rules=rules,
+                workspace_root=self.workspace_root,
+                evaluation_service=self.evaluation,
+            )
+        return self._agent
 
     def _discover_root(self) -> str:
         current = Path.cwd()
@@ -621,21 +636,39 @@ class AegisKernel:
             relevant = rules[:15]
 
         lines = [f"## Architectural Context for: {intent}\n"]
+
+        # Proactive intent plan verification via AegisAgent node
+        if self.agent and file_path:
+            words = [w for w in intent.split() if "." in w]
+            target_mod = (
+                file_path.replace("/", ".")
+                .replace("\\", ".")
+                .removesuffix(".py")
+                .removesuffix(".ts")
+            )
+            plan_res = self.agent.verify_plan(words, target_mod)
+            if not plan_res["plan_valid"]:
+                lines.append(
+                    f"\n### 🛑 Proactive Plan Verification Gate Rejection\n{plan_res['feedback']}\n"
+                )
+
         for r in relevant[:15]:
             lines.append(f"- **{r.id}** [{r.severity.value}] — {r.description}")
 
-        if code_string and self.evaluation:
+        if code_string and self.agent:
             try:
-                violations = self.evaluation.evaluate_code_string(
-                    code_string, language, relevant
+                delta_res = self.agent.evaluate_code_delta(
+                    code_string, language, file_path, relevant
                 )
-                if violations:
+                if not delta_res["governance_valid"]:
                     lines.append("\n### Code Violations Detected\n")
-                    for v in violations[:10]:
+                    for v_dict in delta_res["active_violations"][:10]:
                         lines.append(
-                            f"- **{v.rule_id}** (line {v.line}): {v.description}"
+                            f"- **{v_dict.get('rule_id')}** (line {v_dict.get('line', 1)}): {v_dict.get('description')}"
                         )
-                    rule_ids = {v.rule_id for v in violations}
+                    rule_ids = {
+                        v_dict.get("rule_id") for v_dict in delta_res["active_violations"]
+                    }
                     lines.append(
                         f"\nFix these {len(rule_ids)} rule violations"
                         " before proceeding."

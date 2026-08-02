@@ -1,94 +1,184 @@
-# Aegis V4 — Universal Agent-Native Architectural Microkernel
+# Aegis V4 — Universal Agent-Native Architectural Runtime Engine & SDK
 
-## 🤔 Why Aegis? What Does It Solve?
+[![PyPI Version](https://img.shields.io/pypi/v/aegis.svg)](https://pypi.org/project/aegis/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python Version](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
 
-As AI coding agents (like Claude Code, Aider, and Gemini) become increasingly autonomous, they generate thousands of lines of code without deep awareness of your project's architectural constraints. This leads to:
-- **Architectural Drift:** Agents silently violating Domain-Driven Design (DDD) boundaries, leaking presentation logic into domain models.
-- **Security Vulnerabilities:** Hardcoded credentials or PII leaks slipping past rapid agent iterations.
-- **Technical Debt:** Suboptimal performance patterns (e.g., N+1 queries) accumulating under the hood.
+**Aegis** is an **Agent-Native Architectural Runtime Engine & Governance SDK** that transforms software governance from a reactive post-hoc scan into a **Proactive, Correct-by-Construction Execution Primitive**.
 
-**Aegis solves this by acting as a mathematical microkernel that governs your agents.** It intercepts code generation in real-time via the Model Context Protocol (MCP), validates modifications against your bespoke architectural rules, and rejects non-compliant code *before* the agent finishes its task. Aegis forces AI to self-correct and adhere strictly to your established software design patterns.
+Integrated natively into agent execution loops (DeepAgents, LangGraph, Claude Code, Aider, Gemini CLI), Aegis intercepts agent intent, evaluates in-memory AST deltas in microseconds, and seals disk tools—saving up to **90% of LLM token tax** by preventing non-compliant code generation before it happens.
 
 ---
 
-## ⚡ Quick Start
+## ⚡ Key Paradigm Shifts & Benefits
+
+| Metric | Traditional Reactive Scanning | Aegis Agent-Native Engine |
+| :--- | :--- | :--- |
+| **Execution Point** | Post-generation (Scans disk after code write) | **Pre-flight & In-Memory Delta** (Validates plan and AST before disk write) |
+| **Token Efficiency** | Low (Consumes tokens generating bad code, then retrying) | **Optimal** (Halts non-compliant intent at Plan Gate, saving ~90% token tax) |
+| **Runtime Latency** | High (Network/IPC or manual human review) | **Microseconds** (In-process Python & Tree-sitter AST delta compiler) |
+| **Tool Security** | Unprotected disk access | **Sealed Interceptor** (Raises `AegisGovernanceError` & locks disk write) |
+| **Agent Ecosystem** | External standalone tool | **Native Extension Pattern** (DeepAgents, LangGraph, FastMCP adapters) |
+
+---
+
+## 🏗️ Target Modular SDK Architecture
+
+```text
+/src/aegis/
+├── __init__.py         # Top-Level SDK Exports (AegisAgent, AegisKernel, Rule)
+├── agent.py            # Unified Factory Entry Point (create_aegis_agent)
+├── core/               # Pure Framework-Agnostic Engine
+│   ├── registry.py     # Pydantic Policy Registry Loader (RegistryLoader)
+│   ├── parser.py       # Pure AST-Delta Compiler (TreeSitterAnalyzer)
+│   ├── baseline.py     # Grandfathered Debt Ledger Manager (BaselineManager)
+│   └── scoping.py      # Component-Boundary Scope Filter (ScopeFilter)
+├── runtime/            # Agentic Runtime Glue
+│   ├── state.py        # AegisState & GovernanceContext schemas
+│   ├── nodes.py        # AegisPlanVerifier, AegisEnforcementNode, AegisFinalGate
+│   ├── executor.py     # NativeAegisExecutor (Sealed Tool Interceptor)
+│   └── wrappers.py     # aegis_hardened_tool decorator
+├── domain/             # Domain Intelligence & Refinement Loop
+│   ├── synthesizer.py  # RemediationPromptSynthesizer (Self-Correction Loop)
+│   ├── evaluation_service.py # EvaluationService Multi-Analyzer Coordinator
+│   ├── scorecard.py    # Scorecard Dashboard Generator
+│   └── telemetry.py    # Local Telemetry Recorder
+└── adapters/           # Ecosystem & Platform Adapters
+    ├── deepagents.py   # DeepAgentsAdapter & create_deepagents_governed_agent
+    ├── langgraph.py    # LangGraphAdapter & GovernedExecutionGraph
+    └── mcp.py          # FastMCP Microkernel Adapter (AegisKernel)
+```
+
+---
+
+## 🔄 The 4-Stage Native Execution Pipeline
+
+```
+                                  Agent Intent / User Request
+                                               │
+                                               ▼
+                                 ┌───────────────────────────┐
+                                 │   AegisPlanVerifier       │  ◄── 1. Proactive Pre-Flight Plan Gate
+                                 │  (Plan / Intent Check)    │      (Halts token waste before code gen)
+                                 └─────────────┬─────────────┘
+                                               │
+                                 ┌─────────────┴─────────────┐
+                                 │   Plan Approved / Valid   │
+                                 └─────────────┬─────────────┘
+                                               │
+                                               ▼
+                                 ┌───────────────────────────┐
+                                 │   AegisEnforcementNode    │  ◄── 2. In-Memory AST Delta Gate
+                                 │  (Code Delta Compiler)    │      (Microsecond Tree-sitter check)
+                                 └─────────────┬─────────────┘
+                                               │
+                                 ┌─────────────┴─────────────┐
+                                 │   NativeAegisExecutor     │  ◄── 3. Sealed Tool Execution
+                                 │  (Hardened I/O Interceptor)│     (Blocks Non-Compliant Disk Write)
+                                 └─────────────┬─────────────┘
+                                               │
+                                               ▼
+                                 ┌───────────────────────────┐
+                                 │      AegisKernel          │  ◄── 4. Microkernel Compliance Gate
+                                 │ (FastMCP check_arch)      │      (Final JIT workspace certification)
+                                 └───────────────────────────┘
+```
+
+---
+
+## 💻 Quick Start & Usage
+
+### Installation & Workspace Initialization
 
 ```bash
 pip install aegis
-aegis init             # Initializes local workspace configuration for Claude, Aider, and Gemini
+
+# Initialize Aegis in your workspace (scaffolds .aegis/rules, pyproject.toml, AGENTS.md)
+aegis init
 ```
 
-### 1. Initialize
-Open your AI agent in any repository and type:
-> `/aegis-init`
+---
 
-Aegis will **negotiate** your architecture. It discovers your frameworks (FastAPI, React, etc.) and proposes bespoke governance laws for your approval.
+### Using Aegis with DeepAgents (`DeepAgentsAdapter`)
 
-### 2. Ambient Awareness
-Aegis is **invisible** until needed. As you navigate files, Aegis "whispers" architectural context to your agent via MCP resources, ensuring it knows the rules *before* it starts writing code.
+```python
+from aegis.adapters.deepagents import create_deepagents_governed_agent
 
-### 3. Self-Healing
-If an agent introduces architectural drift, Aegis provides a **Unified Diff**. Your agent can fix the code **natively and automatically** with a single tool call.
+# 1. Instantiate governed native agent
+agent = create_deepagents_governed_agent(workspace_root=".")
+
+# 2. Run governed self-correction execution loop
+result = agent.run_governed_agent_loop(
+    initial_request="Build billing service in src/domain/billing.py",
+    code_generator_fn=deepagents_llm_generator,
+    tool_fn=write_file_tool,
+    max_retries=3,
+)
+
+print(f"Success: {result['success']}, Attempts: {result['attempts']}")
+```
 
 ---
 
-## 🏗️ Core Capabilities
+### Using Aegis with LangGraph (`LangGraphAdapter`)
 
-- **Universal Harnesses**: Seamless, plugin-based support for **Claude Code**, **Aider**, and **Gemini CLI**.
-- **Architect-on-Demand**: High-level conversational skills (`discover`, `apply`, `request_exception`) that replace complex YAML management.
-- **Ambient Context**: JIT delivery of module-specific rules via `aegis://context/{path}`.
-- **Re-entrant Semantics**: Mandatory rubrics for high-level design intents (e.g., "Domain logic must not leak into Controllers").
-- **Incremental Graph**: High-performance $O(1)$ workspace-wide dependency analysis via JIT adjacency caching.
-- **Cross-Agent Coordination**: Share validation state and handoff notes between different agents via `.aegis/session.json`.
+```python
+from aegis.adapters.langgraph import LangGraphAdapter
 
-## 🛠️ MCP Tools
+# Initialize LangGraph adapter for StateGraph execution
+adapter = LangGraphAdapter(rules=rules, workspace_root=".")
 
-Aegis provides a robust suite of Model Context Protocol (MCP) tools for your AI to autonomously manage architecture:
+# Execute governed state graph step
+state = {
+    "pending_tool_call": {
+        "name": "write_file",
+        "path": "src/domain/user.py",
+        "content": "class User:\n    pass\n",
+    }
+}
+update = adapter.run_step(state, tool_fn=write_file_tool)
+print(f"Governance Valid: {update['governance_valid']}")
+```
+
+---
+
+### Proactive Pre-Flight Plan Check via CLI
+
+```bash
+# Proactively verify architectural intent before generating code
+aegis agent --workspace . --plan-import aegis.infrastructure --target-module aegis.domain.service
+```
+
+---
+
+## 🛠️ MCP Microkernel Tools
+
+When running as an MCP server (`aegis run`), Aegis provides a stateless microkernel for AI agents:
 
 | Tool | Purpose |
-|-------|---------|
-| `check_architecture` | **The Gate.** JIT compliance check before completion (supports Diffs). |
-| `find_patterns` | **The Scout.** Proactive pattern detection and law proposals. |
-| `apply_rules` | **The Architect.** Formally adopts rule packs or custom intents. |
+| :--- | :--- |
+| `check_architecture` | **The Gate.** In-process AST & dependency compliance check before completion. |
+| `plan_architecture` | **The Blueprint.** Pre-flight validation of cross-cutting architectural modifications. |
 | `init_governance` | **The Bootstrapper.** Scaffolds `.aegis/` framework and native instructions. |
+| `find_patterns` | **The Scout.** Proactive pattern detection and rule proposals. |
+| `apply_rules` | **The Architect.** Adopts rule packs or custom architectural intents. |
 | `fetch_rubric` | **The Brain.** Re-entrant LLM self-grading for design intents. |
 | `manage_rules` | **The Editor.** Evolve, add, or suppress active governance rules. |
-| `query_graph` | **The Map.** $O(1)$ adjacency queries to understand module boundaries. |
-| `get_scorecard` | **The Dashboard.** Updates the `.aegis/AEGIS.md` scorecard. |
-| `plan_architecture` | **The Blueprint.** Plan cross-cutting structural modifications. |
-| `request_exception` | **The Lawyer.** Petition for documented exceptions to specific laws. |
-
-## 🤖 Chat Personas (Skills)
-
-You can invoke specialized architectural personas directly in your chat:
-
-| Skill | Persona |
-|-------|---------|
-| `/aegis-lead` | **Principal Architect.** Your primary persona for steering project architecture. |
-| `/aegis-init` | **Bootstrapper.** Analyzes a new project and proposes baseline governance. |
-| `/aegis-builder`| **Rule Author.** Translates plain English constraints into Aegis YAML rules. |
-| `/aegis-grade` | **Semantic Auditor.** Enforces domain language and naming convention compliance. |
+| `query_graph` | **The Map.** $O(1)$ adjacency queries to analyze module boundaries. |
+| `get_scorecard` | **The Dashboard.** Updates `.aegis/AEGIS.md` scorecard. |
 
 ---
 
-## 📦 Rule Packs
+## 📦 Battle-Tested Polyglot Rule Packs
 
-Aegis comes bundled with 18+ battle-tested rule packs:
-- **Architecture**: DDD patterns, hexagonal isolation, layered boundaries.
-- **Security**: PII detection, cloud-isolation, credential leak prevention.
-- **Performance**: N+1 query detection, heavy loop analysis, memory leaks.
-- **Polyglot**: Native AST support for Python, TypeScript, JavaScript, and Rust.
-
----
-
-## 🌐 Enterprise & Observability
-
-- **Scorecard (`.aegis/AEGIS.md`)**: A markdown dashboard for human and agent visibility.
-- **Telemetry**: Local JSON check history in `.aegis/telemetry.json`.
-- **OTLP Export**: Native support for Datadog, Grafana, and OpenTelemetry.
+Aegis includes 18+ pre-configured rule packs across multiple languages:
+- **Architecture**: Domain-Driven Design (DDD), Hexagonal Architecture, Layer Isolation.
+- **Security**: PII Detection, Credential Protection, Injection Defense.
+- **Performance**: N+1 Query Interception, Memory Leak Audit.
+- **Languages**: Native Tree-sitter AST support for **Python**, **TypeScript**, **JavaScript**, and **Rust**.
 
 ---
 
 ## 📄 License
 
-MIT License
+[MIT License](LICENSE) — Aegis Governance Team

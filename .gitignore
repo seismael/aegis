@@ -1,5 +1,10 @@
 # Pytest temp files
 .pytest_tmp/
+.pytest_cache/
+.coverage
+
+# Ruff cache
+.ruff_cache/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -46,3 +51,4 @@ env/
 .aegis/session.json
 .aegis/telemetry.json
 .aegis/plugins/__pycache__/
+.aegis/mcp.json

@@ -10,10 +10,10 @@ AEGIS_GOVERNANCE_DIRECTIVE = (
 )
 
 AEGIS_SKILL_FILES = [
+    "aegis-lead.md",
     "aegis-init.md",
-    "aegis-principal-architect.md",
-    "aegis-architect.md",
-    "aegis-semantic-check.md",
+    "aegis-builder.md",
+    "aegis-grade.md",
 ]
 
 AGENTS_TEMPLATE = """# Aegis V4 Governance

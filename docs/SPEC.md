@@ -1,78 +1,94 @@
-## V4 Agent-Native Invariants
+# Aegis V4: Agent-Native Technical Specification & Data Contracts
 
-### Mandatory Compliance Check
+> **Canonical Technical Specification** for Aegis Native Engine & SDK based on [TEMP.md](file:///c:/dev/projects/aegis/TEMP.md).
 
-Before declaring ANY coding task complete, the AI agent MUST:
+---
 
-1. Call `check_architecture` with the list of modified files.
-2. If violations are returned, remediate the code natively.
-3. Re-run validation until SUCCESS is returned.
+## 1. Governance State & Data Contracts
 
-### No Direct File System Governance
+### 1.1 `GovernanceContext` Schema
 
-Aegis V4 never:
-- Installs git hooks
-- Watches file system events
-- Intercepts file reads/writes
-- Maintains session state
+```python
+class GovernanceContext(TypedDict):
+    """Governance execution context audit trail."""
+    is_clean: bool
+    total_violations: int
+    active_violations: list[dict[str, Any]]
+    remediation_prompt: str | None
+```
 
-# Aegis V4: Agent-Native Technical Specification
+### 1.2 `AegisState` Schema
 
-## Layer 0: The Workspace Initializer
-Aegis provides a local initialization layer that binds into your specific development workspace.
-- **Universal Command**: `aegis init`
-- **Action**: Creates local `mcp.json`, `.claude.json` (MCP server + customInstructions) and `.aider.conf.yml` (MCP server + test-cmd) in the project root.
-- **Invariant**: The initialization is completely local and non-invasive. It does not modify global dotfiles.
+```python
+class AegisState(TypedDict):
+    """
+    Governance-hardened AgentState schema for LangGraph StateGraph topologies.
+    """
+    messages: list[Any]
+    pending_tool_call: dict[str, Any] | None
+    governance_valid: bool
+    governance: Annotated[list[GovernanceContext], operator.add]
+```
 
-## Layer 1: The Tri-Core Microkernel
+---
 
-### Policy Domain
-Rule definitions, YAML parsing, and pack management. Translates `.aegis/rules/` into structured, evaluable models.
-- **Pack Manager**: Installs, removes, and resets rule packs from bundled resources.
-- **Parser**: Loads YAML rules into Pydantic `Rule` models with multi-engine routing.
+## 2. Component API Contracts
 
-### Evaluation Domain
-Dispatches structural analysis to specialized engines. JIT-scopes rules to the files the agent is actively editing.
-- **AST (Tree-sitter)**: Language-aware structural analysis.
-- **Graph**: Cross-file dependency and coupling analysis.
-- **Regex**: High-speed pattern matching for secrets and simple invariants.
-- **Semantic**: Re-entrant LLM grading rubrics for domain language rules.
-- **Baseline**: Technical debt ledger (`.aegis/baseline.json`) with thread-safe atomic writes.
-- **Plugins**: Custom evaluation engines implementing `EvaluationEngineInterface`.
+### 2.1 Universal Agent Entry Point (`src/aegis/agent.py`)
 
-### Observability Domain
-- **Telemetry Recorder**: Persists check/remediation events to `.aegis/telemetry.json`.
-- **OTLP Exporter**: Opt-in gRPC streaming for Datadog/Grafana enterprise observability.
+```python
+agent = create_aegis_agent(rules: list[Rule], workspace_root: str = ".")
 
-## Layer 2: The MCP Tool Surface (Core & Skills)
+# 1. Proactive Pre-Flight Plan Verification
+plan_res = agent.verify_plan(proposed_imports: list[str], target_module: str)
+# Returns: {"plan_valid": bool, "violations": list, "feedback": str}
 
-### 2.1 Core Governance Tools
-| Tool | Purpose |
-|------|---------|
-| `check_architecture` | JIT compliance gate — evaluates modified files, returns SUCCESS or violation report |
-| `fetch_rubric` | Re-entrant LLM self-grading rubric for domain language rules |
-| `plan_architecture` | Pre-emptive task alignment — returns JIT-scoped rules for intent + file |
+# 2. In-Memory AST Delta Check
+delta_res = agent.evaluate_code_delta(code_string: str, language: str, file_path: str)
+# Returns: {"governance_valid": bool, "total_violations": int, "active_violations": list, "remediation_prompt": str}
 
-### 2.2 Agent-Native "On-Demand" Skills (Higher-Level)
-These skills wrap complex core operations into intuitive, project-wide commands for the agent.
+# 3. Sealed Tool Execution
+out = agent.execute_tool(tool_name: str, tool_args: dict[str, Any], tool_fn: Callable)
+# Raises AegisGovernanceError if payload violates active rules
+```
 
-| Skill | Purpose |
-|-------|---------|
-| `find_patterns` | Scans workspace, detects frameworks, and proposes new governance laws |
-| `apply_rules` | Formally adopts a rule pack or custom law; manages project-wide YAML generation |
-| `request_exception` | Petitions for a documented exception to a law; records debt in `baseline.json` |
-| `get_scorecard` | (Re)generates the `.aegis/AEGIS.md` dashboard for agent/human visibility |
+### 2.2 DeepAgents Ecosystem Adapter (`aegis.adapters.deepagents`)
 
-## Layer 3: The Agent-Native Execution Guarantee
+```python
+adapter = DeepAgentsAdapter(workspace_root=".")
 
-Aegis V4 enforces governance through the agent's native tool execution loop:
-- **Agent Entry Point (`.aegis/AEGIS.md`)**: A scorecard that onboards entering agents by listing active laws, pending proposals, and current health score.
-- **Claude Code**: Governance Directive in `customInstructions` + `.claude.md`.
-- **Aider**: Native self-healing loop via `--test-cmd`.
-- **Gemini CLI**: `GEMINI.md` integration.
-- **Cross-Agent Memory**: Coordination via `.aegis/session.json`.
+loop_res = adapter.run_governed_agent_loop(
+    initial_request="Implement billing service",
+    code_generator_fn=llm_generator_fn,
+    tool_fn=write_file_tool,
+    max_retries=3
+)
+# Returns: {"success": bool, "attempts": int, "output": Any, "history": list}
+```
 
-## Layer 4: Active Rule Matrix
-- Bundled rule packs in `src/aegis/resources/default_rules/` (18 packs: architecture, security, testing, and more).
-- Installed rules live in `.aegis/rules/`.
-- JIT scoping filters to a maximum of 15 relevant rules per validation call.
+### 2.3 LangGraph Ecosystem Adapter (`aegis.adapters.langgraph`)
+
+```python
+adapter = LangGraphAdapter(rules=rules, workspace_root=".")
+graph_update = adapter.run_step(state: AegisState, tool_fn: Callable | None = None)
+```
+
+---
+
+## 3. Microkernel Tool Surface (FastMCP)
+
+| MCP Tool | Function Signature | Description |
+| :--- | :--- | :--- |
+| `check_architecture` | `check_architecture(modified_files: list[str])` | Evaluates active workspace files against governance rules. |
+| `plan_architecture` | `plan_architecture(intent: str, file_path: str)` | Pre-flight intent check returning JIT scoped rules. |
+| `init_governance` | `init_governance(workspace_root: str)` | Scaffolds `.aegis/rules`, `pyproject.toml`, `AGENTS.md`. |
+| `query_graph` | `query_graph(source_module: str)` | Returns dependency coupling and adjacency lists. |
+
+---
+
+## 4. Multi-Engine Evaluation Pipeline
+
+1. **Tree-sitter AST Engine**: In-memory structural node analysis for Python, TypeScript, JavaScript, Rust.
+2. **Import Graph Engine**: $O(1)$ workspace dependency analysis and layer isolation.
+3. **Regex Engine**: Pattern matching for credentials, `print(` statements, and style invariants.
+4. **Semantic Engine**: Re-entrant LLM self-grading for natural language design rubrics.

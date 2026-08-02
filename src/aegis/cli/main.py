@@ -15,6 +15,7 @@ class AegisCLI:
         self.app = typer.Typer(help="Aegis V4: Agent-Native Architectural Microkernel")
         self.app.command()(self.init)
         self.app.command()(self.run)
+        self.app.command()(self.agent)
 
     def init(
         self,
@@ -59,6 +60,31 @@ class AegisCLI:
             raise typer.Exit(code=0)
 
         kernel.run(transport=transport, host=host, port=port)
+
+    def agent(
+        self,
+        workspace_root: str = typer.Option(
+            ".", "--workspace", help="Path to workspace root"
+        ),
+        plan_import: str | None = typer.Option(
+            None, "--plan-import", help="Proposed import to verify"
+        ),
+        target_module: str | None = typer.Option(
+            None, "--target-module", help="Target module name"
+        ),
+    ):
+        """Execute AegisAgent native runtime proactive plan verification."""
+        from aegis.kernel.server import AegisKernel
+
+        kernel = AegisKernel(workspace_root=workspace_root)
+        if plan_import and target_module:
+            res = kernel.agent.verify_plan([plan_import], target_module)
+            typer.echo(f"Plan valid: {res['plan_valid']}")
+            typer.echo(res["feedback"])
+            if not res["plan_valid"]:
+                raise typer.Exit(code=1)
+        else:
+            typer.echo(f"AegisAgent native runtime active in {kernel.workspace_root}")
 
     @staticmethod
     def entry_point():

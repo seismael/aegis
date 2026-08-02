@@ -68,9 +68,10 @@ class TreeSitterAnalyzer(RuleAnalyzerInterface):
             try:
                 # Handle standard query
                 if rule.query:
-                    if rule.query not in self._query_cache:
-                        self._query_cache[rule.query] = Query(language, rule.query)
-                    query = self._query_cache[rule.query]
+                    cache_key = f"{ext}:{rule.query}"
+                    if cache_key not in self._query_cache:
+                        self._query_cache[cache_key] = Query(language, rule.query)
+                    query = self._query_cache[cache_key]
                     cursor = QueryCursor(query)
                     captures = cursor.captures(tree.root_node)
 
@@ -82,7 +83,7 @@ class TreeSitterAnalyzer(RuleAnalyzerInterface):
 
                 # Handle positive rules (candidates - check)
                 elif rule.candidates_query and rule.check_query:
-                    c_key = f"candidates:{rule.candidates_query}"
+                    c_key = f"{ext}:candidates:{rule.candidates_query}"
                     if c_key not in self._query_cache:
                         q = Query(language, rule.candidates_query)
                         self._query_cache[c_key] = q
@@ -90,7 +91,7 @@ class TreeSitterAnalyzer(RuleAnalyzerInterface):
                     c_cursor = QueryCursor(c_query)
                     candidates = c_cursor.captures(tree.root_node)
 
-                    ck_key = f"check:{rule.check_query}"
+                    ck_key = f"{ext}:check:{rule.check_query}"
                     if ck_key not in self._query_cache:
                         self._query_cache[ck_key] = Query(language, rule.check_query)
                     compliance_query = self._query_cache[ck_key]

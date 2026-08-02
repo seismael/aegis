@@ -22,6 +22,13 @@ class RemediationPromptSynthesizer(RemediationProviderInterface):
     def __init__(self, extra_analyzers: list | None = None):
         self.extra_analyzers = extra_analyzers or []
 
+    def synthesize(
+        self, violations: list[ArchitecturalViolation], rules: list[Rule]
+    ) -> str:
+        rules_map = {r.id: r for r in rules}
+        res = self.generate_remediation(violations, rules_map)
+        return res.handoff_prompt
+
     def generate_remediation(
         self, violations: list[ArchitecturalViolation], rules_map: dict[str, Rule]
     ) -> RemediationResult:

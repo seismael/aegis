@@ -1,42 +1,62 @@
-# Aegis V4 Operations
+# Aegis V4 Operations & CLI Manual
 
-## Reading Governance Health
+> Operational guide for deploying, executing, and auditing Aegis Native Governance Engine.
 
-The `.aegis/telemetry.json` file contains check history:
+---
 
-```json
-[
-  {"timestamp": "2026-05-23T01:00:00Z", "total_violations": 12, "active_violations": 3, "type": "check"}
-]
-```
+## 1. CLI Commands (`aegis`)
 
-## Enterprise Monitoring
+### 1.1 Workspace Initializer (`aegis init`)
 
-Configure OTLP export in `.aegis/config.yaml`:
-
-```yaml
-telemetry:
-  exporter: otlp
-  otlp_endpoint: "https://otel-collector.example.com/v1/traces"
-```
-
-## Server Deployment
-
-For non-stdio environments:
+Scaffolds `.aegis/rules/`, `.aegis/mcp.json`, `pyproject.toml`, and harness instructions (`AGENTS.md`, `CLAUDE.md`, `GEMINI.md`).
 
 ```bash
+aegis init --workspace .
+```
+
+### 1.2 Proactive Plan Verification CLI (`aegis agent`)
+
+Executes proactive pre-flight plan verification directly from the command line:
+
+```bash
+aegis agent --workspace . --plan-import aegis.infrastructure --target-module aegis.domain.service
+```
+
+### 1.3 Microkernel MCP Server (`aegis run`)
+
+Starts the FastMCP microkernel server:
+
+```bash
+# Stdio transport (default for AI harnesses)
+aegis run
+
+# HTTP SSE transport for remote server setups
 aegis run --transport sse --host 0.0.0.0 --port 8000
 ```
 
-## CI/CD Integration
+---
 
-GitHub Actions workflow calls the MCP server to validate:
+## 2. Python SDK Operational Integration
 
-```yaml
-- name: Aegis Governance
-  run: |
-    aegis run &
-    sleep 2
+```python
+from aegis import create_aegis_agent, RegistryLoader
+
+# Load rules from local .aegis/rules
+rules = RegistryLoader.load(".")
+
+# Instantiate AegisAgent
+agent = create_aegis_agent(rules=rules, workspace_root=".")
+
+# Execute pre-flight intent verification
+res = agent.verify_plan(["infrastructure.db"], "domain.service")
+if not res["plan_valid"]:
+    print(res["feedback"])
 ```
 
-No `aegis check` command exists in V4. All governance flows through the MCP server.
+---
+
+## 3. Observability & Telemetry
+
+- **Local Telemetry Ledger**: Audit history stored at `.aegis/telemetry.json`.
+- **Scorecard Dashboard**: Living project scorecard at `.aegis/AEGIS.md`.
+- **OTLP gRPC Export**: Enterprise trace streaming configurable via `aegis.yaml`.
