@@ -1,4 +1,6 @@
 name: javascript-typescript
-version: 1.0.0
-description: JavaScript and TypeScript best practices and common anti-pattern detection
+version: 2.0.0
+description: TypeScript quality — no console.log, no any, async error handling, effect cleanup, explicit return types
 author: Aegis
+tier: extended
+tagline: No console.log, no any, error handling, effect cleanup

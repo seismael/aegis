@@ -1,4 +1,6 @@
 name: documentation
-version: 1.0.0
-description: Documentation standards — docstrings, README, changelog, and deprecation notices
+version: 2.0.0
+description: Docstring coverage — public API docs, raises/returns documentation, usage examples
 author: Aegis
+tier: extended
+tagline: Docstring coverage on public API, raises, returns, examples

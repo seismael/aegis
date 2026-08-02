@@ -6,8 +6,8 @@ from collections.abc import Callable
 from functools import wraps
 from typing import Any
 
-from aegis.domain.evaluation.service import EvaluationService
-from aegis.domain.policy.models import Rule
+from aegis.core.registry import Rule
+from aegis.domain.evaluation_service import EvaluationService
 from aegis.runtime.executor import NativeAegisExecutor
 
 
@@ -28,7 +28,6 @@ def aegis_hardened_tool(
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
-            # Bind args to kwargs for executor inspection
             return executor.execute_tool(
                 tool_name=func.__name__,
                 tool_args=kwargs,

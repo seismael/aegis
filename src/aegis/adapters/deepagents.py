@@ -71,7 +71,13 @@ class DeepAgentsAdapter(AegisAgent):
                 plan_res = self.verify_plan(proposed_imports, target_module)
                 if not plan_res["plan_valid"]:
                     feedback = plan_res["feedback"]
-                    history.append({"attempt": attempt, "stage": "plan_verifier", "feedback": feedback})
+                    history.append(
+                        {
+                            "attempt": attempt,
+                            "stage": "plan_verifier",
+                            "feedback": feedback,
+                        }
+                    )
                     current_prompt = f"{initial_request}\n\n[AEGIS GOVERNANCE REJECTION - PRE-FLIGHT PLAN]\n{feedback}"
                     continue
 
@@ -83,7 +89,13 @@ class DeepAgentsAdapter(AegisAgent):
             delta_res = self.evaluate_code_delta(code_string, language, file_path)
             if not delta_res["governance_valid"]:
                 remediation = delta_res["remediation_prompt"]
-                history.append({"attempt": attempt, "stage": "ast_enforcement", "remediation": remediation})
+                history.append(
+                    {
+                        "attempt": attempt,
+                        "stage": "ast_enforcement",
+                        "remediation": remediation,
+                    }
+                )
                 current_prompt = f"{initial_request}\n\n[AEGIS GOVERNANCE INTERVENTION]\n{remediation}"
                 continue
 
@@ -101,7 +113,9 @@ class DeepAgentsAdapter(AegisAgent):
                     "history": history,
                 }
             except AegisGovernanceError as err:
-                history.append({"attempt": attempt, "stage": "executor", "error": str(err)})
+                history.append(
+                    {"attempt": attempt, "stage": "executor", "error": str(err)}
+                )
                 current_prompt = f"{initial_request}\n\n[AEGIS EXECUTOR BLOCK]\n{err}"
 
         return {

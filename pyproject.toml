@@ -59,6 +59,7 @@ build-backend = "hatchling.build"
 [tool.ruff]
 line-length = 88
 target-version = "py311"
+exclude = ["tests/manual/projects"]
 
 [tool.ruff.lint]
 select = [
@@ -79,4 +80,4 @@ testpaths = ["tests"]
 python_files = "test_*.py"
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
-addopts = "--basetemp=.pytest_tmp"
+addopts = "--basetemp=.pytest_tmp --ignore=tests/manual"

@@ -1,0 +1,58 @@
+{
+  "T1": {
+    "id": "T1",
+    "name": "Fix All Seeded Violations",
+    "prompt": "Find and fix all architectural violations in this codebase. Use the check_architecture tool to identify them. Ensure every layer import is correct, no hardcoded credentials, no debug prints in production code, no exec() calls, and proper TypeScript patterns. Fix everything.",
+    "expected_without": "Agent manually scans files. May miss 2-4 violations. May take 5-8 turns.",
+    "expected_with": "Agent calls check_architecture. Gets exact violation list. Fixes all 7. 2-3 turns."
+  },
+  "T2": {
+    "id": "T2",
+    "name": "Cross-Layer Feature Addition",
+    "prompt": "Add email notification to the TaskFlow application. When a new task is created in `domain/services.py`, an email should be sent. The email sending service is in `infrastructure/email.py`. Make the architecture clean - the domain should not directly depend on infrastructure. Involve the application layer appropriately.",
+    "expected_without": "Agent likely adds import from infrastructure to domain. Creates layer violation. 2-4 turns of refactoring.",
+    "expected_with": "AegisPlanVerifier catches the intent. Uses plan_architecture to scope rules. Produces clean architecture. 1-2 turns."
+  },
+  "T3": {
+    "id": "T3",
+    "name": "Security Hardening",
+    "prompt": "Add user authentication to `api/routes.py`. Users should be able to register with a username and password. Passwords MUST be hashed using bcrypt. Do NOT hardcode any secret keys, API tokens, or credentials in the source code. Do NOT log any personally identifiable information.",
+    "expected_without": "Agent may hardcode a secret key or use plain text passwords. Security rules catch on post-hoc scan. 3-5 turns.",
+    "expected_with": "AegisFinalGate enforces security rules. check_architecture catches violations. 1-2 turns."
+  },
+  "T4": {
+    "id": "T4",
+    "name": "Multi-Module Domain Refactor",
+    "prompt": "Split the Task model in `domain/models.py` into three separate models: Task, SubTask, and Comment. SubTask represents a subtask linked to a parent Task. Comment represents a comment linked to a Task. Keep all models in the domain layer. Update relevant services and repositories. Do NOT break existing tests.",
+    "expected_without": "Agent creates new models but may import wrong layer during refactoring. 4-6 turns.",
+    "expected_with": "AegisEnforcementNode evaluates each file delta. Compliance maintained per-file. 2-3 turns."
+  },
+  "T5": {
+    "id": "T5",
+    "name": "Pattern Compliance Refactoring",
+    "prompt": "Refactor TaskRepository in `domain/interfaces.py` to use the Specification pattern. Create Specification classes that filter tasks by status, priority, and assignee. Keep the specification logic in the domain layer. Update the repository interface and the infrastructure implementation accordingly.",
+    "expected_without": "Agent may place filtering logic in infrastructure or API layer. Design pattern misuse. 3-5 turns.",
+    "expected_with": "Design rules enforce pattern placement. plan_architecture provides scoped rules. 2-3 turns."
+  },
+  "T6": {
+    "id": "T6",
+    "name": "TypeScript Component Addition",
+    "prompt": "Add a new React component `TaskFilter.tsx` in the frontend that filters tasks by status and priority. Use proper TypeScript types - no `any` types. Add proper error handling for the API calls. Follow the project's patterns from existing components. Use `fetchTasks` from `frontend/services/taskApi.ts`.",
+    "expected_without": "Agent uses any types, console.log, no error handling. 2-3 turns to fix after review.",
+    "expected_with": "TypeScript rules catch any types and console.log. Polyglot rules work. 1-2 turns."
+  },
+  "T7": {
+    "id": "T7",
+    "name": "Brownfield Role-Based Access Control",
+    "prompt": "Add role-based access control to the TaskFlow application. Users have roles: admin, member, viewer. Only admins and members can create tasks. Only the assignee or an admin can change task status. Viewers can only read. Add authorization checks to `api/routes.py` and `domain/services.py`. Do NOT break the existing test suite.",
+    "expected_without": "Agent modifies existing code but may introduce new violations or break tests. 4-7 turns.",
+    "expected_with": "check_architecture validates every change. Existing rules protect against regression. 2-3 turns."
+  },
+  "T8": {
+    "id": "T8",
+    "name": "Code Review Architecture Audit",
+    "prompt": "Perform a comprehensive architectural audit of this codebase. Use the query_graph tool to analyze the dependency structure. Use get_scorecard to assess health. Use plan_architecture to scope rules to each file. Provide a structured report of: (1) dependency violations, (2) layer boundary issues, (3) security concerns, (4) code quality assessment.",
+    "expected_without": "Agent can only search files manually. Incomplete audit. May miss cross-file violations.",
+    "expected_with": "Agent uses query_graph, get_scorecard, plan_architecture. Structured, complete audit. 1 turn."
+  }
+}

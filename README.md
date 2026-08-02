@@ -12,13 +12,17 @@ Integrated natively into agent execution loops (DeepAgents, LangGraph, Claude Co
 
 ## ⚡ Token Efficiency & Cost Analysis
 
-| Task Category | Execution Scenario | Without Aegis (Reactive) | With Aegis (Proactive Engine) | Benchmark Test Savings |
-| :--- | :--- | :--- | :--- | :--- |
-| **Architectural Drift Prevention** | Agent proposes non-compliant module imports or DDD layer violations. | Generates 300+ lines of code, writes to disk, fails review, re-prompts over 3 retries.<br>**~21,100 tokens** | Intercepts intent at `AegisPlanVerifier` before code generation starts.<br>**~2,820 tokens** | **~86.6% Token Reduction** |
-| **AST Delta Violation Interception** | Code includes `print(` statements or unhandled PII. | Writes code to disk, fails scan, re-sends full codebase context for refactoring.<br>**~8,400 tokens** | `AegisEnforcementNode` evaluates in-memory diff; synthesizes focused 100-token hint.<br>**~1,370 tokens** | **~83.7% Token Reduction** |
-| **Turn-1 Compliant Task** | Agent writes compliant utility code on 1st attempt. | Generates code, writes to disk, passes post-hoc review.<br>**~1,200 tokens** | Pre-flight plan gate validates intent (50 tokens); generates code.<br>**~1,250 tokens** | **Neutral Overhead** |
+Real agent trials (Claude Code, Gemini CLI) performing cross-layer DDD feature addition with 68 governance rules. Results are **agent-dependent**:
 
-> For detailed benchmark test reports, see [Token Efficiency & Cost Analysis](file:///c:/dev/projects/aegis/docs/TOKEN_EFFICIENCY.md).
+| Agent | Model | WITH Aegis | WITHOUT Aegis | Delta |
+| :--- | :--- | :--- | :--- | :--- |
+| Gemini CLI | gemini-3.5-flash | 390,544 input | 605,825 input | **+35.5% savings** |
+| Claude Code | deepseek-v4-pro | 126,116 total | 98,092 total | -28.6% overhead |
+| OpenCode | deepseek-v4-pro | AGENTS.md alone (no MCP) has zero effect | — | — |
+
+Aegis is a **governance engine** first. Token efficiency is a secondary effect that varies by agent and model. The engine detects 133 violations across 25 files in 0.32s with 68 rules.
+
+> For detailed methodology and complete trial data, see [Token Efficiency & Cost Analysis](file:///c:/dev/projects/aegis/docs/TOKEN_EFFICIENCY.md).
 
 ---
 

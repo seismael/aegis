@@ -1,0 +1,48 @@
+# Aegis Rule Pack Registry
+# Single source of truth for all available packs.
+# Read by aegis init, aegis rules list, and the kernel.
+# Users add custom rules by creating new folders in .aegis/rules/ — no registry needed.
+
+version: "2.0.0"
+updated: "2026-08-02"
+
+packs:
+  architecture:
+    tier: core
+    tagline: DDD layer isolation and module boundary enforcement
+    rules: 5
+
+  security:
+    tier: core
+    tagline: Block hardcoded secrets, unsafe execution, injection vectors
+    rules: 6
+
+  best-practices:
+    tier: core
+    tagline: Prevent bugs — mutable defaults, bare excepts, missing tests
+    rules: 5
+
+  testing:
+    tier: extended
+    tagline: Test structure, fixture scoping, isolation, parametrization
+    rules: 5
+
+  style:
+    tier: extended
+    tagline: Naming conventions, import hygiene, no debug tool leaks
+    rules: 4
+
+  javascript-typescript:
+    tier: extended
+    tagline: No console.log, no any, error handling, effect cleanup
+    rules: 5
+
+  dependencies:
+    tier: extended
+    tagline: Dependency health — unused, outdated, license, transitive
+    rules: 6
+
+  documentation:
+    tier: extended
+    tagline: Docstring coverage on public API, raises, returns, examples
+    rules: 4

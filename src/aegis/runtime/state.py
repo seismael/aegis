@@ -9,6 +9,7 @@ from typing import Annotated, Any, TypedDict
 
 class GovernanceContext(TypedDict):
     """Governance execution context audit trail."""
+
     is_clean: bool
     total_violations: int
     active_violations: list[dict[str, Any]]
@@ -20,6 +21,7 @@ class AegisState(TypedDict):
     Governance-hardened AgentState schema.
     Extends standard AgentState with a native governance audit trail reducer.
     """
+
     messages: list[Any]
     pending_tool_call: dict[str, Any] | None
     governance_valid: bool

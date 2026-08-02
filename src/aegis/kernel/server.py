@@ -7,19 +7,20 @@ from pathlib import Path
 import structlog
 from mcp.server.fastmcp import FastMCP
 
-from aegis.domain.evaluation.analyzers.ast import TreeSitterAnalyzer
+from aegis.core.baseline import BaselineManager
+from aegis.core.parser import TreeSitterAnalyzer
+from aegis.core.registry import EngineType, EvaluationPhase, Severity
+from aegis.core.scoping import ScopeFilter
 from aegis.domain.evaluation.analyzers.graph import GraphAnalyzer
 from aegis.domain.evaluation.analyzers.regex import RegexAnalyzer
 from aegis.domain.evaluation.analyzers.semantic import SemanticAnalyzer
-from aegis.domain.evaluation.baseline import BaselineManager
-from aegis.domain.evaluation.prompt_synthesizer import RemediationPromptSynthesizer
-from aegis.domain.evaluation.scoping import ScopeFilter
-from aegis.domain.evaluation.scorecard import Scorecard
-from aegis.domain.evaluation.service import EvaluationService
 from aegis.domain.evaluation.session import SessionManager
-from aegis.domain.observability.telemetry import TelemetryRecorder
+from aegis.domain.evaluation_service import EvaluationService
 from aegis.domain.policy.pack_manager import RulePackManager
 from aegis.domain.policy.parser import PolicyParser
+from aegis.domain.scorecard import Scorecard
+from aegis.domain.synthesizer import RemediationPromptSynthesizer
+from aegis.domain.telemetry import TelemetryRecorder
 from aegis.kernel.errors import (
     ERR_INVALID_INPUT,
     ERR_SERVICE_UNAVAILABLE,
@@ -172,11 +173,6 @@ class AegisKernel:
         Petitions for an architectural exception.
         Records the technical debt and suppresses the violation for this session.
         """
-        # Logic:
-        # 1. Use BaselineManager to mark this rule as exempt.
-        # 2. For simplicity, we reuse '_evolve_suppress'
-        # 3. Update the Session for the handoff note
-
         result = await self._evolve_suppress(rule_id)
         if "SUCCESS" in result:
             state = self.session.load()
@@ -205,7 +201,6 @@ class AegisKernel:
         if self.evaluation is None:
             return error(ERR_SERVICE_UNAVAILABLE, "Evaluation engine not initialized.")
 
-        # Full workspace evaluation for health scorecard
         violations = self.evaluation.evaluate_workspace(self.workspace_root, rules)
 
         exceptions = []
@@ -228,7 +223,6 @@ class AegisKernel:
         JIT Compliance Gate. Call before declaring any task complete.
         Returns SUCCESS string or formatted violation report with remediation.
         """
-        # Session Coordination Logic
         state = self.session.load()
         current_agent = self._get_agent_id()
         coordination_info = ""
@@ -236,7 +230,7 @@ class AegisKernel:
         if state.handoff_notes or (
             state.last_validation_time and state.last_agent_id != current_agent
         ):
-            coordination_info = "\n\n### 🤝 Coordination Info\n"
+            coordination_info = "\n\n### \U0001f91d Coordination Info\n"
             if state.last_agent_id and state.last_agent_id != current_agent:
                 coordination_info += f"- Last validated by: **{state.last_agent_id}**"
                 if state.last_validation_time:
@@ -245,7 +239,6 @@ class AegisKernel:
             if state.handoff_notes:
                 coordination_info += f"- Handoff Notes: {state.handoff_notes}\n"
 
-        # Update and save session
         state.last_validation_time = datetime.now()
         state.last_agent_id = current_agent
         if handoff_note:
@@ -269,16 +262,12 @@ class AegisKernel:
         phase_enum = None
         if phase != "pre-commit":
             try:
-                from aegis.domain.policy.models import EngineType, EvaluationPhase
-
                 phase_enum = EvaluationPhase(phase)
             except ValueError:
                 return warn(
                     f"Unknown phase '{phase}'. "
                     "Valid phases: pre-commit, ci, nightly, on-demand."
                 )
-        else:
-            from aegis.domain.policy.models import EngineType
 
         filtered = self._filter_rules_for_files(files_modified, rules)
 
@@ -304,7 +293,6 @@ class AegisKernel:
             if not self.baseline.is_exempt(v, rule_map.get(v.rule_id))
         ]
 
-        # Semantic Rubric Generation
         semantic_rubrics = []
         semantic_rules = [r for r in filtered if r.engine_type == EngineType.SEMANTIC]
         if semantic_rules and self.semantic:
@@ -348,7 +336,7 @@ class AegisKernel:
                 )
 
         if semantic_rubrics:
-            header = "\n\n---\n### 🧠 Re-entrant Semantic Evaluation Required\n"
+            header = "\n\n---\n### \U0001f9e0 Re-entrant Semantic Evaluation Required\n"
             footer = "\n**Note:** Semantic evaluation is mandatory. Please follow the rubrics above before completion.\n"
             combined_rubrics = header + "\n".join(semantic_rubrics) + footer
             remediation_prompt += combined_rubrics
@@ -394,11 +382,15 @@ class AegisKernel:
 
     async def init_governance(
         self,
-        target_packs: list[str],
+        target_packs: list[str] | None = None,
+        tier: str = "core",
     ) -> str:
         """
         Agent-driven project bootstrap. Writes default rule packs
         from bundled resources to .aegis/rules/ and generates AGENTS.md.
+
+        If target_packs is empty, loads packs from .registry.yaml
+        filtered by tier ("core" | "extended").
         """
         installed = []
         if self.packs is None:
@@ -406,7 +398,14 @@ class AegisKernel:
                 ERR_SERVICE_UNAVAILABLE,
                 "Pack manager not initialized.",
             )
-        for pack_name in target_packs:
+
+        if target_packs is not None:
+            packs_to_install = target_packs
+        else:
+            # Load from registry catalog filtered by tier
+            packs_to_install = self._get_registry_packs_for_tier(tier)
+
+        for pack_name in packs_to_install:
             try:
                 self.packs.install(pack_name)
                 installed.append(pack_name)
@@ -502,10 +501,7 @@ class AegisKernel:
         applies_to: str | None = None,
         language: str = "python",
     ) -> str:
-        """
-        Agent-driven rule lifecycle management.
-        action: suppress | remove_pack | add_rule
-        """
+        """Agent-driven rule lifecycle management. action: suppress | remove_pack | add_rule"""
         if action == "suppress":
             return await self._evolve_suppress(target)
 
@@ -556,16 +552,16 @@ class AegisKernel:
 
     async def _evolve_add_rule(
         self,
-        rule_id: str | None,
-        description: str | None,
-        severity: str,
-        engine_type: str,
-        category: str,
-        rationale: str | None,
-        query: str | None,
-        regex_pattern: str | None,
-        applies_to: str | None,
-        language: str,
+        rule_id,
+        description,
+        severity,
+        engine_type,
+        category,
+        rationale,
+        query,
+        regex_pattern,
+        applies_to,
+        language,
     ) -> str:
         from pathlib import Path
 
@@ -573,8 +569,7 @@ class AegisKernel:
 
         if not rule_id or not description:
             return error(
-                ERR_INVALID_INPUT,
-                "rule_id and description are required for add_rule",
+                ERR_INVALID_INPUT, "rule_id and description are required for add_rule"
             )
 
         custom_path = Path(self.workspace_root) / ".aegis" / "rules" / "custom.yaml"
@@ -637,7 +632,6 @@ class AegisKernel:
 
         lines = [f"## Architectural Context for: {intent}\n"]
 
-        # Proactive intent plan verification via AegisAgent node
         if self.agent and file_path:
             words = [w for w in intent.split() if "." in w]
             target_mod = (
@@ -649,7 +643,7 @@ class AegisKernel:
             plan_res = self.agent.verify_plan(words, target_mod)
             if not plan_res["plan_valid"]:
                 lines.append(
-                    f"\n### 🛑 Proactive Plan Verification Gate Rejection\n{plan_res['feedback']}\n"
+                    f"\n### Proactive Plan Verification Gate Rejection\n{plan_res['feedback']}\n"
                 )
 
         for r in relevant[:15]:
@@ -667,11 +661,11 @@ class AegisKernel:
                             f"- **{v_dict.get('rule_id')}** (line {v_dict.get('line', 1)}): {v_dict.get('description')}"
                         )
                     rule_ids = {
-                        v_dict.get("rule_id") for v_dict in delta_res["active_violations"]
+                        v_dict.get("rule_id")
+                        for v_dict in delta_res["active_violations"]
                     }
                     lines.append(
-                        f"\nFix these {len(rule_ids)} rule violations"
-                        " before proceeding."
+                        f"\nFix these {len(rule_ids)} rule violations before proceeding."
                     )
                 else:
                     lines.append("\nNo violations detected in provided code snippet.")
@@ -686,7 +680,6 @@ class AegisKernel:
         Returns a list of proposed governance laws for the team to review.
         """
         proposals = self._discover_proposals()
-
         return DiscoveryResult(
             proposals=proposals,
             message="Aegis has analyzed your project and proposes the following governance laws.",
@@ -702,14 +695,10 @@ class AegisKernel:
         law_id: Either a rule pack name (e.g., 'architecture') or a unique ID for a custom law.
         custom_description: If creating a custom law, provide its natural language definition.
         """
-        # Case A: Rule Pack
         if self.packs and law_id in self.packs.list_available():
             return await self.init_governance(target_packs=[law_id])
 
-        # Case B: Custom Law (Natural Language)
         if custom_description:
-            # For simplicity, we use the existing manage_rules logic for 'add_rule'
-            # But we wrap it into a "Semantic" rule by default for custom laws
             return await self.manage_rules(
                 action="add_rule",
                 rule_id=law_id,
@@ -741,7 +730,6 @@ class AegisKernel:
 
         base_reason = " ".join(findings) if findings else "Generic project structure."
 
-        # Determine architecture
         is_layered = False
         import_tiers = ""
         if self.graph is not None and pyproject.exists():
@@ -757,7 +745,6 @@ class AegisKernel:
             except Exception:
                 pass
 
-        # Security Proposal (Always)
         proposals.append(
             Proposal(
                 id="security",
@@ -767,7 +754,6 @@ class AegisKernel:
             )
         )
 
-        # Architecture Proposal
         arch_reason = base_reason
         if import_tiers:
             arch_reason += f" Import tiers detected: {import_tiers}."
@@ -787,7 +773,6 @@ class AegisKernel:
             )
         )
 
-        # Best Practices
         proposals.append(
             Proposal(
                 id="best-practices",
@@ -797,7 +782,6 @@ class AegisKernel:
             )
         )
 
-        # Style
         proposals.append(
             Proposal(
                 id="style",
@@ -824,7 +808,6 @@ class AegisKernel:
         findings: list[str] = []
         for p in proposals:
             findings.append(f"Proposed: {p.id} (Relevance: {p.relevance}) - {p.reason}")
-
         return "\n".join(findings)
 
     def _scan_pyproject_deps(self, path: Path) -> list[str]:
@@ -847,6 +830,33 @@ class AegisKernel:
             return rules
         except Exception:
             return []
+
+    @staticmethod
+    def _get_registry_packs_for_tier(tier: str) -> list[str]:
+        """Read .registry.yaml and return pack names matching the requested tier."""
+        import importlib.resources
+
+        import yaml
+
+        try:
+            resource = importlib.resources.files("aegis.resources.default_rules")
+            reg_path = resource.joinpath(".registry.yaml")
+            with importlib.resources.as_file(reg_path) as path:
+                with open(path, encoding="utf-8") as f:
+                    registry = yaml.safe_load(f)
+        except Exception:
+            return []
+
+        if not registry or "packs" not in registry:
+            return []
+
+        packs = registry["packs"]
+        if tier == "core":
+            return [name for name, info in packs.items() if info.get("tier") == "core"]
+        elif tier == "extended":
+            return list(packs.keys())
+        else:
+            return [name for name, info in packs.items() if info.get("tier") == "core"]
 
     def _get_cached_adjacency(self):
         from time import time
@@ -913,14 +923,9 @@ class AegisKernel:
 
         @self.mcp.resource("aegis://context/{path}")
         def get_context(path: str) -> str:
-            """
-            Returns a Law Summary for the given path.
-            Includes health score, top 3 critical rules, and link to scorecard.
-            """
             rules = self._load_rules()
             scoped = ScopeFilter.filter_rules_for_file(path, rules, rules)
 
-            # 1. Health Score for this file
             health_score = 100
             if self.evaluation and scoped:
                 abs_path = os.path.join(self.workspace_root, path)
@@ -938,9 +943,6 @@ class AegisKernel:
                             ),
                         )
 
-            # 2. Top 3 most critical rules
-            from aegis.domain.policy.models import Severity
-
             severity_order = {
                 Severity.CRITICAL: 0,
                 Severity.HIGH: 1,
@@ -952,12 +954,11 @@ class AegisKernel:
                 scoped, key=lambda r: severity_order.get(r.severity, 99)
             )[:3]
 
-            # 3. Formatted Law Summary
-            summary = [f"### 🛡️ Aegis Law Summary for: `{path}`"]
+            summary = [f"### Aegis Law Summary for: `{path}`"]
             summary.append(f"**Module Health: {health_score}%**\n")
 
             if top_rules:
-                summary.append("#### 📜 Top Critical Rules:")
+                summary.append("#### Top Critical Rules:")
                 for r in top_rules:
                     summary.append(
                         f"- **{r.id}** [{r.severity.value}]: {r.description}"
@@ -972,22 +973,14 @@ class AegisKernel:
                 )
                 + ")"
             )
-
             return "\n".join(summary)
 
         @self.mcp.resource("aegis://scorecard")
         def _read_scorecard() -> str:
-            """
-            Returns the full content of AEGIS.md.
-            """
             scorecard_path = Path(self.workspace_root) / ".aegis" / "AEGIS.md"
             if scorecard_path.exists():
                 return scorecard_path.read_text()
-
-            return (
-                "# 🛡️ Aegis Project Health Scorecard\n\n"
-                "AEGIS.md not found. Run `aegis init_governance` to generate it."
-            )
+            return "# Aegis Project Health Scorecard\n\nAEGIS.md not found. Run `aegis init_governance` to generate it."
 
         @self.mcp.resource("aegis://spec")
         def get_spec() -> str:
@@ -1002,10 +995,7 @@ class AegisKernel:
     def _register_prompts(self):
         @self.mcp.prompt()
         def evaluate_architecture(files: list[str]) -> str:
-            return (
-                f"Call check_architecture with "
-                f"files_modified={files} before declaring the task complete."
-            )
+            return f"Call check_architecture with files_modified={files} before declaring the task complete."
 
         @self.mcp.prompt()
         def remediate_violations() -> str:
@@ -1019,18 +1009,14 @@ class AegisKernel:
         @self.mcp.prompt()
         def initialize_governance() -> str:
             return (
-                "1. Call query_graph(query_type='hypothesis') "
-                "to discover the workspace architecture.\n"
+                "1. Call query_graph(query_type='hypothesis') to discover the workspace architecture.\n"
                 "2. Present the proposed architecture to the user for approval.\n"
                 "3. Call init_governance with the approved pack list."
             )
 
         @self.mcp.prompt()
         def inspect_dependency(module: str) -> str:
-            return (
-                f"Call query_graph(query_type='dependency_graph', "
-                f"target='{module}') to inspect dependencies."
-            )
+            return f"Call query_graph(query_type='dependency_graph', target='{module}') to inspect dependencies."
 
     def _deploy_all_workspace_instructions(self):
         from aegis.infrastructure.installer import AgentNativeInstaller
@@ -1068,12 +1054,10 @@ class AegisKernel:
 
         if active:
             config = self.policy.config if self.policy else None
-
             try:
                 max_v = int(config.max_violations) if config else 1000
             except (TypeError, ValueError):
                 max_v = 1000
-
             try:
                 enforcement = str(config.enforcement) if config else "block"
             except (TypeError, ValueError):

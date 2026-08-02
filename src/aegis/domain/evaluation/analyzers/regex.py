@@ -1,9 +1,9 @@
 import os
 import re
 
+from aegis.core.registry import Rule
 from aegis.domain.evaluation.constants import LANG_EXT_MAP
 from aegis.domain.evaluation.ports import ArchitecturalViolation, RegexAnalyzerInterface
-from aegis.domain.policy.models import Rule
 
 
 class RegexAnalyzer(RegexAnalyzerInterface):

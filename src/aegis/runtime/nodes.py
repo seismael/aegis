@@ -7,10 +7,10 @@ and AegisFinalGate (structural/security invariant validator).
 
 from typing import Any
 
-from aegis.domain.evaluation.baseline import BaselineManager
-from aegis.domain.evaluation.prompt_synthesizer import RemediationPromptSynthesizer
-from aegis.domain.evaluation.service import EvaluationService
-from aegis.domain.policy.models import Rule, RuleCategory
+from aegis.core.baseline import BaselineManager
+from aegis.core.registry import Rule, RuleCategory
+from aegis.domain.evaluation_service import EvaluationService
+from aegis.domain.synthesizer import RemediationPromptSynthesizer
 
 
 class AegisPlanVerifier:
@@ -23,15 +23,21 @@ class AegisPlanVerifier:
     def __init__(self, rules: list[Rule]):
         self.rules = rules
 
-    def verify_plan(self, proposed_imports: list[str], target_module: str) -> dict[str, Any]:
+    def verify_plan(
+        self, proposed_imports: list[str], target_module: str
+    ) -> dict[str, Any]:
         """
         Verify proposed imports against disallowed_import graph rules.
         """
         violations = []
         for rule in self.rules:
             if rule.query == "disallowed_import":
-                source_ns = rule.metadata.get("source") or rule.metadata.get("source_module", "")
-                target_ns = rule.metadata.get("target") or rule.metadata.get("target_module", "")
+                source_ns = rule.metadata.get("source") or rule.metadata.get(
+                    "source_module", ""
+                )
+                target_ns = rule.metadata.get("target") or rule.metadata.get(
+                    "target_module", ""
+                )
 
                 if source_ns and target_ns and source_ns in target_module.split("."):
                     for imp in proposed_imports:
@@ -88,7 +94,6 @@ class AegisEnforcementNode:
             code_string, language, active_rules
         )
 
-        # Filter out baselined grandfathered violations (except SECURITY rules)
         active_violations = []
         for v in violations:
             rule = next((r for r in active_rules if r.id == v.rule_id), None)

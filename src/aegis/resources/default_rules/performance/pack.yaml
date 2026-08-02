@@ -1,4 +1,0 @@
-name: performance
-version: 1.0.0
-description: Performance anti-patterns — loop inefficiencies, sync IO in async, N+1 queries
-author: Aegis

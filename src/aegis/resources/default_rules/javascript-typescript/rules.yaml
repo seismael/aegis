@@ -1,77 +1,60 @@
-# Default Aegis JavaScript/TypeScript Rule Pack
-# Best practices and anti-pattern detection for JS/TS codebases.
+# Aegis TypeScript Rule Pack
+# TypeScript/JavaScript quality and safety rules.
 
 rules:
+
   - id: ts-no-console-log
-    description: Console.log statements should not be committed in production code.
+    description: console.log should not be used in production TypeScript code.
     engine_type: regex
     severity: MEDIUM
     mode: warn
-    applies_to:
-      - "**/*.ts"
-      - "**/*.js"
-      - "**/*.tsx"
-      - "**/*.jsx"
-    query: console\.\s*(log|debug|info|warn|error)\s*\(
-    rationale: Console output in production clutters logs and may leak sensitive information.
+    query: console\.(?:log|debug|info)\s*\(
+    excludes:
+      - "**/*.test.ts"
+      - "**/*.test.tsx"
+      - "**/*.spec.ts"
+      - "**/*.spec.tsx"
+    rationale: |
+      console.log output is unstructured and leaks to production builds.
+      Use a logging library or remove before committing.
 
-  - id: ts-use-strict-equality
-    description: Prefer === and !== over == and != to avoid type coercion bugs.
-    engine_type: regex
-    severity: MEDIUM
+  - id: ts-no-any
+    description: The 'any' type bypasses TypeScript type safety.
+    engine_type: tree-sitter
+    severity: HIGH
     mode: warn
-    applies_to:
-      - "**/*.ts"
-      - "**/*.js"
-      - "**/*.tsx"
-      - "**/*.jsx"
-    query: (?<![\w)])==(?!==)(?!\s*['"0-9])
-    rationale: Loose equality produces surprising type-coercion results that mask bugs.
-
-  - id: ts-no-var
-    description: Use let or const instead of var for variable declarations.
-    engine_type: regex
-    severity: MEDIUM
-    mode: warn
-    applies_to:
-      - "**/*.ts"
-      - "**/*.js"
-      - "**/*.tsx"
-      - "**/*.jsx"
-    query: ^\s*var\s+\w
-    rationale: var uses function scoping instead of block scoping, leading to hoisting bugs.
-
-  - id: ts-no-any-type
-    description: Avoid the any type; use unknown for truly flexible values.
-    engine_type: regex
-    severity: MEDIUM
-    mode: warn
-    applies_to:
-      - "**/*.ts"
-      - "**/*.tsx"
-    query: :\s*any\b
-    rationale: The any type disables all type-checking on that value, defeating TypeScript's purpose.
+    query: any_type_usage
+    rationale: |
+      Explicit 'any' annotations defeat TypeScript's type system. Use
+      'unknown' for truly unknown types, proper interfaces for known
+      shapes, or 'Record' for generic key-value structures.
 
   - id: ts-async-error-handling
-    description: Async functions should handle promise rejections via try/catch or .catch().
-    engine_type: regex
+    description: Async operations must handle errors explicitly.
+    engine_type: tree-sitter
     severity: HIGH
-    mode: block
-    applies_to:
-      - "**/*.ts"
-      - "**/*.js"
-      - "**/*.tsx"
-      - "**/*.jsx"
-    query: async\s+function\s+\w+.{0,500}(?!\.catch|try\s*\{)
-    rationale: Unhandled promise rejections crash Node.js and leave applications in unknown state.
+    mode: warn
+    query: await_without_try_catch
+    rationale: |
+      Unhandled promise rejections crash Node.js processes. Every await
+      call should be wrapped in try/catch or have a .catch() handler.
 
-  - id: ts-no-ts-ignore
-    description: Use @ts-expect-error with justification instead of @ts-ignore.
-    engine_type: regex
+  - id: ts-effect-cleanup
+    description: useEffect hooks with side effects must include cleanup.
+    engine_type: tree-sitter
     severity: MEDIUM
     mode: warn
-    applies_to:
-      - "**/*.ts"
-      - "**/*.tsx"
-    query: "@ts-ignore"
-    rationale: "@ts-ignore suppresses all type errors silently; prefer @ts-expect-error with a reason."
+    query: effect_without_cleanup
+    rationale: |
+      Missing cleanup functions cause memory leaks, stale event listeners,
+      and race conditions on component unmount or re-render.
+
+  - id: ts-explicit-return-types
+    description: Exported functions should have explicit return type annotations.
+    engine_type: tree-sitter
+    severity: LOW
+    mode: report
+    query: exported_function_without_return_type
+    rationale: |
+      Explicit return types serve as documentation and prevent accidental
+      type widening. The compiler infers types but humans don't.

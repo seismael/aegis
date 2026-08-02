@@ -4,7 +4,7 @@ import threading
 from collections import Counter
 from datetime import UTC, datetime
 
-from aegis.domain.observability.telemetry import TelemetryExporterInterface
+from aegis.domain.telemetry import TelemetryExporterInterface
 
 
 class LocalJSONExporter(TelemetryExporterInterface):
@@ -80,3 +80,6 @@ class LocalJSONExporter(TelemetryExporterInterface):
                 json.dump(data, f, indent=2)
         except OSError:
             pass
+
+
+__all__ = ["LocalJSONExporter"]

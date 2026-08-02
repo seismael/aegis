@@ -25,6 +25,9 @@ class AegisCLI:
         tool: str | None = typer.Option(
             None, "--tool", help="Target tool: claude, aider, gemini (omit for all)"
         ),
+        tier: str = typer.Option(
+            "core", "--tier", help="Rule tier: core (15 rules) | extended (45 rules)"
+        ),
     ):
         """Initialize Aegis in the local workspace by creating local agent config overrides."""
         from aegis.infrastructure.installer import AgentNativeInstaller

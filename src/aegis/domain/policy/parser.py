@@ -8,7 +8,7 @@ import httpx
 import structlog
 import yaml
 
-from aegis.domain.policy.models import Rule, RuleCategory
+from aegis.core.registry import Rule, RuleCategory
 
 logger = structlog.get_logger()
 

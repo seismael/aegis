@@ -8,8 +8,8 @@ and rule enforcement before committing file system modifications.
 from collections.abc import Callable
 from typing import Any
 
-from aegis.domain.evaluation.service import EvaluationService
-from aegis.domain.policy.models import Rule
+from aegis.core.registry import Rule
+from aegis.domain.evaluation_service import EvaluationService
 
 
 class AegisGovernanceError(Exception):
@@ -37,7 +37,6 @@ class NativeAegisExecutor:
         Interceptors write/edit tool calls (e.g. write_file, replace_content)
         and evaluates code payload against rules before delegating to tool_fn.
         """
-        # Intercept code-modifying tools
         content_keys = ("content", "code", "replacement", "code_content")
         code_payload = None
         for key in content_keys:
@@ -51,7 +50,6 @@ class NativeAegisExecutor:
                 code_payload, language, self.rules
             )
 
-            # Blocking severity threshold check
             blocking = [
                 v for v in violations if v.severity in ("CRITICAL", "HIGH", "BLOCK")
             ]

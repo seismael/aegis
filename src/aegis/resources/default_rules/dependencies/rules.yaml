@@ -1,59 +1,73 @@
 # Aegis Dependencies Rule Pack
-# Dependency hygiene — version pinning, license compliance, vulnerability awareness, outdated detection.
+# Dependency health, license compliance, package management.
 
 rules:
-  - id: deps-pinned-versions
-    description: Production dependencies should be pinned to specific versions or constrained with compatible-release.
+
+  - id: dep-unused
+    description: Dependencies listed but never imported should be removed.
+    engine_type: graph
+    severity: MEDIUM
+    mode: warn
+    query: unused_dependency
+    rationale: |
+      Unused dependencies bloat install size, increase attack surface, and
+      slow CI builds. The graph analyzer traces imports to verify every
+      declared dependency is actually used.
+
+  - id: dep-outdated
+    description: Dependencies with known security vulnerabilities should be updated.
+    engine_type: regex
+    severity: HIGH
+    mode: warn
+    query: check_package_version
+    rationale: |
+      Outdated dependencies with CVE entries expose the project to known
+      exploits. Regular updates are the cheapest security measure.
+
+  - id: dep-pinned-version
+    description: Production dependencies should use pinned versions, not ranges.
     engine_type: regex
     severity: MEDIUM
     mode: warn
+    query: (?m)^[^#]*dependency.*[>~^]
     applies_to:
-      - "requirements*.txt"
-      - "pyproject.toml"
-    query: \w+[\s>]?=[\s>]?\d+\.\d+\.\d+
-    rationale: Unpinned dependencies cause unpredictable builds when upstream releases change.
+      - "**/pyproject.toml"
+      - "**/package.json"
+    rationale: |
+      Version ranges (^1.0, ~2.3, >=3.0) produce non-reproducible builds.
+      Pin exact versions with lock files for deterministic installations.
 
-  - id: deps-known-vulnerabilities
-    description: Review dependency versions for known security vulnerabilities.
-    engine_type: regex
-    severity: LOW
-    mode: report
-    query: \b(django|flask|requests|urllib3|cryptography|jinja2)\s*[><]=\s*[0-9]
-    rationale: Known-vulnerable package versions should be upgraded to patched releases promptly.
-
-  - id: deps-excessive-count
-    description: Projects with excessive direct dependencies increase attack surface and maintenance burden.
+  - id: dep-direct-vs-transitive
+    description: Importing a transitive dependency without declaring it is fragile.
     engine_type: graph
-    severity: LOW
-    mode: report
-    query: dependency_count
-    rationale: Each dependency is a liability. Review whether each direct dependency is truly necessary.
-
-  - id: deps-license-compliance
-    description: Project should declare a license compatible with its dependency licenses.
-    engine_type: regex
     severity: MEDIUM
     mode: warn
-    applies_to:
-      - "LICENSE*"
-    query: (MIT|Apache|BSD|GPL|LGPL|MPL)
-    rationale: Mismatched licenses can create legal risk. Ensure chosen license is compatible with all dependencies.
+    query: transitive_dependency
+    rationale: |
+      Importing packages that aren't directly declared as dependencies relies
+      on them being pulled in by another package. If that package changes its
+      dependencies, your code breaks silently.
 
-  - id: deps-duplicate-transitive
-    description: Duplicate transitive dependencies indicate version conflicts.
-    engine_type: graph
-    severity: LOW
-    mode: report
-    query: duplicate_dependency
-    rationale: Multiple versions of the same package in the resolution graph can cause runtime conflicts.
-
-  - id: deps-outdated-check
-    description: Dependencies should be regularly checked for updates using pip-audit or dependabot.
+  - id: dep-license-compliance
+    description: Dependencies with copyleft licenses (GPL, AGPL) may create legal obligations.
     engine_type: regex
     severity: LOW
     mode: report
+    query: (?i)License.*GPL|License.*AGPL
     applies_to:
-      - ".github/dependabot.yml"
-      - ".github/workflows/*.yml"
-    query: \b(pip-audit|dependabot|renovate|dependencies)\b
-    rationale: Automated dependency updates ensure the project stays current with security patches and improvements.
+      - "**/LICENSE*"
+      - "**/pyproject.toml"
+    rationale: |
+      Copyleft licenses require derivative works to be distributed under the
+      same license terms. Review is required for commercial or proprietary use.
+
+  - id: dep-circular-package
+    description: Packages must not declare circular dependency relationships.
+    engine_type: graph
+    severity: HIGH
+    mode: block
+    query: package_dependency_cycle
+    rationale: |
+      Circular package dependencies create unresolvable installation orders
+      and indicate tightly coupled packages that should be refactored into
+      a single package or have the shared logic extracted.

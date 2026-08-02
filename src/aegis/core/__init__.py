@@ -1,28 +1,37 @@
 """
 Aegis Core Module: Policy Parser, Rule Models, AST Parsers, Baseline Manager, Scope Filter.
 Pure domain engine without agent framework dependencies.
+All implementations are self-contained in core/ — no imports from domain/ at module level.
 """
 
-from aegis.core.registry import RegistryLoader
-from aegis.domain.evaluation.analyzers.ast import TreeSitterAnalyzer
-from aegis.domain.evaluation.analyzers.graph import GraphAnalyzer
-from aegis.domain.evaluation.analyzers.regex import RegexAnalyzer
-from aegis.domain.evaluation.analyzers.semantic import SemanticAnalyzer
-from aegis.domain.evaluation.baseline import BaselineManager
-from aegis.domain.evaluation.scoping import ScopeFilter
-from aegis.domain.policy.models import Rule, RuleCategory, Severity
-from aegis.domain.policy.parser import PolicyParser
+from aegis.core.baseline import BaselineManager, BaselineViolation
+from aegis.core.parser import TreeSitterAnalyzer
+from aegis.core.registry import (
+    ArchitecturalViolation,
+    CategoryPhaseMapping,
+    EnforcementMode,
+    EngineType,
+    EvaluationPhase,
+    RegistryLoader,
+    Rule,
+    RuleCategory,
+    Severity,
+)
+from aegis.core.scoping import LANG_EXT_MAP, ScopeFilter
 
 __all__ = [
     "Rule",
     "RuleCategory",
     "Severity",
-    "PolicyParser",
+    "EnforcementMode",
+    "EvaluationPhase",
+    "EngineType",
+    "CategoryPhaseMapping",
+    "ArchitecturalViolation",
     "RegistryLoader",
     "TreeSitterAnalyzer",
-    "GraphAnalyzer",
-    "RegexAnalyzer",
-    "SemanticAnalyzer",
     "BaselineManager",
+    "BaselineViolation",
     "ScopeFilter",
+    "LANG_EXT_MAP",
 ]

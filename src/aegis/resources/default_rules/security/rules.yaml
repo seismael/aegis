@@ -1,140 +1,73 @@
 # Aegis Security Rule Pack
-# Zero-tolerance security policies — hardcoded secrets, injection vectors, insecure patterns.
+# Zero-tolerance security policies. All rules are CRITICAL/HIGH, mode: block.
+# These prevent actual security breaches — not style preferences.
 
 rules:
-  - id: sec-no-hardcoded-aws-keys
-    description: Hardcoded AWS credentials detected in source code.
+
+  - id: sec-hardcoded-credentials
+    description: Hardcoded credentials detected in source code.
     engine_type: regex
     severity: CRITICAL
     mode: block
-    query: (?i)AKIA[0-9A-Z]{16}
-    rationale: Exposed AWS keys grant unauthorized cloud access. Use IAM roles or environment variables.
+    query: (?i)(password|passwd|pwd|secret|api[_-]?key|token|bearer|jwt)\s*[=:]\s*["'][^"']{3,}["']
+    rationale: |
+      Credentials in source code are exposed to everyone with repository access,
+      including past and future employees. Use environment variables, a secrets
+      manager (AWS Secrets Manager, HashiCorp Vault), or a .env file excluded from
+      version control.
 
-  - id: sec-no-hardcoded-passwords
-    description: Potential hardcoded password assignment detected.
-    engine_type: regex
-    severity: HIGH
-    mode: block
-    query: (?i)(password|passwd|pwd)\s*[=:]\s*["'][^"']+["']
-    rationale: Hardcoded credentials in source are exposed to everyone with repository access. Use secrets manager.
-
-  - id: sec-no-connection-strings
-    description: Database connection string with credentials in source code.
-    engine_type: regex
-    severity: CRITICAL
-    mode: block
-    query: (postgresql|mysql|mongodb)://[^@]+@
-    rationale: Exposed connection strings grant direct database access. Load from environment variables.
-
-  - id: sec-no-todo-security
-    description: Security-sensitive TODOs and FIXMEs should be tracked externally.
-    engine_type: regex
-    severity: MEDIUM
-    mode: warn
-    query: (TODO|FIXME|XXX).*(security|vuln|secret|credential|auth|password|token)
-    rationale: Security debt in code comments is invisible to issue trackers and can be forgotten.
-
-  - id: sec-no-hardcoded-tokens
-    description: Hardcoded API tokens, JWTs, or bearer tokens in source code.
-    engine_type: regex
-    severity: CRITICAL
-    mode: block
-    query: (?i)(api[_-]?key|token|bearer|jwt|secret)\s*[=:]\s*["'][A-Za-z0-9_\-\.]{16,}["']
-    rationale: API tokens in source code can be exfiltrated via repository access. Use environment variables.
-
-  - id: sec-no-eval
+  - id: sec-eval-exec
     description: eval(), exec(), and compile() introduce arbitrary code execution risk.
     engine_type: regex
-    severity: HIGH
+    severity: CRITICAL
     mode: block
     query: (?<!re\.)\b(?:eval|exec|compile)\s*\(
-    rationale: Dynamic code execution allows arbitrary Python to run. Replace with safer alternatives or strict input validation.
+    rationale: |
+      Dynamic code execution allows arbitrary Python to run. Even with input
+      validation, eval() is notoriously difficult to secure. Use ast.literal_eval()
+      for data parsing, or design explicit parsers for specific formats.
 
-  - id: sec-no-sql-concatenation
-    description: SQL queries built via string concatenation enable injection attacks.
+  - id: sec-sql-injection
+    description: SQL queries built via string concatenation or formatting enable injection attacks.
     engine_type: regex
-    severity: HIGH
+    severity: CRITICAL
     mode: block
-    query: (execute|query|cursor)\s*\(\s*["'][^"']*\+\s*.*["']
-    rationale: Always use parameterized queries or ORM query builders to prevent SQL injection.
-
-  - id: sec-csrf-protection
-    description: State-changing endpoints should be reviewed for CSRF protection.
-    engine_type: regex
-    severity: MEDIUM
-    mode: warn
-    applies_to:
-      - "**/views/**"
-      - "**/controllers/**"
-      - "**/routes/**"
-    query: '@(app|route)\.(post|put|delete)'
-    rationale: State-changing endpoints without CSRF tokens are vulnerable to cross-site request forgery.
+    query: (?:execute|query|cursor)\s*\(\s*(?:["'][^"']*\+|["'][^"']*%|f["'])
+    rationale: |
+      String building in SQL queries allows attackers to inject arbitrary SQL.
+      Always use parameterized queries (cursor.execute("...", (param,))) or
+      ORM query builders. Never concatenate user input into SQL strings.
 
   - id: sec-insecure-deserialization
-    description: pickle.load or yaml.load without SafeLoader enables arbitrary code execution.
+    description: pickle.load/loads or yaml.load without SafeLoader enables arbitrary code execution.
+    engine_type: regex
+    severity: CRITICAL
+    mode: block
+    query: \b(?:pickle\.(?:loads|load)|yaml\.load\s*\((?!.*SafeLoader))\b
+    rationale: |
+      Insecure deserialization is one of the OWASP Top 10. pickle can execute
+      arbitrary Python during unpickling. yaml.load() (without SafeLoader) can
+      construct arbitrary Python objects. Use yaml.safe_load() or json instead.
+
+  - id: sec-exposed-connections
+    description: Database connection strings, AWS keys, or private keys in source code.
+    engine_type: regex
+    severity: CRITICAL
+    mode: block
+    query: (?i)(?:postgres(?:ql)?|mysql|mongodb|redis)://[^@]+@|AKIA[0-9A-Z]{16}|-----BEGIN (?:RSA |EC )?PRIVATE KEY-----
+    rationale: |
+      Connection strings with embedded credentials grant direct data access.
+      AWS access keys grant cloud infrastructure access. Private keys compromise
+      encryption and authentication. All belong in environment variables or secrets
+      management, never in source.
+
+  - id: sec-weak-hashing
+    description: MD5 or SHA1 used for password hashing or security purposes.
     engine_type: regex
     severity: HIGH
     mode: block
-    query: \b(pickle\.loads|pickle\.load|yaml\.load\s*\((?![^)]*SafeLoader)|shelve\.open)\b
-    rationale: Insecure deserialization allows attackers to execute arbitrary code through crafted payloads.
-
-  - id: sec-path-traversal
-    description: User input used in file operations should be validated against directory traversal.
-    engine_type: regex
-    severity: MEDIUM
-    mode: warn
-    query: open\s*\(\s*(?:request\.|input\(|params\[|args\[|query\.)
-    rationale: Unvalidated file paths from user input can access arbitrary files on the server.
-
-  - id: sec-jwt-validation
-    description: JWT decoding should use algorithm-aware verification. Never use decode without verify=True.
-    engine_type: regex
-    severity: HIGH
-    mode: block
-    query: jwt\.decode\s*\((?![^)]*verify\s*=)
-    rationale: JWTs decoded without verification can be forged. Always validate the signature.
-
-  - id: sec-no-subprocess-shell
-    description: subprocess calls should avoid shell=True to prevent command injection.
-    engine_type: regex
-    severity: HIGH
-    mode: block
-    query: subprocess\.\w+\(.*shell\s*=\s*True
-    rationale: shell=True passes commands through the system shell, enabling injection through unsanitized input.
-
-  - id: sec-no-hardcoded-urls
-    description: Hardcoded URLs and API endpoints should be externalized to configuration.
-    engine_type: regex
-    severity: MEDIUM
-    mode: warn
-    query: (?m)^\s*["']https?://(?:api|service|internal|external)\.[^"']*["']\s*(?:,|\)|$)
-    rationale: Hardcoded URLs cannot change per environment and reveal internal service topology in source code.
-
-  - id: sec-cors-wildcard
-    description: CORS configuration should not use wildcard origins (*) in production.
-    engine_type: regex
-    severity: HIGH
-    mode: block
-    query: (?i)CORSMiddleware\s*\([^)]*allow_origins\s*=\s*\[["']\*["']
-    rationale: Wildcard CORS allows any website to make authenticated requests, enabling CSRF attacks.
-
-  - id: sec-input-validation
-    description: User input used in database or shell operations should be validated and sanitized.
-    engine_type: regex
-    severity: HIGH
-    mode: warn
-    query: (?:execute|cursor|subprocess|os\.system|os\.popen)\s*\([^)]*(?:request\.|input\(|params\[|args\[|form\[)
-    rationale: Unsanitized user input in system calls enables injection attacks.
-
-  - id: sec-no-debug-mode
-    description: Debug mode or verbose error reporting should not be enabled in production configuration.
-    engine_type: regex
-    severity: HIGH
-    mode: block
-    applies_to:
-      - "**/config/**"
-      - "**/settings/**"
-      - "**/*.env"
-      - "**/*.toml"
-    query: (?i)(DEBUG\s*=\s*True|ENVIRONMENT\s*=\s*["']development["']|LOG_LEVEL\s*=\s*["']DEBUG["'])
-    rationale: Debug mode in production exposes stack traces, environment variables, and internal state to attackers.
+    query: \b(?:hashlib\.(?:md5|sha1)|crypt\.(?:md5|sha1))\b
+    rationale: |
+      MD5 and SHA1 are cryptographically broken and unsuitable for password
+      hashing. Use bcrypt, argon2, or PBKDF2 for passwords. MD5 is acceptable
+      only for non-security purposes like checksums or data deduplication.

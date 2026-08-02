@@ -1,4 +1,6 @@
 name: security
-version: 1.0.0
-description: Zero-tolerance security policies that bypass the baseline
+version: 2.0.0
+description: Zero-tolerance security — hardcoded credentials, unsafe execution, injection, weak crypto
 author: Aegis
+tier: core
+tagline: Block hardcoded secrets, unsafe execution, injection vectors

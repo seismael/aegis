@@ -1,35 +1,14 @@
+"""
+Domain Evaluation Ports — evaluation interfaces for graph, regex, and semantic analyzers.
+Model definitions (ArchitecturalViolation, Rule) are imported from aegis.core.registry.
+"""
+
 from abc import ABC, abstractmethod
 
 from pydantic import BaseModel
 
-from aegis.domain.policy.models import Rule
-
-
-class ArchitecturalViolation(BaseModel):
-    """
-    Represents a single architectural violation found in the codebase.
-    """
-
-    file: str
-    line: int
-    rule_id: str
-    description: str
-    severity: str = "HIGH"
-    signature: str | None = None  # Hashed structural representation
-    proposed_patch: str | None = None
-
-
-class RuleAnalyzerInterface(ABC):
-    """
-    Interface for the polyglot code analysis engine.
-    """
-
-    @abstractmethod
-    def analyze_file(
-        self, file_path: str, content: str, rules: list[Rule]
-    ) -> list[ArchitecturalViolation]:
-        """Analyzes a single file against a set of structural rules."""
-        pass
+from aegis.core.parser import RuleAnalyzerInterface
+from aegis.core.registry import ArchitecturalViolation, Rule
 
 
 class GraphAnalyzerInterface(ABC):
@@ -92,3 +71,16 @@ class RemediationProviderInterface(ABC):
     def generate_remediation(
         self, violations: list[ArchitecturalViolation], rules_map: dict
     ) -> RemediationResult: ...
+
+
+__all__ = [
+    "RuleAnalyzerInterface",
+    "ArchitecturalViolation",
+    "Rule",
+    "GraphAnalyzerInterface",
+    "RegexAnalyzerInterface",
+    "SemanticAnalyzerInterface",
+    "FixProposal",
+    "RemediationResult",
+    "RemediationProviderInterface",
+]

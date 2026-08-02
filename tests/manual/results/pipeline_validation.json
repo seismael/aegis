@@ -1,0 +1,116 @@
+{
+  "test_timestamp": "2026-08-02T15:31:09.277935",
+  "stages": {
+    "setup": {
+      "time_s": 0.066,
+      "packs": [
+        "architecture",
+        "security",
+        "best-practices",
+        "style",
+        "testing"
+      ]
+    },
+    "violation_baseline": {
+      "time_s": 0.317,
+      "total_violations": 133,
+      "active_violations": 133,
+      "seeded_detected": 1
+    },
+    "plan_verifier": {
+      "time_s": 0.049,
+      "tests": [
+        {
+          "name": "No violation \u2014 safe import",
+          "imports": [
+            "domain.models"
+          ],
+          "target": "application.use_cases",
+          "expected": "PLAN APPROVED"
+        },
+        {
+          "name": "Layer violation \u2014 infrastructure from domain",
+          "imports": [
+            "infrastructure.database",
+            "infrastructure.email"
+          ],
+          "target": "domain.services",
+          "expected": "PLAN REJECTED"
+        },
+        {
+          "name": "Security violation \u2014 importing dangerous modules",
+          "imports": [
+            "os.system"
+          ],
+          "target": "api.routes",
+          "expected": "verify"
+        }
+      ]
+    },
+    "enforcement_node": {
+      "tests": [
+        {
+          "name": "Compliant code \u2014 no violations",
+          "code": "def calculate(x: int) -> int:\n    return x * 2\n",
+          "expect_clean": true
+        },
+        {
+          "name": "Security violation \u2014 exec() call",
+          "code": "def handle(user_input: str) -> None:\n    exec(user_input)\n",
+          "expect_clean": false
+        },
+        {
+          "name": "Style violation \u2014 print() in production",
+          "code": "def process(data: dict) -> None:\n    print(f'Processing {data}')\n    return data\n",
+          "expect_clean": false
+        },
+        {
+          "name": "Layer violation \u2014 wrong import",
+          "code": "from infrastructure.database import get_db\n\ndef create(data):\n    db = get_db()\n    return db.save(data)\n",
+          "expect_clean": false
+        }
+      ]
+    },
+    "executor": {
+      "tests": [
+        {
+          "name": "Safe write \u2014 no violations",
+          "tool": "write_file",
+          "args": {
+            "path": "test.py",
+            "content": "def hello():\n    return 'world'\n"
+          },
+          "expect_blocked": false
+        },
+        {
+          "name": "Blocked write \u2014 contains exec()",
+          "tool": "write_file",
+          "args": {
+            "path": "dangerous.py",
+            "content": "exec(user_input)"
+          },
+          "expect_blocked": true
+        },
+        {
+          "name": "Safe edit \u2014 no code content",
+          "tool": "read",
+          "args": {
+            "path": "config.json"
+          },
+          "expect_blocked": false
+        }
+      ]
+    },
+    "check_architecture": {
+      "time_s": 0.581,
+      "files": [
+        "domain/services.py",
+        "api/routes.py",
+        "application/use_cases.py",
+        "infrastructure/repositories.py"
+      ],
+      "active_violations": 133,
+      "total_violations": 133
+    }
+  }
+}

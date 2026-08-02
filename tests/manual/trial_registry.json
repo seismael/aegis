@@ -1,0 +1,105 @@
+{
+  "metadata": {
+    "title": "Aegis V4 Scientific Validation — Pre-Registered Trial Registry",
+    "version": "1.0.0",
+    "created": "2026-08-03T00:00:00Z",
+    "hypothesis": "Aegis reduces token consumption on non-compliant coding tasks by preventing invalid code generation before it starts",
+    "null_hypothesis": "Aegis provides no statistically significant difference in token consumption compared to running without Aegis",
+    "alpha": 0.05,
+    "power_target": 0.80,
+    "minimum_effect_size_cohens_d": 0.8,
+    "acceptance_criteria": [
+      "p < 0.05 on one-tailed paired t-test for primary metric (token consumption)",
+      "Cohen's d > 0.8 (large effect size)",
+      "Mean token savings > 25% on non-compliant tasks (practical significance)",
+      "Code quality score improvement >= 2 points on 35-point scale",
+      "Standard deviation of savings < 30% of mean savings (consistency)",
+      "At least 6 of 7 'with Aegis' trials show improvement over median 'without Aegis'"
+    ],
+    "rejection_criteria": [
+      "Agent crashes, network failure, or MCP server startup failure",
+      "Human error in prompt entry (wrong prompt, wrong agent)",
+      "Maximum 1 rejection per condition allowed"
+    ]
+  },
+  "stages": [
+    {
+      "stage": 1,
+      "name": "Primary Proof",
+      "description": "14 trials on T2 with OpenCode at L2 rules — proves whether ANY real token savings exist",
+      "gate": "If p > 0.05 at this stage, STOP. No point testing further.",
+      "trials": [
+        {"run": 1,  "mode": "without", "agent": "opencode", "task": "T2", "rules": "L2"},
+        {"run": 2,  "mode": "with",    "agent": "opencode", "task": "T2", "rules": "L2"},
+        {"run": 3,  "mode": "with",    "agent": "opencode", "task": "T2", "rules": "L2"},
+        {"run": 4,  "mode": "without", "agent": "opencode", "task": "T2", "rules": "L2"},
+        {"run": 5,  "mode": "without", "agent": "opencode", "task": "T2", "rules": "L2"},
+        {"run": 6,  "mode": "with",    "agent": "opencode", "task": "T2", "rules": "L2"},
+        {"run": 7,  "mode": "with",    "agent": "opencode", "task": "T2", "rules": "L2"},
+        {"run": 8,  "mode": "without", "agent": "opencode", "task": "T2", "rules": "L2"},
+        {"run": 9,  "mode": "without", "agent": "opencode", "task": "T2", "rules": "L2"},
+        {"run": 10, "mode": "with",    "agent": "opencode", "task": "T2", "rules": "L2"},
+        {"run": 11, "mode": "with",    "agent": "opencode", "task": "T2", "rules": "L2"},
+        {"run": 12, "mode": "without", "agent": "opencode", "task": "T2", "rules": "L2"},
+        {"run": 13, "mode": "with",    "agent": "opencode", "task": "T2", "rules": "L2"},
+        {"run": 14, "mode": "without", "agent": "opencode", "task": "T2", "rules": "L2"}
+      ]
+    },
+    {
+      "stage": 2,
+      "name": "Effect Quantification",
+      "description": "20 trials across T1/T3/T4 at L2 with OpenCode — quantifies savings across different task types",
+      "gate": "If T1 overhead > 10%, investigate governance tax before proceeding.",
+      "trials": [
+        {"run": 15, "mode": "without", "agent": "opencode", "task": "T3", "rules": "L2"},
+        {"run": 16, "mode": "with",    "agent": "opencode", "task": "T3", "rules": "L2"},
+        {"run": 17, "mode": "with",    "agent": "opencode", "task": "T3", "rules": "L2"},
+        {"run": 18, "mode": "without", "agent": "opencode", "task": "T3", "rules": "L2"},
+        {"run": 19, "mode": "without", "agent": "opencode", "task": "T3", "rules": "L2"},
+        {"run": 20, "mode": "with",    "agent": "opencode", "task": "T3", "rules": "L2"},
+        {"run": 21, "mode": "with",    "agent": "opencode", "task": "T3", "rules": "L2"},
+        {"run": 22, "mode": "without", "agent": "opencode", "task": "T3", "rules": "L2"},
+        {"run": 23, "mode": "without", "agent": "opencode", "task": "T4", "rules": "L2"},
+        {"run": 24, "mode": "with",    "agent": "opencode", "task": "T4", "rules": "L2"},
+        {"run": 25, "mode": "with",    "agent": "opencode", "task": "T4", "rules": "L2"},
+        {"run": 26, "mode": "without", "agent": "opencode", "task": "T4", "rules": "L2"},
+        {"run": 27, "mode": "without", "agent": "opencode", "task": "T4", "rules": "L2"},
+        {"run": 28, "mode": "with",    "agent": "opencode", "task": "T4", "rules": "L2"},
+        {"run": 29, "mode": "with",    "agent": "opencode", "task": "T4", "rules": "L2"},
+        {"run": 30, "mode": "without", "agent": "opencode", "task": "T4", "rules": "L2"},
+        {"run": 31, "mode": "without", "agent": "opencode", "task": "T1", "rules": "L2"},
+        {"run": 32, "mode": "with",    "agent": "opencode", "task": "T1", "rules": "L2"},
+        {"run": 33, "mode": "with",    "agent": "opencode", "task": "T1", "rules": "L2"},
+        {"run": 34, "mode": "without", "agent": "opencode", "task": "T1", "rules": "L2"}
+      ]
+    },
+    {
+      "stage": 3,
+      "name": "Scale Resilience",
+      "description": "20 trials at increasing rule levels — proves JIT scoping scales",
+      "gate": "If L4 savings < 50% of L1 savings, scoping is insufficient.",
+      "trials": [
+        {"run": 35, "mode": "with", "agent": "opencode", "task": "T2", "rules": "L1"},
+        {"run": 36, "mode": "with", "agent": "opencode", "task": "T2", "rules": "L1"},
+        {"run": 37, "mode": "with", "agent": "opencode", "task": "T2", "rules": "L1"},
+        {"run": 38, "mode": "with", "agent": "opencode", "task": "T2", "rules": "L3"},
+        {"run": 39, "mode": "with", "agent": "opencode", "task": "T2", "rules": "L3"},
+        {"run": 40, "mode": "with", "agent": "opencode", "task": "T2", "rules": "L3"},
+        {"run": 41, "mode": "with", "agent": "opencode", "task": "T2", "rules": "L4"},
+        {"run": 42, "mode": "with", "agent": "opencode", "task": "T2", "rules": "L4"},
+        {"run": 43, "mode": "with", "agent": "opencode", "task": "T2", "rules": "L4"},
+        {"run": 44, "mode": "without", "agent": "opencode", "task": "T2", "rules": "L0"},
+        {"run": 45, "mode": "without", "agent": "opencode", "task": "T2", "rules": "L0"},
+        {"run": 46, "mode": "without", "agent": "opencode", "task": "T2", "rules": "L0"},
+        {"run": 47, "mode": "with", "agent": "opencode", "task": "T1", "rules": "L4"},
+        {"run": 48, "mode": "with", "agent": "opencode", "task": "T1", "rules": "L4"},
+        {"run": 49, "mode": "with", "agent": "opencode", "task": "T1", "rules": "L4"},
+        {"run": 50, "mode": "without", "agent": "opencode", "task": "T1", "rules": "L0"},
+        {"run": 51, "mode": "without", "agent": "opencode", "task": "T1", "rules": "L0"},
+        {"run": 52, "mode": "without", "agent": "opencode", "task": "T1", "rules": "L0"},
+        {"run": 53, "mode": "with", "agent": "opencode", "task": "T3", "rules": "L4"},
+        {"run": 54, "mode": "with", "agent": "opencode", "task": "T3", "rules": "L4"}
+      ]
+    }
+  ]
+}

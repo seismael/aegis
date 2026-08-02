@@ -1,4 +1,6 @@
 name: style
-version: 1.0.0
-description: Code style conventions — line length, naming, whitespace, imports
+version: 2.0.0
+description: Naming conventions (PascalCase classes, snake_case functions, UPPER_CASE constants), no debug tool imports
 author: Aegis
+tier: extended
+tagline: Naming conventions, import hygiene, no debug tool leaks

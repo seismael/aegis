@@ -11,6 +11,8 @@ class RulePackMeta(BaseModel):
     description: str
     author: str = "Aegis"
     pack_type: str = "default"  # "default" | "custom"
+    tier: str = "extended"  # "core" | "extended"
+    tagline: str = ""  # one-line summary
     source: str | None = None  # resource path or file path
     default_phases: list[str] | None = None  # pack-level phase defaults
 

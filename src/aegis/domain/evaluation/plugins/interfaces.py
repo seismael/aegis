@@ -1,7 +1,7 @@
 from collections.abc import Callable
 
+from aegis.core.registry import Rule
 from aegis.domain.evaluation.ports import ArchitecturalViolation, RuleAnalyzerInterface
-from aegis.domain.policy.models import Rule
 
 
 class CustomAnalyzerInterface(RuleAnalyzerInterface):

@@ -1,95 +1,68 @@
 # Aegis Testing Rule Pack
-# Testing conventions — naming, isolation, coverage, and AAA pattern.
+# Test structure, quality, and coverage enforcement.
 
 rules:
-  - id: test-naming-convention
-    description: Prefer pytest style (plain assert, test functions) over unittest.TestCase.
-    engine_type: regex
-    severity: LOW
-    mode: report
-    query: \bunittest\.TestCase\b|class\s+\w+\(unittest\.TestCase\)
-    rationale: pytest provides a simpler, more expressive API with fixture-based dependency injection.
 
-  - id: test-no-focused
-    description: Focused tests (pytest.mark.focus, fit, fdescribe, .only) should not be committed.
-    engine_type: regex
-    severity: HIGH
-    mode: block
-    query: \b(pytest\.mark\.focus|fit\s*\(|fdescribe\s*\(|\.only\s*\())
-    rationale: Focused tests skip all other tests in the suite, hiding regressions. Remove before committing.
-
-  - id: test-assert-style
-    description: Prefer plain assert over self.assert* methods in test files.
-    engine_type: regex
-    severity: LOW
-    mode: report
-    applies_to:
-      - "**/test*/**"
-    query: \bself\.assert
-    rationale: pytest's assertion rewriting provides rich failure messages with plain assert statements.
-
-  - id: test-no-print
-    description: Print statements in test files indicate leftover debug output.
-    engine_type: regex
-    severity: LOW
-    mode: report
-    applies_to:
-      - "**/test*/**"
-    query: \bprint\s*\(
-    rationale: Test output should go through logging or assertions, not stdout.
-
-  - id: test-coverage-thresholds
-    description: Test configuration should include minimum coverage thresholds.
-    engine_type: regex
-    severity: LOW
-    mode: report
-    applies_to:
-      - ".coveragerc"
-      - "pyproject.toml"
-      - "setup.cfg"
-    query: \[tool\.coverage|[coverage:run]
-    rationale: Coverage thresholds create accountability and prevent coverage regression over time.
-
-  - id: test-isolation
-    description: Tests should not depend on shared state or execution ordering via module/session fixtures.
+  - id: test-no-sleep
+    description: time.sleep in tests causes slow, flaky test suites.
     engine_type: regex
     severity: MEDIUM
     mode: warn
     applies_to:
-      - "**/test*/**"
-    query: '@pytest\.fixture\(.*scope\s*=\s*["''](session|module)["'']'
-    rationale: Shared fixture state creates test ordering dependencies that make failures non-deterministic.
-
-  - id: test-mocking-standards
-    description: Mock external service boundaries, not internal domain logic.
-    engine_type: regex
-    severity: MEDIUM
-    mode: warn
-    applies_to:
-      - "**/test*/**"
-    query: \bmonkeypatch\.setattr|mocker\.patch\s*\(
-    rationale: Mocking internal logic couples tests to implementation details. Mock at architectural boundaries.
-
-  - id: test-aaa-pattern
-    description: Tests should follow Arrange-Act-Assert structure with clear phase separation.
-    engine_type: tree-sitter
-    language: py
-    severity: LOW
-    mode: report
-    applies_to:
-      - "**/test*/**"
-    query: |
-      (function_definition
-        name: (identifier) @test_name
-        (#match? @test_name "^test_"))
-    rationale: "The AAA pattern makes test intent clear: Arrange, Act, Assert in distinct visual blocks."
+      - "**/test_*.py"
+      - "**/tests/**"
+    query: time\.sleep\(
+    rationale: |
+      Real delays make test suites slow and unreliable. Use freezegun for
+      time-dependent logic, or mock time.sleep directly.
 
   - id: test-parametrize
-    description: Repeated test logic with different data should use @pytest.mark.parametrize.
+    description: Multiple similar assertions should use pytest.mark.parametrize.
+    engine_type: tree-sitter
+    severity: LOW
+    mode: report
+    applies_to:
+      - "**/test_*.py"
+      - "**/tests/**"
+    rationale: |
+      Parametrized tests reduce duplication and make test intent clearer.
+      They also run as separate test cases with individual failure reporting.
+
+  - id: test-explicit-mock
+    description: Mock paths must reference the module under test, not the source module.
+    engine_type: regex
+    severity: MEDIUM
+    mode: warn
+    applies_to:
+      - "**/test_*.py"
+      - "**/tests/**"
+    query: mock\.patch\s*\(\s*["']
+    rationale: |
+      Mock the import path where the object is USED, not where it's DEFINED.
+      `patch('mymodule.requests.get')` not `patch('requests.get')`.
+
+  - id: test-fixture-returns
+    description: Pytest fixtures should have return type annotations for IDE support.
     engine_type: regex
     severity: LOW
     mode: report
     applies_to:
-      - "**/test*/**"
-    query: ~
-    rationale: Parametrized tests eliminate code duplication and make edge cases explicit in the test decorator. ~ means runtime-enforced.
+      - "**/conftest.py"
+      - "**/tests/**" 
+    query: (?m)^def \w+\(.*\)(?:\s*->\s*)?
+    rationale: |
+      Type-annotated fixtures improve IDE autocomplete and catch type errors
+      in test setup code.
+
+  - id: test-isolate-state
+    description: Tests must not depend on execution order or shared mutable state.
+    engine_type: semantic
+    severity: MEDIUM
+    mode: warn
+    applies_to:
+      - "**/test_*.py"
+      - "**/tests/**"
+    query: shared_state_detection
+    rationale: |
+      Module-level mutable state shared across test functions creates order-
+      dependent failures that are hard to debug and reproduce.

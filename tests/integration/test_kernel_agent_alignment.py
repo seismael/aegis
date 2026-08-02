@@ -43,7 +43,7 @@ def graph_disallowed_rule():
 
 
 def test_aegis_agent_factory_initialization(mock_rule, tmp_path):
-    agent = create_aegis_agent([mock_rule], str(tmp_path))
+    agent = create_aegis_agent(rules=[mock_rule], workspace_root=str(tmp_path))
     assert isinstance(agent, AegisAgent)
     assert isinstance(agent.plan_verifier, AegisPlanVerifier)
     assert isinstance(agent.enforcement_node, AegisEnforcementNode)
@@ -51,7 +51,9 @@ def test_aegis_agent_factory_initialization(mock_rule, tmp_path):
 
 
 def test_agent_plan_verifier_integration(graph_disallowed_rule, tmp_path):
-    agent = create_aegis_agent([graph_disallowed_rule], str(tmp_path))
+    agent = create_aegis_agent(
+        rules=[graph_disallowed_rule], workspace_root=str(tmp_path)
+    )
     res = agent.verify_plan(
         proposed_imports=["aegis.infrastructure.nodes"],
         target_module="aegis.domain.service",
@@ -62,7 +64,7 @@ def test_agent_plan_verifier_integration(graph_disallowed_rule, tmp_path):
 
 
 def test_agent_code_delta_evaluation(mock_rule, tmp_path):
-    agent = create_aegis_agent([mock_rule], str(tmp_path))
+    agent = create_aegis_agent(rules=[mock_rule], workspace_root=str(tmp_path))
     clean_res = agent.evaluate_code_delta("x = 10\n", "python")
     assert clean_res["governance_valid"] is True
 
@@ -72,7 +74,7 @@ def test_agent_code_delta_evaluation(mock_rule, tmp_path):
 
 
 def test_hardened_executor_interception(mock_rule, tmp_path):
-    agent = create_aegis_agent([mock_rule], str(tmp_path))
+    agent = create_aegis_agent(rules=[mock_rule], workspace_root=str(tmp_path))
 
     def mock_tool_fn(path: str, content: str):
         return f"Wrote {path}"

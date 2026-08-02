@@ -10,7 +10,7 @@ See: https://github.com/your-org/aegis#plugins
 """
 
 from aegis.domain.evaluation.ports import ArchitecturalViolation, RuleAnalyzerInterface
-from aegis.domain.policy.models import Rule
+from aegis.core.registry import Rule
 
 
 # -- Hook 1: Custom Analyzers -------------------------------------------------

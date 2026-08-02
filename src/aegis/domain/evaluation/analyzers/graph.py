@@ -2,9 +2,9 @@ import ast
 import os
 from collections import defaultdict
 
+from aegis.core.registry import Rule
 from aegis.domain.evaluation.constants import IGNORE_DIRS
 from aegis.domain.evaluation.ports import ArchitecturalViolation, GraphAnalyzerInterface
-from aegis.domain.policy.models import Rule
 
 # Skip files larger than 10 MB to avoid OOM on ast.parse.
 _MAX_FILE_BYTES = 10 * 1024 * 1024
@@ -32,7 +32,9 @@ class GraphAnalyzer(GraphAnalyzerInterface):
 
             if rule.query == "disallowed_import":
                 violations.extend(
-                    self._check_disallowed_imports(file_imports, rule, root_dir=root_dir)
+                    self._check_disallowed_imports(
+                        file_imports, rule, root_dir=root_dir
+                    )
                 )
             elif rule.query == "circular_dependency":
                 violations.extend(

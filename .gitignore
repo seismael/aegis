@@ -1,20 +1,22 @@
-# Pytest temp files
-.pytest_tmp/
-.pytest_cache/
-.coverage
+# ── OS artifacts ──────────────────────────────────────
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
 
-# Ruff cache
-.ruff_cache/
+# ── IDEs & editors ────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.bak
 
-# Byte-compiled / optimized / DLL files
+# ── Python bytecode ───────────────────────────────────
 __pycache__/
 *.py[cod]
 *$py.class
-
-# C extensions
 *.so
 
-# Distribution / packaging
+# ── Distribution / packaging ─────────────────────────
 .Python
 build/
 develop-eggs/
@@ -34,21 +36,39 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-# Virtual Environments
+# ── Virtual environments ─────────────────────────────
 .venv/
 venv/
 ENV/
 env/
 
-# IDEs
-.vscode/
-.idea/
-*.swp
-*.bak
+# ── Testing & coverage ───────────────────────────────
+.pytest_tmp/
+.pytest_cache/
+.coverage
+htmlcov/
 
-# Aegis Local State (Ignore session state, keep rules/baseline)
-.aegis/discovery_state.json
-.aegis/session.json
-.aegis/telemetry.json
-.aegis/plugins/__pycache__/
-.aegis/mcp.json
+# ── Linting / type-checking caches ───────────────────
+.ruff_cache/
+.mypy_cache/
+
+# ── Environment / secrets ─────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── Aider ─────────────────────────────────────────────
+.aider*
+!.aider.conf.yml
+
+# ── Aegis local state (keep rules & baseline) ────────
+.aegis/
+!.aegis/rules/
+!.aegis/baseline.json
+!.aegis/config.json
+
+# ── Project scratch / non-distributable ───────────────
+example_workspace/
+taskflow/
+TEMP.md
+.gemini/

@@ -1,4 +1,6 @@
 name: testing
-version: 1.0.0
-description: Testing conventions — naming, focus isolation, assertion style
+version: 2.0.0
+description: Test structure — no sleep in tests, parametrization, fixture scoping, mock hygiene
 author: Aegis
+tier: extended
+tagline: Test structure, fixture scoping, isolation checks

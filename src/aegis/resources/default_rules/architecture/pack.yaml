@@ -1,4 +1,6 @@
 name: architecture
-version: 1.0.0
-description: Structural and layered architecture invariants enforcing OOD boundaries
+version: 2.0.0
+description: DDD layer isolation, module boundaries, aggregate root enforcement
 author: Aegis
+tier: core
+tagline: DDD layer isolation and module boundary enforcement

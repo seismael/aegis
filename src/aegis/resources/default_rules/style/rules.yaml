@@ -1,70 +1,44 @@
-# Default Aegis Style Rule Pack
-# Code style conventions — line length, naming, whitespace, imports.
+# Aegis Style Rule Pack
+# Naming conventions, formatting consistency.
 
 rules:
-  - id: style-line-length
-    description: Lines should not exceed 88 characters (Black-compatible).
-    engine_type: regex
-    severity: LOW
-    mode: report
-    query: (?m)^.{89,}$
-    rationale: Excessively long lines reduce readability and code review effectiveness.
 
-  - id: style-naming-convention
-    description: Classes should use PascalCase; functions and variables should use snake_case.
+  - id: style-class-naming
+    description: Classes must use PascalCase naming.
     engine_type: regex
-    severity: LOW
-    mode: report
-    query: (?m)^class\s+[a-z_]|^def\s+[A-Z]
-    rationale: Consistent naming conventions improve code navigation and readability.
+    severity: MEDIUM
+    mode: warn
+    query: "(?m)^class\\s+([a-z][a-zA-Z0-9]*):"
+    rationale: |
+      PascalCase classes are a Python convention (PEP 8). Lowercase class names
+      are indistinguishable from function calls at the usage site.
 
-  - id: style-no-trailing-whitespace
-    description: Lines should not contain trailing whitespace.
+  - id: style-function-naming
+    description: Functions must use snake_case naming.
     engine_type: regex
-    severity: LOW
-    mode: report
-    applies_to:
-      - "**/*.py"
-      - "**/*.js"
-      - "**/*.ts"
-      - "**/*.md"
-    query: \s+$
-    rationale: Trailing whitespace clutters diffs and violates common editor conventions.
+    severity: MEDIUM
+    mode: warn
+    query: (?m)^(?:(?:async\s+)?def\s+)([A-Z][a-zA-Z0-9]*)\s*\(
+    rationale: |
+      snake_case functions are a Python convention (PEP 8). CamelCase functions
+      confuse readers who expect them to be classes.
 
-  - id: style-consistent-imports
-    description: Group imports consistently (stdlib, third-party, local) with a blank line between groups.
+  - id: style-constant-naming
+    description: Module-level constants should use UPPER_CASE naming.
     engine_type: regex
     severity: LOW
     mode: report
-    query: (?m)^import\s+\S+\nimport\s+\S+
-    rationale: Consistent import ordering signals project maturity and aids readability.
+    query: (?m)^(?!class\s)([A-Z][A-Z_0-9]+)\s*=\s*(?!\w+\s*\()
+    rationale: |
+      UPPER_CASE signals immutability intent. Constants at module level should
+      follow this convention to distinguish from mutable module state.
 
-  - id: style-consistent-quotes
-    description: Prefer double quotes over single quotes for string literals.
+  - id: style-no-debug-imports
+    description: Debug tool imports should not be committed to production code.
     engine_type: regex
-    severity: LOW
-    mode: report
-    applies_to:
-      - "**/*.py"
-    query: "'[^']*'"
-    rationale: Consistent quote usage reduces diff noise and enforces project coding standards.
-
-  - id: style-max-complexity
-    description: Functions with excessive branches and conditionals indicate high cyclomatic complexity.
-    engine_type: regex
-    severity: LOW
-    mode: report
-    applies_to:
-      - "**/*.py"
-    query: (?m)^(if |elif |for |while |and |or |except|with ).{0,200}(if |elif |for |while |and |or |except|with ).{0,200}(if |elif |for |while |and |or |except|with )
-    rationale: High cyclomatic complexity makes code difficult to test, review, and maintain.
-
-  - id: style-blank-lines
-    description: Top-level functions and classes should be separated by two blank lines (PEP 8).
-    engine_type: regex
-    severity: LOW
-    mode: report
-    applies_to:
-      - "**/*.py"
-    query: \n\s+(class|def)\s+\w+
-    rationale: PEP 8 requires two blank lines around top-level definitions and one around methods.
+    severity: MEDIUM
+    mode: warn
+    query: (?m)^import (?:pdb|ipdb|icecream)\b|^from (?:pdb|ipdb|icecream)\b
+    rationale: |
+      Debug tools left in committed code can expose internals and break production
+      when accidentally triggered. Use conditional imports or remove before commit.

@@ -1,84 +1,47 @@
 # Aegis Documentation Rule Pack
-# Documentation standards — docstrings, ADRs, type annotations, changelog conventions.
+# Docstring coverage and quality on public API surfaces.
 
 rules:
-  - id: docs-module-docstring
-    description: Every Python module should have a module-level docstring.
-    engine_type: regex
-    severity: LOW
-    mode: report
-    applies_to:
-      - "**/src/**/*.py"
-      - "**/*.py"
-    query: ^(?!""")
-    rationale: Module docstrings describe the purpose and contents of a module for other developers.
 
-  - id: docs-public-api
-    description: Public functions and classes should have docstrings.
-    engine_type: regex
-    severity: LOW
-    mode: report
-    applies_to:
-      - "**/src/**/*.py"
-    query: (?m)^(def|class)\s+(?!_).{0,3}:\n(?!\s*""")
-    rationale: Public API documentation enables users to understand behavior without reading implementation.
-
-  - id: docs-stale-markers
-    description: FIXME, HACK, and XXX comments indicate untracked technical debt.
-    engine_type: regex
-    severity: LOW
-    mode: report
-    query: \b(FIXME|HACK|XXX|WORKAROUND)\b
-    rationale: Source-level markers should be converted to issues in the project tracker for visibility.
-
-  - id: docs-readme-present
-    description: Project root should contain a README.md with setup instructions.
-    engine_type: regex
-    severity: MEDIUM
-    mode: warn
-    applies_to:
-      - "README.md"
-    query: .+
-    rationale: A well-written README is the first documentation users see; it should provide clear setup instructions.
-
-  - id: docs-changelog-format
-    description: Changelog should follow keepachangelog conventions.
-    engine_type: regex
-    severity: LOW
-    mode: report
-    applies_to:
-      - "CHANGELOG.md"
-    query: (## \[|Added|Changed|Deprecated|Fixed|Security)
-    rationale: Consistent changelog format enables automated release note generation and user-facing communication.
-
-  - id: docs-deprecation-notice
-    description: Deprecated functions should emit DeprecationWarning with migration guidance.
-    engine_type: regex
-    severity: MEDIUM
-    mode: warn
-    query: (warnings\.warn|DeprecationWarning|@deprecated)
-    rationale: Proper deprecation warnings give consumers time to migrate before breaking changes.
-
-  - id: docs-adr-present
-    description: Architectural decisions should be documented in docs/adr/ directory.
-    engine_type: regex
-    severity: LOW
-    mode: report
-    applies_to:
-      - "docs/adr/**/*.md"
-    query: .+
-    rationale: Architecture Decision Records capture the context, options, and rationale behind key technical choices.
-
-  - id: docs-type-annotations
-    description: Public API functions should have complete type annotations including return types.
+  - id: doc-public-api
+    description: Functions and classes in __all__ or public modules must have docstrings.
     engine_type: tree-sitter
-    language: py
+    severity: MEDIUM
+    mode: warn
+    applies_to:
+      - "**/__init__.py"
+    query: public_api_missing_docstring
+    rationale: |
+      Public API without documentation requires consumers to read source code.
+      Docstrings serve as in-IDE documentation and enable auto-generated reference
+      docs.
+
+  - id: doc-raises
+    description: Functions raising exceptions should document them with :raises:.
+    engine_type: regex
     severity: LOW
     mode: report
-    query: |
-      (function_definition
-        name: (identifier) @name
-        parameters: (parameters)
-        (not (return_type (type)))
-        (#not-match? @name "^_"))
-    rationale: Complete type annotations serve as machine-checked documentation and enable IDE autocompletion.
+    query: (?m)raise\s+\w+
+    rationale: |
+      Undocumented exceptions surprise callers. The :raises: field documents
+      expected error conditions and helps callers write correct error handling.
+
+  - id: doc-examples
+    description: Complex public functions benefit from usage examples in docstrings.
+    engine_type: semantic
+    severity: LOW
+    mode: report
+    query: missing_examples
+    rationale: |
+      Examples demonstrate intended usage patterns. They serve as lightweight
+      tests and reduce onboarding time for new contributors.
+
+  - id: doc-returns
+    description: Functions returning values should document return types with :returns:.
+    engine_type: tree-sitter
+    severity: LOW
+    mode: report
+    query: missing_return_doc
+    rationale: |
+      Undocumented return values force callers to read implementation. The
+      :returns: field documents the type and meaning of returned values.

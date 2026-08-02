@@ -1,4 +1,6 @@
 name: dependencies
-version: 1.0.0
-description: Dependency hygiene — version pinning, license compliance, and vulnerability gates
+version: 2.0.0
+description: Dependency health — unused packages, outdated dependencies, license compliance, transitive imports
 author: Aegis
+tier: extended
+tagline: Dependency health — unused, outdated, license, transitive

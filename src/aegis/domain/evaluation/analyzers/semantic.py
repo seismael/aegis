@@ -13,11 +13,11 @@ Example Semantic Rule:
 
 import structlog
 
+from aegis.core.registry import Rule
 from aegis.domain.evaluation.ports import (
     ArchitecturalViolation,
     SemanticAnalyzerInterface,
 )
-from aegis.domain.policy.models import Rule
 
 
 class SemanticAnalyzer(SemanticAnalyzerInterface):

@@ -26,13 +26,13 @@ class TestRulePackManager:
         assert "testing" in available
         assert "style" in available
         assert "best-practices" in available
-        assert "design" in available
+        assert "dependencies" in available
 
     def test_list_available_returns_meta(self, tmp_path):
         mgr = self._manager(tmp_path)
         meta = mgr.list_available()["architecture"]
         assert isinstance(meta, RulePackMeta)
-        assert meta.version == "1.0.0"
+        assert meta.version == "2.0.0"
         assert meta.author == "Aegis"
 
     def test_list_installed_empty_initially(self, tmp_path):
@@ -74,7 +74,7 @@ class TestRulePackManager:
         mgr.install("architecture")
         manifest = mgr._load_manifest()
         assert "architecture" in manifest.installed_packs
-        assert manifest.installed_packs["architecture"].version == "1.0.0"
+        assert manifest.installed_packs["architecture"].version == "2.0.0"
 
     def test_install_is_installed_true(self, tmp_path):
         mgr = self._manager(tmp_path)
@@ -101,8 +101,8 @@ class TestRulePackManager:
         mgr.install("testing")
         rules_file = tmp_path / ".aegis" / "rules" / "testing" / "rules.yaml"
         content = rules_file.read_text(encoding="utf-8")
-        assert "test-no-focused" in content
-        assert "test-naming-convention" in content
+        assert "test-no-sleep" in content
+        assert "test-parametrize" in content
 
     # --- Remove ---
 
@@ -247,7 +247,7 @@ class TestRulePackManager:
         # Create new manager pointing to same dir
         mgr2 = RulePackManager(str(tmp_path / ".aegis" / "rules"))
         assert mgr2.is_installed("architecture")
-        assert mgr2.list_installed()["architecture"].version == "1.0.0"
+        assert mgr2.list_installed()["architecture"].version == "2.0.0"
 
     def test_manifest_json_format(self, tmp_path):
         mgr = self._manager(tmp_path)

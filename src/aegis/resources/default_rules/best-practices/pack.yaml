@@ -1,4 +1,6 @@
 name: best-practices
-version: 1.0.0
-description: Idiomatic Python — pathlib, mutable defaults, exception handling, type hints
+version: 2.0.0
+description: Prevents real bugs — mutable defaults, bare excepts, missing tests, side-effect imports
 author: Aegis
+tier: core
+tagline: Prevent bugs — mutable defaults, bare excepts, missing tests
