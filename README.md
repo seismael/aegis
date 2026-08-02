@@ -10,19 +10,16 @@ Integrated natively into agent execution loops (DeepAgents, LangGraph, Claude Co
 
 ---
 
-## ⚡ Token Efficiency & Cost Analysis
+## Token Efficiency
 
-Real agent trials (Claude Code, Gemini CLI) performing cross-layer DDD feature addition with 68 governance rules. Results are **agent-dependent**:
+Retry-loop testing (Claude Code, deepseek-v4-pro, 16 core rules):
 
-| Agent | Model | WITH Aegis | WITHOUT Aegis | Delta |
-| :--- | :--- | :--- | :--- | :--- |
-| Gemini CLI | gemini-3.5-flash | 390,544 input | 605,825 input | **+35.5% savings** |
-| Claude Code | deepseek-v4-pro | 126,116 total | 98,092 total | -28.6% overhead |
-| OpenCode | deepseek-v4-pro | AGENTS.md alone (no MCP) has zero effect | — | — |
+| Scenario | WITHOUT Aegis | WITH Aegis | Delta |
+|:---|:---|:---|:---|
+| Layer Violation | 144,649 tokens (2 rounds) | 189,831 tokens (2 rounds) | -24% overhead |
+| Security exec() | 247,230 tokens (2 rounds) | 522,644 tokens (5 rounds, failed) | -53% overhead |
 
-Aegis is a **governance engine** first. Token efficiency is a secondary effect that varies by agent and model. The engine detects 133 violations across 25 files in 0.32s with 68 rules.
-
-> For detailed methodology and complete trial data, see [Token Efficiency & Cost Analysis](file:///c:/dev/projects/aegis/docs/TOKEN_EFFICIENCY.md).
+Aegis in its current form does NOT reduce token consumption. Governance instructions add system prompt overhead, and semantic rules create false positives that trap agents in remediation loops. The detection engine works (0.3s sweep, 16 rules) but the agent integration layer needs refinement. See [Token Efficiency](docs/TOKEN_EFFICIENCY.md).
 
 ---
 
