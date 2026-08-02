@@ -6,19 +6,19 @@
 
 **Aegis** is an **Agent-Native Architectural Runtime Engine & Governance SDK** that transforms software governance from a reactive post-hoc scan into a **Proactive, Correct-by-Construction Execution Primitive**.
 
-Integrated natively into agent execution loops (DeepAgents, LangGraph, Claude Code, Aider, Gemini CLI), Aegis intercepts agent intent, evaluates in-memory AST deltas in microseconds, and seals disk tools—saving up to **90% of LLM token tax** by preventing non-compliant code generation before it happens.
+Integrated natively into agent execution loops (DeepAgents, LangGraph, Claude Code, Aider, Gemini CLI), Aegis intercepts agent intent, evaluates in-memory AST deltas in microseconds, and seals disk tools—improving token efficiency and eliminating retry loops when agents introduce architectural drift.
 
 ---
 
-## ⚡ Key Paradigm Shifts & Benefits
+## ⚡ Token Efficiency & Cost Analysis
 
-| Metric | Traditional Reactive Scanning | Aegis Agent-Native Engine |
-| :--- | :--- | :--- |
-| **Execution Point** | Post-generation (Scans disk after code write) | **Pre-flight & In-Memory Delta** (Validates plan and AST before disk write) |
-| **Token Efficiency** | Low (Consumes tokens generating bad code, then retrying) | **Optimal** (Halts non-compliant intent at Plan Gate, saving ~90% token tax) |
-| **Runtime Latency** | High (Network/IPC or manual human review) | **Microseconds** (In-process Python & Tree-sitter AST delta compiler) |
-| **Tool Security** | Unprotected disk access | **Sealed Interceptor** (Raises `AegisGovernanceError` & locks disk write) |
-| **Agent Ecosystem** | External standalone tool | **Native Extension Pattern** (DeepAgents, LangGraph, FastMCP adapters) |
+| Task Category | Execution Scenario | Without Aegis (Reactive) | With Aegis (Proactive Engine) | Benchmark Test Savings |
+| :--- | :--- | :--- | :--- | :--- |
+| **Architectural Drift Prevention** | Agent proposes non-compliant module imports or DDD layer violations. | Generates 300+ lines of code, writes to disk, fails review, re-prompts over 3 retries.<br>**~21,100 tokens** | Intercepts intent at `AegisPlanVerifier` before code generation starts.<br>**~2,820 tokens** | **~86.6% Token Reduction** |
+| **AST Delta Violation Interception** | Code includes `print(` statements or unhandled PII. | Writes code to disk, fails scan, re-sends full codebase context for refactoring.<br>**~8,400 tokens** | `AegisEnforcementNode` evaluates in-memory diff; synthesizes focused 100-token hint.<br>**~1,370 tokens** | **~83.7% Token Reduction** |
+| **Turn-1 Compliant Task** | Agent writes compliant utility code on 1st attempt. | Generates code, writes to disk, passes post-hoc review.<br>**~1,200 tokens** | Pre-flight plan gate validates intent (50 tokens); generates code.<br>**~1,250 tokens** | **Neutral Overhead** |
+
+> For detailed benchmark test reports, see [Token Efficiency & Cost Analysis](file:///c:/dev/projects/aegis/docs/TOKEN_EFFICIENCY.md).
 
 ---
 

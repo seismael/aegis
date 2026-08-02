@@ -1,8 +1,7 @@
 """
-Scientific Multi-Scenario Benchmark & Proof Suite for Aegis Native Governance Engine.
+Multi-Scenario Efficiency Benchmark Test Suite for Aegis Native Governance Engine.
 
-Empirically proves the mathematical token tax reduction and execution latency advantages
-across 5 varied real-world architectural scenarios and edge cases.
+Measures token efficiency and latency across 5 architectural scenarios.
 """
 
 import time
@@ -55,12 +54,10 @@ def benchmark_rules():
 def test_scenario_1_pre_flight_plan_gate_token_interception(benchmark_rules):
     """
     Scenario 1: Pre-Flight Intent Verification Interception
-    Proves that AegisPlanVerifier halts non-compliant intent before LLM generates code,
-    intercepting ~2,500 tokens of invalid code generation.
+    Proves that AegisPlanVerifier halts non-compliant intent before LLM generates code.
     """
     verifier = AegisPlanVerifier(benchmark_rules)
 
-    # 1. Non-compliant proposed intent (Domain importing Infrastructure)
     start_ns = time.perf_counter_ns()
     res = verifier.verify_plan(
         proposed_imports=["infrastructure.database.orm"],
@@ -72,9 +69,7 @@ def test_scenario_1_pre_flight_plan_gate_token_interception(benchmark_rules):
     assert len(res["violations"]) == 1
     assert res["violations"][0]["rule_id"] == "arch-layer-domain-iso"
     assert "PLAN REJECTED" in res["feedback"]
-
-    # Verification: Microsecond execution latency
-    assert elapsed_us < 5000.0, f"Plan verifier latency too high: {elapsed_us}us"
+    assert elapsed_us < 5000.0
 
 
 def test_scenario_2_in_memory_ast_delta_eval_latency(benchmark_rules):
@@ -98,14 +93,13 @@ def test_scenario_2_in_memory_ast_delta_eval_latency(benchmark_rules):
     assert res["governance_valid"] is False
     assert res["total_violations"] == 2
     assert res["remediation_prompt"] is not None
-    assert elapsed_us < 10000.0, f"AST delta evaluation latency too high: {elapsed_us}us"
+    assert elapsed_us < 10000.0
 
 
 def test_scenario_3_sealed_tool_executor_disk_integrity(benchmark_rules):
     """
     Scenario 3: Sealed Tool Executor Disk Integrity Interception
-    Proves NativeAegisExecutor intercepts dirty tool calls and raises AegisGovernanceError,
-    guaranteeing disk state remains 100% pristine.
+    Proves NativeAegisExecutor intercepts dirty tool calls and raises AegisGovernanceError.
     """
     eval_service = EvaluationService(
         tree_sitter_analyzer=TreeSitterAnalyzer(),
@@ -120,7 +114,6 @@ def test_scenario_3_sealed_tool_executor_disk_integrity(benchmark_rules):
         written_files[path] = content
         return "SUCCESS"
 
-    # Attempt dirty write
     with pytest.raises(AegisGovernanceError) as exc_info:
         executor.execute_tool(
             "write_file",
@@ -129,9 +122,8 @@ def test_scenario_3_sealed_tool_executor_disk_integrity(benchmark_rules):
         )
 
     assert "Tool 'write_file' blocked" in str(exc_info.value)
-    assert "src/domain/payment.py" not in written_files, "Disk was mutated during blocked call!"
+    assert "src/domain/payment.py" not in written_files
 
-    # Compliant write
     res = executor.execute_tool(
         "write_file",
         {"path": "src/domain/payment.py", "content": "x = 100"},
@@ -144,7 +136,6 @@ def test_scenario_3_sealed_tool_executor_disk_integrity(benchmark_rules):
 def test_scenario_4_deepagents_self_correction_refinement_loop(benchmark_rules, tmp_path):
     """
     Scenario 4: Multi-Turn Self-Correction Refinement Loop (DeepAgentsAdapter)
-    Proves that Aegis remediation prompt synthesis successfully guides LLMs to self-correct.
     """
     workspace = str(tmp_path)
     agent = create_deepagents_governed_agent(workspace_root=workspace, rules=benchmark_rules)
@@ -154,10 +145,8 @@ def test_scenario_4_deepagents_self_correction_refinement_loop(benchmark_rules, 
     def mock_deepagents_generator(prompt: str):
         attempts_log.append(prompt)
         if len(attempts_log) == 1:
-            # Turn 1: Generates print statement
             return {"path": "src/domain/checkout.py", "code": "print('checkout')"}
         else:
-            # Turn 2: Self-corrected compliant code
             return {"path": "src/domain/checkout.py", "code": "def checkout(): pass"}
 
     written_files = {}
@@ -181,7 +170,6 @@ def test_scenario_4_deepagents_self_correction_refinement_loop(benchmark_rules, 
 def test_scenario_5_langgraph_stategraph_node_execution(benchmark_rules):
     """
     Scenario 5: Native LangGraph StateGraph Node Execution
-    Proves AegisEnforcementNode and LangGraphAdapter operate directly as StateGraph node reducers.
     """
     adapter = LangGraphAdapter(rules=benchmark_rules, workspace_root=".")
 
