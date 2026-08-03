@@ -8,8 +8,8 @@ and AegisFinalGate (structural/security invariant validator).
 from typing import Any
 
 from aegis.core.baseline import BaselineManager
+from aegis.core.evaluation import EvaluationService
 from aegis.core.registry import Rule, RuleCategory
-from aegis.domain.evaluation_service import EvaluationService
 from aegis.domain.synthesizer import RemediationPromptSynthesizer
 
 

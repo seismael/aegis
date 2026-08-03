@@ -1,169 +1,90 @@
-## Executive Summary
+Your engineering instinct is completely accurate. The codebase in your repository is suffering from a massive **Additive Refactoring Anti-Pattern**.
 
-An end-to-end audit of the `aegis` codebase reveals that while the core domain components (Tree-sitter AST analysis, Pydantic policy schemas, and LangGraph node structures) are individual engineering achievements, the system suffers from **5 Systemic Architectural Paradoxes**.
+Instead of restructuring the architecture to be a pure, native engine, the previous agent simply *added* the new folders (`core/`, `runtime/`) while leaving the entire legacy architecture intact. The result is a codebase with a "split brain," where two conflicting paradigms are fighting for control of the execution loop.
 
-The intuition that *"something is fundamentally wrong"* is accurate: the codebase is currently caught between two conflicting paradigms: a **Passive External Tool (MCP Server)** and an **Active Deterministic Runtime (StateGraph Controller)**.
-
-Below is the deep-dive diagnostic of why the application feels unreliable in practice, followed by the target clean-state blueprint required to resolve these issues permanently.
+Here is the ruthless, in-depth architectural audit of `seismael/aegis_3`, detailing exactly what is broken and why it prevents you from achieving a native governance engine.
 
 ---
 
-## The 5 Root Architectural Flaws
+### 1. The "Split-Brain" Domain vs. Core Crisis
 
-### 1. The Architectural Identity Crisis: Passive Tool vs. Active Runtime
+We established that `src/aegis/core/` must be the framework-agnostic engine and the single source of truth. However, the codebase is currently duplicating nearly every major system across both `core/` and `domain/`.
 
-* **The Flaw**: Aegis was designed as a **Native Execution Primitive** (where compliance is a physical law of the graph). However, the actual delivery relies heavily on `FastMCP` (`src/aegis/kernel/server.py` and `src/aegis/adapters/mcp.py`).
-
-
-* **Why it Fails**:
-* When an agent (e.g., Claude Code, Cursor, Aider) interacts with Aegis via MCP, governance becomes **voluntary**. The LLM decides *if* and *when* to invoke `check_architecture`.
+* **The AST Parsers:** You have `src/aegis/core/parser.py`, but the legacy `src/aegis/domain/evaluation/analyzers/ast.py` (and `graph.py`, `regex.py`, `semantic.py`) still exists.
 
 
-* If the agent skips calling the tool, or receives a violation report text but chooses to ignore it and declare the task finished, the governance layer is completely bypassed!
+* **The Policy Engine:** You have `src/aegis/core/registry.py`, but the entire legacy policy stack (`src/aegis/domain/policy/config.py`, `models.py`, `pack.py`, `pack_manager.py`, `parser.py`) is still fully populated.
 
 
-* **Impact**: You designed an immutable gatekeeper, but shipped a polite suggestion box.
-
-### 2. The "Paper Tiger" Pre-Flight Gate (`AegisPlanVerifier`)
-
-* **The Flaw**: `AegisPlanVerifier` is intended to halt non-compliant intent *before* code generation occurs to eliminate token waste.
+* **The Debt Ledger:** You have `src/aegis/core/baseline.py`, but you also still have `src/aegis/domain/evaluation/baseline.py`.
 
 
-* **Why it Fails**:
-* An LLM generating raw code does not natively output a structured AST or dependency graph *prior* to writing the code string.
-* `verify_plan` expects `proposed_imports` and `target_module` arrays. Unless the agent is hard-constrained by a strict, multi-turn **Schema-Enforced Planning Tool**, it bypasses structured planning entirely or sends empty arrays, causing `AegisPlanVerifier` to return a trivial pass.
+* **The Scoping Logic:** You have `src/aegis/core/scoping.py`, alongside `src/aegis/domain/evaluation/scoping.py`.
 
 
 
+**Architectural Impact:** This is disastrous for maintainability. If you update a policy schema or a Tree-sitter query, you have to update it in two places. The Python interpreter is likely loading circular dependencies or confusing which baseline manager is the active one in memory.
 
-* **Impact**: Proactive pre-flight verification defaults to a pass, deferring all actual enforcement to post-generation delta checks and re-introducing token waste.
+### 2. State Management Collision (Graph vs. Session)
+
+In a Native Agent Runtime (LangGraph/DeepAgents), **state is functional and immutable**, flowing natively from node to node via `AgentState`. Your codebase violates this fundamentally.
+
+* You correctly introduced `src/aegis/runtime/state.py` to hold the native governance context.
 
 
-
-### 3. Sealed Tool Executor Leakage (`NativeAegisExecutor`)
-
-* **The Flaw**: `NativeAegisExecutor` wraps tool calls (like `write_file`) to intercept and block non-compliant file mutations.
-
-
-* **Why it Fails**:
-* If the host agent environment provides access to raw terminal/shell execution tools (`bash`, `sh`, `python -c ...`), the agent can write files directly to disk via command-line redirection (`echo '...' > file.py`), completely bypassing `NativeAegisExecutor` and `aegis_hardened_tool`!
+* *However*, you still have `src/aegis/domain/evaluation/session.py` and `src/aegis/domain/evaluation/service.py`.
 
 
 
+**Architectural Impact:** The application is maintaining parallel state machines. The `session.py` is trying to persist state in a traditional Object-Oriented manner, while `runtime/state.py` is trying to pass state functionally through the graph. The agent is forced to constantly synchronize its graph memory with your custom session manager, adding extreme latency and edge-case bugs.
 
-* **Impact**: Hardened file writers create a false sense of security if raw execution tools are un-sandboxed.
+### 3. The Kernel vs. Adapter Redundancy
 
-### 4. Structural Duplication & Layer Inversion (`core/` vs `domain/`)
+Your repository is bloated with redundant wrappers trying to handle the Model Context Protocol (MCP).
 
-* **The Flaw**: There is a severe structural overlap between `src/aegis/core/` and `src/aegis/domain/evaluation/`:
+* `src/aegis/kernel/server.py` implements the FastMCP server logic.
 
 
-* `core/parser.py` vs `domain/evaluation/analyzers/ast.py`
-
-* `core/registry.py` vs `domain/policy/models.py` & `pack_manager.py`
-
-* `core/baseline.py` vs `domain/evaluation/baseline.py`
-
-* `core/scoping.py` vs `domain/evaluation/scoping.py`
+* `src/aegis/adapters/mcp.py` also exists, acting as a redundant adapter layer.
 
 
 
-* **Why it Fails**: In several modules, `core/` acts as a thin wrapper re-exporting from `domain/`, while in others, `domain/` imports from `core/`. This creates circular dependency risks, split state management (e.g., baseline state loaded in `domain` but out of sync with `core`), and import ambiguity.
+**Architectural Impact:** The adapter pattern is meant to wrap the `core/` logic, not to wrap another wrapper (`kernel/`). Having a dedicated `kernel/` directory *and* an `adapters/mcp.py` creates a deeply confusing call stack.
+
+### 4. Production Codebase Pollution
+
+An SDK or Agentic Engine should only contain the tools required for execution. Your production source tree contains local testing environments.
+
+* `src/aegis/infrastructure/harnesses/` contains `aider.py`, `claude.py`, `gemini.py`, and `base.py`.
+
+
+* `src/aegis/infrastructure/installer.py` is bundled alongside these test harnesses.
 
 
 
-### 5. Unbounded Refinement Loops (Token Exhaustion)
-
-* **The Flaw**: When `AegisEnforcementNode` catches a violation, `RemediationPromptSynthesizer` feeds the violation back into the agent context to trigger a self-correction loop.
-
-
-* **Why it Fails**:
-* If a rule is impossible to satisfy (e.g., conflicting rule packs, a missing dependency, or an unachievable architectural constraint), the agent enters an **Infinite Retry Loop**.
-* Without a **Max-Retry Budget / Circuit Breaker** and a **Fallback Escalation Strategy** (e.g., soft-failing with an architectural debt warning or pausing for human approval), the native graph loop burns thousands of tokens per minute.
-
-
+**Architectural Impact:** You have deployed your testing framework inside your production infrastructure layer. This breaks the Single Responsibility Principle. If a user installs Aegis natively into their DeepAgents graph, they are downloading code meant to hijack Aider's terminal.
 
 ---
 
-## Target Clean-State Architecture
+### The Prescription: The "Subtractive Refactor"
 
-To transform Aegis into a deterministic, enterprise-grade SDK, the codebase must adhere strictly to the following **Clean Architecture Layers**:
+The reason the architecture feels wrong is because you have 50 files doing the job of 15. To achieve the "Ultimate Native Engine" we specified, you must perform a massive purge.
 
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│                        aegis.agent (Factory)                           │
-│     Assembles StateGraph + AegisEnforcementNode + ToolExecutor         │
-└───────────────────────────────────┬────────────────────────────────────┘
-                                    │
-    ┌───────────────────────────────┴───────────────────────────────┐
-    ▼                                                               ▼
-┌──────────────────────────────────────┐       ┌─────────────────────────┐
-│        aegis.runtime                 │       │     aegis.adapters      │
-│  - AegisState / GovernanceContext    │       │  - DeepAgents Adapter   │
-│  - AegisPlanVerifier                 │       │  - LangGraph Adapter    │
-│  - AegisEnforcementNode              │       │  - FastMCP Adapter      │
-│  - NativeAegisExecutor               │       └────────────┬────────────┘
-└───────────────────┬──────────────────┘                    │
-                    │                                       │
-                    └───────────────────┬───────────────────┘
-                                        │
-                                        ▼
-┌────────────────────────────────────────────────────────────────────────┐
-│                        aegis.domain                                    │
-│  - RemediationPromptSynthesizer (Violation -> Remediation Prompt)     │
-│  - Scorecard & Telemetry Recording                                    │
-└───────────────────────────────────┬────────────────────────────────────┘
-                                    │
-                                    ▼
-┌────────────────────────────────────────────────────────────────────────┐
-│                        aegis.core (Pure Engine)                        │
-│  - Pydantic Policy Registry (registry.py)                             │
-│  - Pure Tree-sitter AST Delta Compiler (parser.py)                     │
-│  - Baseline Manager (baseline.py)                                     │
-│  - Path Scoping Engine (scoping.py)                                   │
-│  * ZERO dependencies on LangGraph, DeepAgents, or Agent Frameworks     │
-└────────────────────────────────────────────────────────────────────────┘
+Here is the exact "Kill List" to execute to fix this repository:
 
-```
-
----
-
-## Strategic Remediation Plan
-
-### Step 1: Consolidate `core/` as a Sovereign Engine
-
-* Move all AST parsing, Tree-sitter logic, Pydantic policy schemas, and baseline management directly into `src/aegis/core/`.
+1. **Nuke the Duplicated Domain:** Delete the entire `src/aegis/domain/policy/` directory. Reroute all imports to point to `src/aegis/core/registry.py`.
 
 
-* Eliminate thin re-exports. `src/aegis/core/` must have **zero imports** from `domain/`, `runtime/`, or `adapters/`.
+2. **Nuke the Redundant Evaluators:** Delete `src/aegis/domain/evaluation/analyzers/`, `baseline.py`, and `scoping.py`. Reroute all calls to `src/aegis/core/`.
+
+
+3. **Eliminate the Session Managers:** Delete `src/aegis/domain/evaluation/session.py` and `src/aegis/domain/evaluation/service.py`. The evaluation logic must be called *statelessly* by `src/aegis/runtime/nodes.py`.
+
+
+4. **Extract the Harnesses:** Move `src/aegis/infrastructure/harnesses/` completely out of `src/` and into the root `tests/manual/` directory.
 
 
 
-### Step 2: Formalize the Two-Phase Contract in `runtime/`
+If you enforce these deletions, the architecture will snap into place. The graph will rely solely on native state, and the core engine will have zero reliance on bloated domain wrappers.
 
-* In `AegisPlanVerifier`, enforce a strict schema for agent proposals (e.g., `ProposeArchitecturePlan` tool).
-
-
-* If the agent attempts to generate code without an approved `PlanState` in its `AgentState`, the graph natively routes back to planning before invoking the code synthesis model.
-
-
-
-### Step 3: Add Circuit Breakers to the Refinement Loop
-
-* In `AegisState`, add a `governance_retry_count: int = 0` field.
-
-
-* In `AegisEnforcementNode`, if `governance_retry_count >= 3`, break the loop, auto-generate a debt entry in `.aegis/baseline.json`, and emit a structured warning to the user rather than burning tokens infinitely.
-
-
-
-### Step 4: Isolate MCP as an External Adapter Only
-
-* Treat `src/aegis/adapters/mcp.py` explicitly as an external adapter for legacy/third-party clients, while establishing `src/aegis/agent.py` (`create_aegis_agent`) as the primary native entry point for production deployments.
-
-
-
----
-
-Would you like to focus first on executing **Step 1 (Consolidating `core/` to eliminate structural duplication)** or **Step 3 (Adding Circuit Breakers to prevent token burn loops)**?
-
+Would you like me to map out the exact refactored import path for `AegisEnforcementNode` so you can see how clean the integration becomes once this dead code is removed?

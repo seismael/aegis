@@ -1,0 +1,80 @@
+"""
+Aegis Core Regex Analyzer.
+Regex-based pattern analyzer for python, typescript, javascript, rust, etc.
+Zero agent-framework dependencies.
+"""
+
+import os
+import re
+from abc import ABC, abstractmethod
+
+from aegis.core.registry import ArchitecturalViolation, Rule
+from aegis.core.scoping import LANG_EXT_MAP
+
+
+class RegexAnalyzerInterface(ABC):
+    """Interface for regex-based pattern analysis within files."""
+
+    @abstractmethod
+    def analyze_file(
+        self, file_path: str, content: str, rules: list[Rule]
+    ) -> list[ArchitecturalViolation]:
+        pass
+
+
+class RegexAnalyzer(RegexAnalyzerInterface):
+    """Regex-based pattern analyzer. Respects rule.language for matching file types."""
+
+    def __init__(self):
+        self._pattern_cache: dict[str, re.Pattern | None] = {}
+
+    def analyze_file(
+        self, file_path: str, content: str, rules: list[Rule]
+    ) -> list[ArchitecturalViolation]:
+        violations: list[ArchitecturalViolation] = []
+        ext = self._resolve_ext(file_path)
+
+        for rule in rules:
+            if not rule.query:
+                continue
+            if rule.language and ext != rule.language:
+                continue
+
+            pattern = self._get_pattern(rule.query)
+            if pattern is None:
+                continue
+
+            for match in pattern.finditer(content):
+                line = content[: match.start()].count("\n") + 1
+                violations.append(
+                    ArchitecturalViolation(
+                        file=file_path,
+                        line=line,
+                        rule_id=rule.id,
+                        description=rule.description,
+                        severity=rule.severity.value,
+                    )
+                )
+
+        return violations
+
+    def _get_pattern(self, query: str) -> re.Pattern | None:
+        if query not in self._pattern_cache:
+            try:
+                self._pattern_cache[query] = re.compile(query)
+            except re.error:
+                self._pattern_cache[query] = None
+        return self._pattern_cache[query]
+
+    @staticmethod
+    def _resolve_ext(file_path: str) -> str:
+        """Map file extension to short language code used in rules."""
+        _, ext = os.path.splitext(file_path)
+        ext = ext.lower()
+        for lang, mapped_ext in LANG_EXT_MAP.items():
+            if ext == mapped_ext:
+                return lang
+        return ext.lstrip(".")
+
+
+__all__ = ["RegexAnalyzer", "RegexAnalyzerInterface"]

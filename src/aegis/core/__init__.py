@@ -4,8 +4,14 @@ Pure domain engine without agent framework dependencies.
 All implementations are self-contained in core/ — no imports from domain/ at module level.
 """
 
+from aegis.core.analyzers import (
+    GraphAnalyzer,
+    RegexAnalyzer,
+    SemanticAnalyzer,
+    TreeSitterAnalyzer,
+)
 from aegis.core.baseline import BaselineManager, BaselineViolation
-from aegis.core.parser import TreeSitterAnalyzer
+from aegis.core.evaluation import EvaluationService
 from aegis.core.registry import (
     ArchitecturalViolation,
     CategoryPhaseMapping,
@@ -30,8 +36,13 @@ __all__ = [
     "ArchitecturalViolation",
     "RegistryLoader",
     "TreeSitterAnalyzer",
+    "GraphAnalyzer",
+    "RegexAnalyzer",
+    "SemanticAnalyzer",
+    "EvaluationService",
     "BaselineManager",
     "BaselineViolation",
     "ScopeFilter",
     "LANG_EXT_MAP",
 ]
+

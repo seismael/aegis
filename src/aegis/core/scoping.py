@@ -9,6 +9,25 @@ from pathlib import Path, PurePosixPath
 
 from aegis.core.registry import ArchitecturalViolation, Rule
 
+IGNORE_DIRS = frozenset(
+    {
+        ".venv",
+        "node_modules",
+        ".git",
+        ".aegis",
+        "__pycache__",
+        ".tox",
+        "dist",
+        "build",
+        ".mypy_cache",
+        ".pytest_cache",
+        ".ruff_cache",
+        "tests",
+        ".pytest_tmp",
+        ".test_tmp",
+    }
+)
+
 LANG_EXT_MAP = {
     "python": ".py",
     "typescript": ".ts",
@@ -18,6 +37,7 @@ LANG_EXT_MAP = {
     "tsx": ".tsx",
     "jsx": ".jsx",
 }
+
 
 
 class ScopeFilter:
