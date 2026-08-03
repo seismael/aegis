@@ -115,3 +115,36 @@ def test_enforcement_node_call_interface(eval_service, sample_rules):
     assert update["governance_valid"] is False
     assert len(update["governance"]) == 1
     assert update["governance"][0]["is_clean"] is False
+
+
+def test_circuit_breaker_trigger(eval_service, sample_rules, tmp_path):
+    from aegis.core.baseline import BaselineManager
+
+    bm = BaselineManager(directory=str(tmp_path))
+    node = AegisEnforcementNode(eval_service, sample_rules, baseline_manager=bm)
+
+    state = {
+        "pending_tool_call": {"path": "test.py", "content": "print('bad')"},
+        "governance_retry_count": 2,
+        "max_governance_retries": 3,
+    }
+
+    update = node(state)
+    assert update["circuit_broken"] is True
+    assert update["governance_valid"] is True  # Circuit breaker unblocks graph loop
+    assert update["governance_retry_count"] == 3
+    assert "CIRCUIT BREAKER TRIGGERED" in update["governance"][0]["remediation_prompt"]
+
+
+def test_plan_verifier_string_imports(sample_rules):
+    verifier = AegisPlanVerifier(sample_rules)
+
+    # String input with comma/space separated imports (2 infrastructure imports)
+    res = verifier.verify_plan(
+        proposed_imports="aegis.infrastructure.installer, aegis.infrastructure.harness",
+        target_module="aegis.domain.evaluation",
+    )
+    assert res["plan_valid"] is False
+    assert len(res["violations"]) == 2
+
+

@@ -17,6 +17,24 @@
         "semantic/rules.yaml"
       ],
       "custom_overrides": []
+    },
+    "architecture": {
+      "name": "architecture",
+      "version": "2.0.0",
+      "install_time": "2026-08-03T20:04:44.472138+00:00",
+      "files": [
+        "architecture/rules.yaml"
+      ],
+      "custom_overrides": []
+    },
+    "security": {
+      "name": "security",
+      "version": "2.0.0",
+      "install_time": "2026-08-03T20:04:44.494138+00:00",
+      "files": [
+        "security/rules.yaml"
+      ],
+      "custom_overrides": []
     }
   },
   "custom_files": [],

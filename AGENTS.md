@@ -25,11 +25,11 @@ Before declaring ANY coding task complete, you MUST:
 
 Invoke these skills in chat as needed:
 
-- `/aegis-lead` â€” **Default persona.** Your core architectural
+- `/aegis-principal-architect` — **Default persona.** Your core architectural
   mindset for all tasks. Load this first.
-- `/aegis-init` â€” Bootstrap governance in a new project
-- `/aegis-builder` â€” Generate new architectural rules from plain English
-- `/aegis-grade` â€” Self-grade code for domain language compliance
+- `/aegis-init` — Bootstrap governance in a new project
+- `/aegis-architect` — Generate new architectural rules from plain English
+- `/aegis-semantic-check` — Self-grade code for domain language compliance
 
 ## Governance
 

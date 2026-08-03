@@ -19,10 +19,14 @@ class GovernanceContext(TypedDict):
 class AegisState(TypedDict):
     """
     Governance-hardened AgentState schema.
-    Extends standard AgentState with a native governance audit trail reducer.
+    Extends standard AgentState with native circuit-breaker retry state and governance audit trail.
     """
 
     messages: list[Any]
     pending_tool_call: dict[str, Any] | None
     governance_valid: bool
+    governance_retry_count: int
+    max_governance_retries: int
+    circuit_broken: bool
     governance: Annotated[list[GovernanceContext], operator.add]
+

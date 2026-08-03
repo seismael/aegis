@@ -8,7 +8,7 @@ import httpx
 import structlog
 import yaml
 
-from aegis.core.registry import Rule, RuleCategory
+from aegis.core.registry import CorePolicyParser, Rule, RuleCategory
 
 logger = structlog.get_logger()
 
@@ -64,14 +64,14 @@ class RemotePolicyFetcher:
         return rules
 
 
-class PolicyParser:
+class PolicyParser(CorePolicyParser):
     """
     Structured parser for architectural governance rules.
     Loads and validates rules from .aegis/rules/ directory with remote inheritance.
     """
 
     def __init__(self, workspace_root: str | None = None, cache_dir: str | None = None):
-        self.workspace_root = workspace_root
+        super().__init__(workspace_root=workspace_root)
         from aegis.domain.policy.config import AegisConfig
 
         if workspace_root:

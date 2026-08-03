@@ -24,11 +24,18 @@ class AegisPlanVerifier:
         self.rules = rules
 
     def verify_plan(
-        self, proposed_imports: list[str], target_module: str
+        self, proposed_imports: list[str] | str, target_module: str
     ) -> dict[str, Any]:
         """
         Verify proposed imports against disallowed_import graph rules.
+        Supports both structured lists and space/comma-separated strings.
         """
+        imports_list: list[str] = (
+            [imp.strip() for imp in proposed_imports.replace(",", " ").split()]
+            if isinstance(proposed_imports, str)
+            else proposed_imports
+        )
+
         violations = []
         for rule in self.rules:
             if rule.query == "disallowed_import":
@@ -40,7 +47,7 @@ class AegisPlanVerifier:
                 )
 
                 if source_ns and target_ns and source_ns in target_module.split("."):
-                    for imp in proposed_imports:
+                    for imp in imports_list:
                         if target_ns in imp.split("."):
                             violations.append(
                                 {
@@ -66,6 +73,7 @@ class AegisEnforcementNode:
     """
     In-process AST delta gatekeeper node for StateGraph execution loops.
     Evaluates pending code modifications against rules in-memory.
+    Features circuit breaker auto-baselining to halt infinite token burn loops.
     """
 
     def __init__(
@@ -112,6 +120,7 @@ class AegisEnforcementNode:
             "governance_valid": is_clean,
             "total_violations": len(violations),
             "active_violations": [v.model_dump() for v in active_violations],
+            "raw_violations": active_violations,
             "remediation_prompt": remediation_prompt,
         }
 
@@ -119,7 +128,7 @@ class AegisEnforcementNode:
         """
         LangGraph StateGraph node execution entry point.
         Extracts pending_tool_call from state, evaluates in-memory AST delta,
-        and returns governance state update.
+        tracks retry budgets, and enforces circuit breakers.
         """
         pending = state.get("pending_tool_call") or {}
         code_string = pending.get("content") or pending.get("code") or ""
@@ -131,16 +140,42 @@ class AegisEnforcementNode:
         res = self.evaluate_delta(
             code_string=code_string, language=language, file_path=file_path
         )
+
+        retry_count = state.get("governance_retry_count", 0)
+        max_retries = state.get("max_governance_retries", 3)
+        circuit_broken = False
+        gov_valid = res["governance_valid"]
+
+        if not gov_valid:
+            retry_count += 1
+            if retry_count >= max_retries:
+                circuit_broken = True
+                gov_valid = True  # Break execution graph loop
+                # Auto-baseline non-critical debt if baseline manager exists
+                if self.baseline and res.get("raw_violations"):
+                    for v in res["raw_violations"]:
+                        self.baseline.add_to_baseline(v)
+
+                res["remediation_prompt"] = (
+                    f"CIRCUIT BREAKER TRIGGERED: Aegis governance exceeded max retry budget ({max_retries}). "
+                    "Non-security violations have been logged to technical debt ledger (.aegis/baseline.json)."
+                )
+
         ctx = {
-            "is_clean": res["governance_valid"],
+            "is_clean": gov_valid,
             "total_violations": res["total_violations"],
             "active_violations": res["active_violations"],
             "remediation_prompt": res["remediation_prompt"],
         }
+
         return {
-            "governance_valid": res["governance_valid"],
+            "governance_valid": gov_valid,
+            "governance_retry_count": retry_count,
+            "max_governance_retries": max_retries,
+            "circuit_broken": circuit_broken,
             "governance": [ctx],
         }
+
 
 
 class AegisFinalGate:

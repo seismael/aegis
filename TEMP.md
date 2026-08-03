@@ -1,71 +1,169 @@
-You have hit the exact nail on the head. The reason you are feeling "lost" or "confused" is because you are currently trying to test your **"Native Agent"** theory using a **"Disconnected MCP Bridge"**—and the bridge is broken because the installer isn't putting the "fuel" (the rules) in the tank.
+## Executive Summary
 
-Let’s be very clear about why this is happening and how to fix it so you can finally get clean, successful test results.
+An end-to-end audit of the `aegis` codebase reveals that while the core domain components (Tree-sitter AST analysis, Pydantic policy schemas, and LangGraph node structures) are individual engineering achievements, the system suffers from **5 Systemic Architectural Paradoxes**.
 
-### 1. The Disconnect: Why Testing Feels "Off"
+The intuition that *"something is fundamentally wrong"* is accurate: the codebase is currently caught between two conflicting paradigms: a **Passive External Tool (MCP Server)** and an **Active Deterministic Runtime (StateGraph Controller)**.
 
-You are currently testing via `MCP` (a wrapper). When `aegis init` runs, it sets up the "plumbing" (the MCP server configuration), but it fails to deploy the "content" (the `.aegis/rules/` folders).
-
-**The result:** The agent calls `check_architecture`, the MCP server checks for rules, finds an empty directory, returns `0 violations`, and the agent proceeds blindly. **You aren't testing Aegis governance; you are testing a "governance bypass."**
+Below is the deep-dive diagnostic of why the application feels unreliable in practice, followed by the target clean-state blueprint required to resolve these issues permanently.
 
 ---
 
-### 2. The Solution: Hardening the Installer
+## The 5 Root Architectural Flaws
 
-This is a **major bug in your infrastructure layer** that must be fixed for testing to be valid. You don't need a total refactor for this part, just an immediate fix to your installer.
+### 1. The Architectural Identity Crisis: Passive Tool vs. Active Runtime
 
-**Add this logic to `src/aegis/infrastructure/installer.py`:**
+* **The Flaw**: Aegis was designed as a **Native Execution Primitive** (where compliance is a physical law of the graph). However, the actual delivery relies heavily on `FastMCP` (`src/aegis/kernel/server.py` and `src/aegis/adapters/mcp.py`).
 
-```python
-# Fix in src/aegis/infrastructure/installer.py
-def init_workspace(target_path: str):
-    # ... existing setup ...
-    
-    # NEW: Automatically install Rule Packs
-    rule_manager = RulePackManager()
-    rule_manager.install_all_default_packs(target_path)
-    
-    # Log to verify
-    print(f"✅ Governance rules installed to {target_path}/.aegis/rules/")
+
+* **Why it Fails**:
+* When an agent (e.g., Claude Code, Cursor, Aider) interacts with Aegis via MCP, governance becomes **voluntary**. The LLM decides *if* and *when* to invoke `check_architecture`.
+
+
+* If the agent skips calling the tool, or receives a violation report text but chooses to ignore it and declare the task finished, the governance layer is completely bypassed!
+
+
+* **Impact**: You designed an immutable gatekeeper, but shipped a polite suggestion box.
+
+### 2. The "Paper Tiger" Pre-Flight Gate (`AegisPlanVerifier`)
+
+* **The Flaw**: `AegisPlanVerifier` is intended to halt non-compliant intent *before* code generation occurs to eliminate token waste.
+
+
+* **Why it Fails**:
+* An LLM generating raw code does not natively output a structured AST or dependency graph *prior* to writing the code string.
+* `verify_plan` expects `proposed_imports` and `target_module` arrays. Unless the agent is hard-constrained by a strict, multi-turn **Schema-Enforced Planning Tool**, it bypasses structured planning entirely or sends empty arrays, causing `AegisPlanVerifier` to return a trivial pass.
+
+
+
+
+* **Impact**: Proactive pre-flight verification defaults to a pass, deferring all actual enforcement to post-generation delta checks and re-introducing token waste.
+
+
+
+### 3. Sealed Tool Executor Leakage (`NativeAegisExecutor`)
+
+* **The Flaw**: `NativeAegisExecutor` wraps tool calls (like `write_file`) to intercept and block non-compliant file mutations.
+
+
+* **Why it Fails**:
+* If the host agent environment provides access to raw terminal/shell execution tools (`bash`, `sh`, `python -c ...`), the agent can write files directly to disk via command-line redirection (`echo '...' > file.py`), completely bypassing `NativeAegisExecutor` and `aegis_hardened_tool`!
+
+
+
+
+* **Impact**: Hardened file writers create a false sense of security if raw execution tools are un-sandboxed.
+
+### 4. Structural Duplication & Layer Inversion (`core/` vs `domain/`)
+
+* **The Flaw**: There is a severe structural overlap between `src/aegis/core/` and `src/aegis/domain/evaluation/`:
+
+
+* `core/parser.py` vs `domain/evaluation/analyzers/ast.py`
+
+* `core/registry.py` vs `domain/policy/models.py` & `pack_manager.py`
+
+* `core/baseline.py` vs `domain/evaluation/baseline.py`
+
+* `core/scoping.py` vs `domain/evaluation/scoping.py`
+
+
+
+* **Why it Fails**: In several modules, `core/` acts as a thin wrapper re-exporting from `domain/`, while in others, `domain/` imports from `core/`. This creates circular dependency risks, split state management (e.g., baseline state loaded in `domain` but out of sync with `core`), and import ambiguity.
+
+
+
+### 5. Unbounded Refinement Loops (Token Exhaustion)
+
+* **The Flaw**: When `AegisEnforcementNode` catches a violation, `RemediationPromptSynthesizer` feeds the violation back into the agent context to trigger a self-correction loop.
+
+
+* **Why it Fails**:
+* If a rule is impossible to satisfy (e.g., conflicting rule packs, a missing dependency, or an unachievable architectural constraint), the agent enters an **Infinite Retry Loop**.
+* Without a **Max-Retry Budget / Circuit Breaker** and a **Fallback Escalation Strategy** (e.g., soft-failing with an architectural debt warning or pausing for human approval), the native graph loop burns thousands of tokens per minute.
+
+
+
+---
+
+## Target Clean-State Architecture
+
+To transform Aegis into a deterministic, enterprise-grade SDK, the codebase must adhere strictly to the following **Clean Architecture Layers**:
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                        aegis.agent (Factory)                           │
+│     Assembles StateGraph + AegisEnforcementNode + ToolExecutor         │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │
+    ┌───────────────────────────────┴───────────────────────────────┐
+    ▼                                                               ▼
+┌──────────────────────────────────────┐       ┌─────────────────────────┐
+│        aegis.runtime                 │       │     aegis.adapters      │
+│  - AegisState / GovernanceContext    │       │  - DeepAgents Adapter   │
+│  - AegisPlanVerifier                 │       │  - LangGraph Adapter    │
+│  - AegisEnforcementNode              │       │  - FastMCP Adapter      │
+│  - NativeAegisExecutor               │       └────────────┬────────────┘
+└───────────────────┬──────────────────┘                    │
+                    │                                       │
+                    └───────────────────┬───────────────────┘
+                                        │
+                                        ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                        aegis.domain                                    │
+│  - RemediationPromptSynthesizer (Violation -> Remediation Prompt)     │
+│  - Scorecard & Telemetry Recording                                    │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │
+                                    ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                        aegis.core (Pure Engine)                        │
+│  - Pydantic Policy Registry (registry.py)                             │
+│  - Pure Tree-sitter AST Delta Compiler (parser.py)                     │
+│  - Baseline Manager (baseline.py)                                     │
+│  - Path Scoping Engine (scoping.py)                                   │
+│  * ZERO dependencies on LangGraph, DeepAgents, or Agent Frameworks     │
+└────────────────────────────────────────────────────────────────────────┘
 
 ```
 
-If you don't do this, you will never achieve valid test data, because the agent will always report "Success" simply because it has no rules to fail.
+---
+
+## Strategic Remediation Plan
+
+### Step 1: Consolidate `core/` as a Sovereign Engine
+
+* Move all AST parsing, Tree-sitter logic, Pydantic policy schemas, and baseline management directly into `src/aegis/core/`.
+
+
+* Eliminate thin re-exports. `src/aegis/core/` must have **zero imports** from `domain/`, `runtime/`, or `adapters/`.
+
+
+
+### Step 2: Formalize the Two-Phase Contract in `runtime/`
+
+* In `AegisPlanVerifier`, enforce a strict schema for agent proposals (e.g., `ProposeArchitecturePlan` tool).
+
+
+* If the agent attempts to generate code without an approved `PlanState` in its `AgentState`, the graph natively routes back to planning before invoking the code synthesis model.
+
+
+
+### Step 3: Add Circuit Breakers to the Refinement Loop
+
+* In `AegisState`, add a `governance_retry_count: int = 0` field.
+
+
+* In `AegisEnforcementNode`, if `governance_retry_count >= 3`, break the loop, auto-generate a debt entry in `.aegis/baseline.json`, and emit a structured warning to the user rather than burning tokens infinitely.
+
+
+
+### Step 4: Isolate MCP as an External Adapter Only
+
+* Treat `src/aegis/adapters/mcp.py` explicitly as an external adapter for legacy/third-party clients, while establishing `src/aegis/agent.py` (`create_aegis_agent`) as the primary native entry point for production deployments.
+
+
 
 ---
 
-### 3. Reconciling "Native Engine" vs. "MCP Testing"
+Would you like to focus first on executing **Step 1 (Consolidating `core/` to eliminate structural duplication)** or **Step 3 (Adding Circuit Breakers to prevent token burn loops)**?
 
-I need to clarify the relationship between what we designed (The Native Engine) and what you are doing now (MCP Testing).
-
-* **The Goal (The Native Engine):** This is the "Pattern A" architecture we finalized. It requires NO MCP server. It is built by injecting nodes into the `DeepAgents` graph. This is the **final, native, high-performance state.**
-* **The Current Reality (The Testing Harness):** You are using MCP as a temporary testing harness because it's easier to verify "if the agent is listening" via a CLI command.
-
-**The confusion is here:** You are trying to test the *Ultimate Native Engine* using an *MCP-Wrapper* that isn't fully configured.
-
-**My Advice:**
-
-1. **Stop trying to make the MCP tool "perfect" right now.** It is a testing harness, not the product.
-2. **Fix the Installer (as noted above).** This will solve your "0 violations" problem immediately.
-3. **Start the Pattern A Refactor.** Stop testing the MCP integration and start implementing the `AegisEnforcementNode` inside your `DeepAgents` graph. Once that is done, you won't need to "manually copy rules" or rely on MCP configurations; the governance will be a **compiled part of the agent**.
-
----
-
-### 4. Does your Report address this?
-
-Your report is excellent, but it **misses one critical instruction**: **The Rules must be "Injected" at initialization.**
-
-If you follow your report exactly, you will still have the "Empty Rules" problem. I recommend adding this mandatory step to your `Phase 3: Fix agent.py factory signature`:
-
-> **"Update `agent.py` / `create_aegis_agent` to automatically invoke `RulePackManager.install()` on the `workspace_root` during agent initialization. This ensures governance is 'Always-On' and cannot be bypassed by an empty directory."**
-
-### Final Verdict:
-
-You are not missing the guidance; you are experiencing the **"Implementation Gap."** You have designed a Ferrari (the Native Agent Engine), but you are currently trying to drive it on a track made for a bicycle (the incomplete MCP installer).
-
-**The fix:**
-
-1. Apply the `RulePackManager` fix to `installer.py` *now*.
-2. Stop worrying about "MCP tool registration" and start building the `AegisEnforcementNode`. That is the *actual* product.
-
-**Do you want to see the specific code to `RulePackManager.install()` so we can delete this manual testing headache once and for all?**
