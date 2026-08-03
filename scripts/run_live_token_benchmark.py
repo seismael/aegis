@@ -359,8 +359,9 @@ class MonteCarloBenchmarkRunner:
             evasions_blocked=evasions,
         )
 
-    def execute_monte_carlo_suite() -> dict:
+    def execute_monte_carlo_suite(self) -> dict:
         print("==================================================================")
+
         print(" MONTE CARLO N=50 LIVE BENCHMARK & RED-TEAM AUDIT SUITE           ")
         print("==================================================================")
         print(f"Target Workspace: {self.workspace}")
