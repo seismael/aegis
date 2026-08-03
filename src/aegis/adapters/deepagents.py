@@ -14,12 +14,13 @@ from aegis.domain import EvaluationService
 from aegis.runtime.executor import AegisGovernanceError
 
 
-class DeepAgentsAdapter(AegisAgent):
+class DeepAgentsAdapter:
     """
     DeepAgents Native Governance Adapter.
 
-    Integrates Aegis proactive verification, in-process AST delta compiler,
-    and self-correction remediation loop natively into DeepAgents execution agents.
+    Composes an AegisAgent to integrate Aegis proactive verification,
+    in-process AST delta compiler, and self-correction remediation loop
+    natively into DeepAgents execution agents.
     """
 
     def __init__(
@@ -37,11 +38,33 @@ class DeepAgentsAdapter(AegisAgent):
         else:
             loaded_rules = rules
 
-        super().__init__(
+        self._agent = AegisAgent(
             rules=loaded_rules,
             workspace_root=workspace_root,
             evaluation_service=evaluation_service,
         )
+
+    def verify_plan(
+        self, proposed_imports: list[str], target_module: str
+    ) -> dict[str, Any]:
+        """Proactively verify planning intent before code generation."""
+        return self._agent.verify_plan(proposed_imports, target_module)
+
+    def evaluate_code_delta(
+        self,
+        code_string: str,
+        language: str = "python",
+        file_path: str | None = None,
+        rules: list[Rule] | None = None,
+    ) -> dict[str, Any]:
+        """In-process AST delta evaluation before disk write."""
+        return self._agent.evaluate_code_delta(code_string, language, file_path, rules)
+
+    def execute_tool(
+        self, tool_name: str, tool_args: dict[str, Any], tool_fn: Any
+    ) -> Any:
+        """Execute tool payload through the hardened executor."""
+        return self._agent.execute_tool(tool_name, tool_args, tool_fn)
 
     def run_governed_agent_loop(
         self,
@@ -78,7 +101,11 @@ class DeepAgentsAdapter(AegisAgent):
                             "feedback": feedback,
                         }
                     )
-                    current_prompt = f"{initial_request}\n\n[AEGIS GOVERNANCE REJECTION - PRE-FLIGHT PLAN]\n{feedback}"
+                    current_prompt = (
+                        f"{initial_request}\n\n"
+                        "[AEGIS GOVERNANCE REJECTION - PRE-FLIGHT PLAN]\n"
+                        f"{feedback}"
+                    )
                     continue
 
             # Step 3: In-Memory AST Delta Compiler
@@ -96,7 +123,11 @@ class DeepAgentsAdapter(AegisAgent):
                         "remediation": remediation,
                     }
                 )
-                current_prompt = f"{initial_request}\n\n[AEGIS GOVERNANCE INTERVENTION]\n{remediation}"
+                current_prompt = (
+                    f"{initial_request}\n\n"
+                    "[AEGIS GOVERNANCE INTERVENTION]\n"
+                    f"{remediation}"
+                )
                 continue
 
             # Step 4: Sealed Tool Execution

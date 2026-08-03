@@ -97,14 +97,34 @@ class GovernedExecutionGraph:
         return {**state, "governance_valid": True}
 
 
-class LangGraphAdapter(GovernedExecutionGraph):
+class LangGraphAdapter:
     """
     LangGraph Ecosystem Adapter for Aegis Runtime.
 
-    Wraps GovernedExecutionGraph for native LangGraph StateGraph
+    Composes a GovernedExecutionGraph for native LangGraph StateGraph
     integration. Provides framework-specific state management
     and graph topology configuration.
     """
+
+    def __init__(
+        self,
+        rules: list[Rule],
+        workspace_root: str = ".",
+        evaluation_service: EvaluationService | None = None,
+    ):
+        self._graph = GovernedExecutionGraph(
+            rules=rules,
+            workspace_root=workspace_root,
+            evaluation_service=evaluation_service,
+        )
+
+    def run_step(
+        self, state: AegisState, tool_fn: Callable[..., Any] | None = None
+    ) -> AegisState:
+        """
+        Executes a single state transition through the governed graph topology.
+        """
+        return self._graph.run_step(state, tool_fn)
 
     def build_state_graph(self):
         """
@@ -116,9 +136,9 @@ class LangGraphAdapter(GovernedExecutionGraph):
         from aegis.runtime.state import AegisState
 
         graph = StateGraph(AegisState)
-        graph.add_node("plan_verifier", self.plan_verifier)
-        graph.add_node("enforcement", self.enforcement_node)
-        graph.add_node("final_gate", self.final_gate)
+        graph.add_node("plan_verifier", self._graph.plan_verifier)
+        graph.add_node("enforcement", self._graph.enforcement_node)
+        graph.add_node("final_gate", self._graph.final_gate)
         graph.set_entry_point("plan_verifier")
         graph.add_conditional_edges(
             "plan_verifier",

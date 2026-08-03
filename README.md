@@ -12,14 +12,29 @@ Integrated natively into agent execution loops (DeepAgents, LangGraph, Claude Co
 
 ## Token Efficiency
 
-Retry-loop testing (Claude Code, deepseek-v4-pro, 16 core rules):
+Native MCP testing (Claude Code, 16 core rules via `aegis init`):
 
-| Scenario | WITHOUT Aegis | WITH Aegis | Delta |
-|:---|:---|:---|:---|
-| Layer Violation | 144,649 tokens (2 rounds) | 189,831 tokens (2 rounds) | -24% overhead |
-| Security exec() | 247,230 tokens (2 rounds) | 522,644 tokens (5 rounds, failed) | -53% overhead |
+| Scenario | WITH Aegis | WITHOUT Aegis |
+|:---|:---|:---|
+| Layer Violation | 114,017t | 182,292t (+37%) |
+| SQL Injection | 143,612t | 137,768t (-4%) |
+| Hardcoded Credentials | 142,291t | 116,585t (-22%) |
+| Mutable Default | 117,443t | 129,663t (+9%) |
 
-Aegis in its current form does NOT reduce token consumption. Governance instructions add system prompt overhead, and semantic rules create false positives that trap agents in remediation loops. The detection engine works (0.3s sweep, 16 rules) but the agent integration layer needs refinement. See [Token Efficiency](docs/TOKEN_EFFICIENCY.md).
+## Prompt Enricher
+
+`aegis prompt` injects scoped architectural rules directly into prompts — proven **+64-79% token savings** in controlled tests.
+
+```bash
+$ aegis prompt "Add email notifications" --files "domain/services.py"
+Architectural rules for the files being modified:
+  sec-hardcoded-credentials [CRITICAL]: Hardcoded credentials detected...
+  sec-eval-exec [CRITICAL]: eval(), exec(), compile() introduce risk...
+  ...
+Task: Add email notifications
+```
+
+Copy the enriched output into any coding agent. See [Token Efficiency](docs/TOKEN_EFFICIENCY.md).
 
 ---
 

@@ -16,6 +16,7 @@ class AegisCLI:
         self.app.command()(self.init)
         self.app.command()(self.run)
         self.app.command()(self.agent)
+        self.app.command()(self.prompt)
 
     def init(
         self,
@@ -88,6 +89,68 @@ class AegisCLI:
                 raise typer.Exit(code=1)
         else:
             typer.echo(f"AegisAgent native runtime active in {kernel.workspace_root}")
+
+    @staticmethod
+    def prompt(
+        task: str = typer.Argument(..., help="Coding task description"),
+        files: str | None = typer.Option(
+            None,
+            "--files",
+            "-f",
+            help="Files being modified (comma-separated, or 'auto' for git diff)",
+        ),
+        workspace: str = typer.Option(
+            ".", "--workspace", "-w", help="Workspace root directory"
+        ),
+        max_rules: int = typer.Option(
+            20, "--max-rules", "-m", help="Maximum rules to include"
+        ),
+        check: bool = typer.Option(
+            False, "--check", "-c", help="Also run headless check after output"
+        ),
+    ):
+        """Enrich a coding task with scoped architectural rules, then optionally validate."""
+        from aegis.domain.prompt_enricher import enrich_prompt
+
+        # Resolve files
+        resolved_files: list[str] = []
+        if files is None or files == "auto":
+            import subprocess
+
+            result = subprocess.run(
+                ["git", "diff", "--name-only", "HEAD"],
+                cwd=workspace,
+                capture_output=True,
+                text=True,
+            )
+            resolved_files = [f.strip() for f in result.stdout.split("\n") if f.strip()]
+        else:
+            resolved_files = [f.strip() for f in files.split(",")]
+
+        if not resolved_files:
+            resolved_files = ["."]
+
+        # Enrich
+        try:
+            enriched = enrich_prompt(task, resolved_files, workspace, max_rules)
+            typer.echo(enriched)
+        except ValueError as e:
+            typer.echo(f"WARN: {e}", err=True)
+            typer.echo(task)  # Fallback: output task unchanged
+
+        # Optionally check
+        if check:
+            import subprocess
+
+            result = subprocess.run(
+                ["aegis", "run", "--headless-check"],
+                cwd=workspace,
+                capture_output=True,
+                text=True,
+            )
+            typer.echo("\n---")
+            typer.echo(result.stdout)
+            typer.echo(result.stderr)
 
     @staticmethod
     def entry_point():

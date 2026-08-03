@@ -57,6 +57,25 @@ class AgentNativeInstaller:
                     errors.extend(h.deploy_skills_local(workspace_path))
                 errors.extend(h.deploy_workspace_instructions(str(workspace_path)))
 
+        # Deploy AGENTS.md with mandatory governance protocol
+        self.generate_agents_template(str(workspace_path))
+
+        # Deploy core rule packs so check_architecture has rules to enforce
+        if not instructions_only:
+            from aegis.domain.policy.pack_manager import RulePackManager
+
+            rules_dir = workspace_path / ".aegis" / "rules"
+            manager = RulePackManager(str(rules_dir))
+            core_packs = ["architecture", "security", "best-practices"]
+            installed = manager.install_defaults(core_packs)
+            if installed:
+                print(
+                    f"[Aegis] Deployed {len(installed)} rule packs: "
+                    f"{', '.join(installed)}"
+                )
+            else:
+                print("[Aegis] WARN: No rule packs deployed")
+
         if errors:
             print("[Aegis] Init completed with warnings:")
             for e in errors:

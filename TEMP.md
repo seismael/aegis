@@ -1,120 +1,71 @@
-# Aegis Native Agent Engine: Architecture & Technical Specification
+You have hit the exact nail on the head. The reason you are feeling "lost" or "confused" is because you are currently trying to test your **"Native Agent"** theory using a **"Disconnected MCP Bridge"**—and the bridge is broken because the installer isn't putting the "fuel" (the rules) in the tank.
 
-> **Canonical Source of Truth** for Aegis Agentic Governance Runtime SDK.
+Let’s be very clear about why this is happening and how to fix it so you can finally get clean, successful test results.
 
----
+### 1. The Disconnect: Why Testing Feels "Off"
 
-## 1. Executive Overview & Core Governance Philosophy
+You are currently testing via `MCP` (a wrapper). When `aegis init` runs, it sets up the "plumbing" (the MCP server configuration), but it fails to deploy the "content" (the `.aegis/rules/` folders).
 
-Aegis is an **Agent-Native Architectural Runtime Engine & Governance SDK** that transforms software governance from a reactive post-hoc check into a **Proactive, Correct-by-Construction Execution Primitive**.
-
-### The Shift from Reactive to Proactive Governance
-
-| Metric | Traditional Reactive Governance | Aegis Proactive Native Engine |
-| :--- | :--- | :--- |
-| **Execution Point** | Post-generation (Scans files on disk after write) | **Pre-flight & In-Memory Delta** (Validates plan/code before disk write) |
-| **Token Efficiency** | Low (Consumes tokens generating non-compliant code, then retrying) | **Optimal** (Halts bad intent at Plan Gate, saving ~90% of token tax) |
-| **Runtime Overhead** | Network/IPC latency or manual human checks | **Microseconds** (In-process Python/Tree-sitter AST delta evaluation) |
-| **Integration** | Optional external tool call | **Native Execution Invariant** (Baked into agent `StateGraph` & `ToolExecutor`) |
-| **Maintainability** | High drift debt (if hard-forking frameworks) | **Zero Drift Debt** (Native Extension Pattern via inheritance & DI) |
+**The result:** The agent calls `check_architecture`, the MCP server checks for rules, finds an empty directory, returns `0 violations`, and the agent proceeds blindly. **You aren't testing Aegis governance; you are testing a "governance bypass."**
 
 ---
 
-## 2. Target Modular Directory Structure
+### 2. The Solution: Hardening the Installer
 
-```text
-/src/aegis/
-├── agent.py            # Unified Factory Entry Point (create_aegis_agent)
-├── core/               # Framework-Agnostic Core Engine
-│   ├── registry.py     # Pydantic Policy Registry & Loader
-│   ├── parser.py       # Pure AST-Delta Compiler (TreeSitterAnalyzer)
-│   ├── baseline.py     # Debt Ledger Baseline Manager
-│   └── scoping.py      # Path Component Scope Filtering
-├── runtime/            # Agentic Runtime Glue
-│   ├── state.py        # AegisState & GovernanceContext schemas
-│   ├── nodes.py        # AegisEnforcementNode, AegisPlanVerifier, AegisFinalGate
-│   ├── executor.py     # NativeAegisExecutor (Sealed I/O Interceptor)
-│   └── wrappers.py     # aegis_hardened_tool decorator
-├── domain/             # Domain Intelligence & Feedback Loops
-│   ├── synthesizer.py  # RemediationPromptSynthesizer
-│   ├── evaluation_service.py # EvaluationService orchestrator
-│   ├── scorecard.py    # Health Scorecard generator
-│   └── telemetry.py    # Telemetry recorder
-└── adapters/           # Ecosystem & Platform Adapters
-    ├── deepagents.py   # DeepAgentsAdapter
-    ├── langgraph.py    # LangGraphAdapter
-    └── mcp.py          # FastMCP Microkernel Adapter (AegisKernel)
+This is a **major bug in your infrastructure layer** that must be fixed for testing to be valid. You don't need a total refactor for this part, just an immediate fix to your installer.
+
+**Add this logic to `src/aegis/infrastructure/installer.py`:**
+
+```python
+# Fix in src/aegis/infrastructure/installer.py
+def init_workspace(target_path: str):
+    # ... existing setup ...
+    
+    # NEW: Automatically install Rule Packs
+    rule_manager = RulePackManager()
+    rule_manager.install_all_default_packs(target_path)
+    
+    # Log to verify
+    print(f"✅ Governance rules installed to {target_path}/.aegis/rules/")
+
 ```
 
----
-
-## 3. Structural Architecture & Execution Pipeline
-
-```
-                                  Agent Intent / User Request
-                                               │
-                                               ▼
-                                 ┌───────────────────────────┐
-                                 │   AegisPlanVerifier       │  ◄── 1. Proactive Pre-Flight Gate
-                                 │  (Plan / Intent Check)    │      (PolicyParser + GraphAnalyzer)
-                                 └─────────────┬─────────────┘
-                                               │
-                                 ┌─────────────┴─────────────┐
-                                 │   Plan Approved / Valid   │
-                                 └─────────────┬─────────────┘
-                                               │
-                                               ▼
-                                 ┌───────────────────────────┐
-                                 │   Code Generation / Delta │
-                                 └─────────────┬─────────────┘
-                                               │
-                                               ▼
-                                 ┌───────────────────────────┐
-                                 │   AegisEnforcementNode    │  ◄── 2. In-Memory AST Delta Gate
-                                 │  (Code Delta Compiler)    │      (EvaluationService + Baseline)
-                                 └─────────────┬─────────────┘
-                                               │
-                                 ┌─────────────┴─────────────┐
-                                 │   NativeAegisExecutor     │  ◄── 3. Sealed Tool Execution
-                                 │  (Hardened I/O Interceptor)│     (Blocks Non-Compliant Disk Write)
-                                 └─────────────┬─────────────┘
-                                               │
-                                               ▼
-                                  FileSystem / Workspace Write
-```
+If you don't do this, you will never achieve valid test data, because the agent will always report "Success" simply because it has no rules to fail.
 
 ---
 
-## 4. Phase-by-Phase Technical Blueprint
+### 3. Reconciling "Native Engine" vs. "MCP Testing"
 
-### Phase I: Domain Core Extraction (`aegis.core`)
-- Pure Python domain logic with zero dependencies on agent orchestration frameworks.
-- [registry.py](file:///c:/dev/projects/aegis/src/aegis/core/registry.py): `RegistryLoader` and Pydantic `Rule` policy definitions.
-- [parser.py](file:///c:/dev/projects/aegis/src/aegis/core/parser.py): `TreeSitterAnalyzer` for in-memory AST delta evaluation.
-- [baseline.py](file:///c:/dev/projects/aegis/src/aegis/core/baseline.py): `BaselineManager` for debt management.
+I need to clarify the relationship between what we designed (The Native Engine) and what you are doing now (MCP Testing).
 
-### Phase II: Native Runtime Integration (`aegis.runtime`)
-- [state.py](file:///c:/dev/projects/aegis/src/aegis/runtime/state.py): Defines `AegisState` extending `AgentState` with `governance_context`.
-- [nodes.py](file:///c:/dev/projects/aegis/src/aegis/runtime/nodes.py): Implements `AegisPlanVerifier`, `AegisEnforcementNode`, and `AegisFinalGate`.
-- [executor.py](file:///c:/dev/projects/aegis/src/aegis/runtime/executor.py): Implements `NativeAegisExecutor` to block non-compliant tool mutations.
+* **The Goal (The Native Engine):** This is the "Pattern A" architecture we finalized. It requires NO MCP server. It is built by injecting nodes into the `DeepAgents` graph. This is the **final, native, high-performance state.**
+* **The Current Reality (The Testing Harness):** You are using MCP as a temporary testing harness because it's easier to verify "if the agent is listening" via a CLI command.
 
-### Phase III: The Self-Correction Loop (`aegis.domain`)
-- [synthesizer.py](file:///c:/dev/projects/aegis/src/aegis/domain/synthesizer.py): Converts `ArchitecturalViolation` objects into structured LLM remediation prompts.
+**The confusion is here:** You are trying to test the *Ultimate Native Engine* using an *MCP-Wrapper* that isn't fully configured.
 
-### Phase IV: Universal Agent Factory (`src/aegis/agent.py`)
-- Single entry point `create_aegis_agent(model=None, tools=None, rules=None, workspace_root=".")`.
+**My Advice:**
 
-### Phase V: Platform Adapters (`aegis.adapters`)
-- [deepagents.py](file:///c:/dev/projects/aegis/src/aegis/adapters/deepagents.py): `DeepAgentsAdapter`.
-- [langgraph.py](file:///c:/dev/projects/aegis/src/aegis/adapters/langgraph.py): `LangGraphAdapter`.
-- [mcp.py](file:///c:/dev/projects/aegis/src/aegis/adapters/mcp.py): `MCPAdapter` / FastMCP server (`AegisKernel`).
+1. **Stop trying to make the MCP tool "perfect" right now.** It is a testing harness, not the product.
+2. **Fix the Installer (as noted above).** This will solve your "0 violations" problem immediately.
+3. **Start the Pattern A Refactor.** Stop testing the MCP integration and start implementing the `AegisEnforcementNode` inside your `DeepAgents` graph. Once that is done, you won't need to "manually copy rules" or rely on MCP configurations; the governance will be a **compiled part of the agent**.
 
 ---
 
-## 5. Architectural Guarantees & Status Verification Matrix
+### 4. Does your Report address this?
 
-| Question | Verification Status | Rationale |
-| :--- | :--- | :--- |
-| **Is it "After-Build" compliance?** | **No** | It is **Correct-by-Construction** compliance. Intent, plans, and AST deltas are governed before disk write. |
-| **Is it Native?** | **Yes** | Integrated as first-class nodes (`AegisPlanVerifier`, `AegisEnforcementNode`) in the execution graph. |
-| **Is it Efficient?** | **Yes** | Microsecond-latency AST checks replace token-heavy LLM validation loops. |
+Your report is excellent, but it **misses one critical instruction**: **The Rules must be "Injected" at initialization.**
+
+If you follow your report exactly, you will still have the "Empty Rules" problem. I recommend adding this mandatory step to your `Phase 3: Fix agent.py factory signature`:
+
+> **"Update `agent.py` / `create_aegis_agent` to automatically invoke `RulePackManager.install()` on the `workspace_root` during agent initialization. This ensures governance is 'Always-On' and cannot be bypassed by an empty directory."**
+
+### Final Verdict:
+
+You are not missing the guidance; you are experiencing the **"Implementation Gap."** You have designed a Ferrari (the Native Agent Engine), but you are currently trying to drive it on a track made for a bicycle (the incomplete MCP installer).
+
+**The fix:**
+
+1. Apply the `RulePackManager` fix to `installer.py` *now*.
+2. Stop worrying about "MCP tool registration" and start building the `AegisEnforcementNode`. That is the *actual* product.
+
+**Do you want to see the specific code to `RulePackManager.install()` so we can delete this manual testing headache once and for all?**
